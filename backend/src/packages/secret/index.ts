@@ -1,9 +1,12 @@
 export default class AppSecrets {
     port: number;
-
+    clientOrigin: string
+    cookieSecret: string
 
     constructor() {
         this.port = this.getEnvironmentVariableAsNumber("PORT", 5000);
+        this.clientOrigin = this.getEnvironmentVariableOrFallback("CLIENT_ORIGIN", "localhost:3000")
+        this.cookieSecret = this.getEnvironmentVariable("COOKIE_SECRET")
     }
 
     getEnvironmentVariable(key: string): string {
