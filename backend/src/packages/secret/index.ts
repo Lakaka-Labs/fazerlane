@@ -1,12 +1,58 @@
+export type PostgresCredentials = {
+    user: string
+    password: string
+    db: string
+    host: string
+    port: number
+    ssl: boolean
+}
+
+export type GoogleOAuthCredentials = {
+    id: string
+    secret: string
+    callbackUrl: string
+}
+
 export default class AppSecrets {
     port: number;
     clientOrigin: string
+    cookieExpires: number
     cookieSecret: string
+    jwtExpires: number
+    jwtSecret: string
+    refreshJWTExpires: number
+    refreshJWTSecret: string
+
+    postgresCredentials: PostgresCredentials
+    googleOAuthCredentials: GoogleOAuthCredentials
+
+
 
     constructor() {
         this.port = this.getEnvironmentVariableAsNumber("PORT", 5000);
         this.clientOrigin = this.getEnvironmentVariableOrFallback("CLIENT_ORIGIN", "localhost:3000")
+        this.cookieExpires = this.getEnvironmentVariableAsNumber("COOKIE_EXPIRES", 604_800);
         this.cookieSecret = this.getEnvironmentVariable("COOKIE_SECRET")
+        this.jwtExpires = this.getEnvironmentVariableAsNumber("JWT_EXPIRES", 604_800);
+        this.jwtSecret = this.getEnvironmentVariable("JWT_SECRET");
+        this.refreshJWTExpires = this.getEnvironmentVariableAsNumber("REFRESH_JWT_EXPIRES", 2592000);
+        this.refreshJWTSecret = this.getEnvironmentVariable("REFRESH_JWT_SECRET");
+
+        this.postgresCredentials = {
+            user: this.getEnvironmentVariable("POSTGRES_USER"),
+            password: this.getEnvironmentVariable("POSTGRES_PASSWORD"),
+            db: this.getEnvironmentVariable("POSTGRES_DB"),
+            host: this.getEnvironmentVariable("POSTGRES_HOST"),
+            port: this.getEnvironmentVariableAsNumber("POSTGRES_PORT", 5432),
+            ssl: this.getEnvironmentVariableAsBool("POSTGRES_SSL", false)
+        }
+
+        this.googleOAuthCredentials = {
+            id: this.getEnvironmentVariable("GOOGLE_CLIENT_ID"),
+            secret: this.getEnvironmentVariable("GOOGLE_CLIENT_SECRET"),
+            callbackUrl: this.getEnvironmentVariable("GOOGLE_CLIENT_CALLBACK_URL"),
+        }
+
     }
 
     getEnvironmentVariable(key: string): string {

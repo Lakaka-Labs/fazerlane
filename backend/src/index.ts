@@ -1,13 +1,25 @@
 import AppSecrets from "./packages/secret";
 import Ports from "./internals/port";
+import Adapters from "./internals/adapters";
+import {postgresClientConnection} from "./packages/utils/connections.ts";
+import Services from "./internals/services";
 
-class FazerlineBackend {
-    private readonly appSecrets: AppSecrets
+class FazerlaneBackend {
+    adapters: Adapters
+    services: Services
     port: Ports
 
     constructor() {
-        this.appSecrets = new AppSecrets()
-        this.port = new Ports(this.appSecrets)
+        const appSecrets = new AppSecrets()
+        const postgresClient = postgresClientConnection(appSecrets.postgresCredentials)
+
+
+        this.adapters = new Adapters({
+            appSecrets,
+            postgresClient
+        })
+        this.services = new Services(this.adapters)
+        this.port = new Ports(appSecrets, this.services)
     }
 
     run() {
@@ -15,5 +27,5 @@ class FazerlineBackend {
     }
 }
 
-const fazerlineBackend = new FazerlineBackend()
-fazerlineBackend.run()
+const fazerlaneBackend = new FazerlaneBackend()
+fazerlaneBackend.run()
