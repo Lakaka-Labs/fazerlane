@@ -2,7 +2,6 @@ import { SQL } from "bun";
 import type {PostgresCredentials} from "../secret";
 
 export const postgresClientConnection = (postgresCredentials: PostgresCredentials): SQL =>{
-    console.log(postgresCredentials.db)
     return new SQL({
         host: postgresCredentials.host,
         port: postgresCredentials.port,

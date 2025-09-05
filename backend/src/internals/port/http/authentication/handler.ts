@@ -9,7 +9,7 @@ import type Payload from "../../../../packages/types/payload";
 import {SuccessResponseWithCookies} from "../../../../packages/responses/success.ts";
 import type Cookie from "../../../../packages/types/cookies";
 import type {User} from "../../../domain/user";
-import {Authorize} from "../middlewares/authorization.ts";
+import {Authorize, AuthorizeRefreshToken} from "../middlewares/authorization.ts";
 import type AppSecrets from "../../../../packages/secret";
 
 export default class AuthenticationHandler {
@@ -36,7 +36,6 @@ export default class AuthenticationHandler {
         })
 
         this.configureRoutes()
-
     }
 
     private configureRoutes() {
@@ -51,12 +50,16 @@ export default class AuthenticationHandler {
             this.oauthCallback
         )
 
-        this.router.get('/test', Authorize(this.authenticationService), (req: Request, res: Response) => {
-            res.json({user: req.user});
-        });
+        this.router.get(
+            '/token/refresh',
+            AuthorizeRefreshToken(this.authenticationService),
+            this.generateNewToken
+        );
+        this.router.get(
+            '/token/clear',
+            this.logout
+        );
     }
-
-
 
     oauthCallback = async (req: Request, res: Response) => {
         let user = req.user as User;
@@ -66,7 +69,7 @@ export default class AuthenticationHandler {
         }
         const payload: Payload = {id: user.id};
         const token = generateJWTToken(payload);
-        const refreshToken = generateRefreshJWTToken(user);
+        const refreshToken = generateRefreshJWTToken(payload);
         const cookie: Cookie[] = [
             {
                 key: "token",
@@ -78,4 +81,25 @@ export default class AuthenticationHandler {
         ];
         new SuccessResponseWithCookies(res, cookie, {jwt: token, user}).send();
     };
+
+    generateNewToken = async (req: Request, res: Response) => {
+        let user = req.user as User;
+        user = await this.authenticationService.queries.getDetails.handle({id: user.id})
+        if (!user) {
+            throw new ForbiddenError("login again")
+        }
+        const payload: Payload = {id: user.id};
+        const token = generateJWTToken(payload);
+        const cookie: Cookie[] = [
+            {
+                key: "token",
+                value: token,
+            }
+        ];
+        new SuccessResponseWithCookies(res, cookie, {jwt: token, user}).send();
+    }
+
+    logout = async (req: Request, res: Response) => {
+        new SuccessResponseWithCookies(res, [], {message: "logged out"}).logout()
+    }
 }

@@ -7,8 +7,10 @@ export type AdapterParameters = {
     postgresClient: SQL
     appSecrets: AppSecrets
 }
+
 export default class Adapters {
     userRepository: UserRepository
+
     constructor(parameters: AdapterParameters) {
         this.userRepository = new UserRepositoryPG(parameters.postgresClient)
     }

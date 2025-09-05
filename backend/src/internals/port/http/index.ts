@@ -61,7 +61,6 @@ export default class HTTPPort {
         })
     }
 
-
     authentication = () => {
         const router = new AuthenticationHandler(this.services.authenticationService, this.applicationSecret);
         this.server.use("/auth", router.router);

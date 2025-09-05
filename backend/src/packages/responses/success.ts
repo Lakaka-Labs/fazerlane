@@ -10,7 +10,7 @@ export class SuccessResponse {
     constructor(res: Response, data?: any, metadata?: any) {
         this.response = res;
         this.success = {
-            statusCode: StatusCodes.OK,
+            statusCode: res.statusCode,
             message: "success",
         };
 
@@ -51,7 +51,7 @@ export class SuccessResponseWithCookies {
         this.response = res;
         this.cookie = cookie;
         this.success = {
-            statusCode: StatusCodes.OK,
+            statusCode: res.statusCode,
             message: "success",
         };
         if (data !== null && data !== undefined) {
@@ -83,6 +83,18 @@ export class SuccessResponseWithCookies {
         }
         this.response.status(this.success.statusCode)
             .json(this.success);
+    }
+
+    logout = () => {
+        this.response.cookie("token", "", {
+            signed: true,
+            maxAge: 0,
+            httpOnly: false,
+        }).cookie("refreshToken", "", {
+            signed: true,
+            maxAge: 0,
+            httpOnly: false,
+        }).json(this.success)
     }
 }
 
