@@ -108,7 +108,7 @@ export default class UserRepositoryPG implements Repository {
 
         // If no conditions provided, throw error or return null
         if (conditions.length === 0) {
-            throw new Error('At least one search parameter must be provided');
+            throw new NotFoundError('At least one search parameter must be provided');
         }
 
         // Join conditions with AND
@@ -120,7 +120,7 @@ export default class UserRepositoryPG implements Repository {
         });
 
         const userData = {
-            ...(user.username && {username: user.username})
+            username: user.username
         };
 
         const result = await this.sql`
