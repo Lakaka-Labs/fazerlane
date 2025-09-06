@@ -87,59 +87,64 @@ export default class UserRepositoryPG implements Repository {
         };
     };
 
-    async update(user: Omit<User, "createdAt" | "updatedAt">): Promise<User> {
-        const conditions: any[] = [];
-
-        if (user.id) {
-            conditions.push(this.sql`id = ${user.id}`);
+    async update(user: Omit<User, "createdAt" | "updatedAt">): Promise<User | void> {
+        const updateParameters = {
+            ...({username: user.username}),
         }
 
-        if (user.email) {
-            conditions.push(this.sql`email = ${user.email}`);
-        }
 
-        if (user.googleId) {
-            conditions.push(this.sql`google_id = ${user.googleId}`);
-        }
+        if (updateParameters.username){
+            const conditions: any[] = [];
 
-        if (user.username) {
-            conditions.push(this.sql`username = ${user.username}`);
-        }
-
-        // If no conditions provided, throw error or return null
-        if (conditions.length === 0) {
-            throw new NotFoundError('At least one search parameter must be provided');
-        }
-
-        // Join conditions with AND
-        const whereClause = conditions.reduce((acc, condition, index) => {
-            if (index === 0) {
-                return condition;
+            if (user.id) {
+                conditions.push(this.sql`id = ${user.id}`);
             }
-            return this.sql`${acc} AND ${condition}`;
-        });
 
-        const userData = {
-            username: user.username
-        };
+            if (user.email) {
+                conditions.push(this.sql`email = ${user.email}`);
+            }
 
-        const result = await this.sql`
+            if (user.googleId) {
+                conditions.push(this.sql`google_id = ${user.googleId}`);
+            }
+
+            if (user.username) {
+                conditions.push(this.sql`username = ${user.username}`);
+            }
+
+            // If no conditions provided, throw error or return null
+            if (conditions.length === 0) {
+                throw new NotFoundError('User not found');
+            }
+
+            // Join conditions with AND
+            const whereClause = conditions.reduce((acc, condition, index) => {
+                if (index === 0) {
+                    return condition;
+                }
+                return this.sql`${acc} AND ${condition}`;
+            });
+
+
+
+            const result = await this.sql`
             UPDATE users
-            SET ${this.sql(userData)}
+            SET ${this.sql(updateParameters)}
             WHERE ${whereClause}
                 RETURNING id, email, google_id, username
         `;
-        
-        const updatedUser = result.rows[0];
 
-        return {
-            id: updatedUser.id,
-            email: updatedUser.email,
-            googleId: updatedUser.google_id,
-            username: updatedUser.username,
-            createdAt: updatedUser.created_at,
-            updatedAt: updatedUser.updated_at
-        };
+            const updatedUser = result.rows[0];
+
+            return {
+                id: updatedUser.id,
+                email: updatedUser.email,
+                googleId: updatedUser.google_id,
+                username: updatedUser.username,
+                createdAt: updatedUser.created_at,
+                updatedAt: updatedUser.updated_at
+            };
+        }
     };   
     
     async delete(user: Omit<User, "createdAt" | "updatedAt">): Promise<void> {
