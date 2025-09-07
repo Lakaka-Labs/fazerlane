@@ -1,7 +1,7 @@
 import AppSecrets from "./packages/secret";
 import Ports from "./internals/port";
 import Adapters from "./internals/adapters";
-import {postgresClientConnection} from "./packages/utils/connections.ts";
+import {bunPostgresClientConnection, ioRedisClient} from "./packages/utils/connections.ts";
 import Services from "./internals/services";
 
 class FazerlaneBackend {
@@ -11,12 +11,13 @@ class FazerlaneBackend {
 
     constructor() {
         const appSecrets = new AppSecrets()
-        const postgresClient = postgresClientConnection(appSecrets.postgresCredentials)
-
+        const postgresClient = bunPostgresClientConnection(appSecrets.postgresCredentials)
+        const redisClient = ioRedisClient(appSecrets.redisCredentials)
 
         this.adapters = new Adapters({
             appSecrets,
-            postgresClient
+            postgresClient,
+            redisClient
         })
         this.services = new Services(this.adapters)
         this.port = new Ports(appSecrets, this.services)

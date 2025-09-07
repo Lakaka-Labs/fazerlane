@@ -6,6 +6,13 @@ export type PostgresCredentials = {
     port: number
     ssl: boolean
 }
+export type RedisCredentials = {
+    user: string
+    password: string
+    host: string
+    port: number
+    maxRetriesPerRequest: number | null
+}
 
 export type GoogleOAuthCredentials = {
     id: string
@@ -24,8 +31,8 @@ export default class AppSecrets {
     refreshJWTSecret: string
 
     postgresCredentials: PostgresCredentials
+    redisCredentials: RedisCredentials
     googleOAuthCredentials: GoogleOAuthCredentials
-
 
 
     constructor() {
@@ -45,6 +52,15 @@ export default class AppSecrets {
             host: this.getEnvironmentVariable("POSTGRES_HOST"),
             port: this.getEnvironmentVariableAsNumber("POSTGRES_PORT", 5432),
             ssl: this.getEnvironmentVariableAsBool("POSTGRES_SSL", false)
+        }
+
+        this.redisCredentials = {
+            user: this.getEnvironmentVariable("REDIS_USER"),
+            password: this.getEnvironmentVariable("REDIS_PASSWORD"),
+            host: this.getEnvironmentVariable("REDIS_HOST"),
+            port: this.getEnvironmentVariableAsNumber("REDIS_PORT", 6379),
+            maxRetriesPerRequest: this.getEnvironmentVariableAsNumber("REDIS_MAX_RETRIES", -1) == -1
+                ? null : this.getEnvironmentVariableAsNumber("REDIS_MAX_RETRIES", -1)
         }
 
         this.googleOAuthCredentials = {

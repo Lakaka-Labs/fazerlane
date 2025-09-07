@@ -19,9 +19,28 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    restart: unless-stopped
+    ports:
+      - ${REDIS_PORT}:6379
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redisData:/data
+    networks:
+      - fazerlane_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+      timeout: 2s
+      retries: 10
 volumes:
   postgres_data:
+  redisData:
 
 networks:
   fazerlane_network:
