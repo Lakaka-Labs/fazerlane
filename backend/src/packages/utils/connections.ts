@@ -12,10 +12,8 @@ export const bunPostgresClientConnection = (credentials: PostgresCredentials): S
         tls: credentials.ssl,
 
         onconnect: client => {
-            console.log("Connected to PostgreSQL");
         },
         onclose: client => {
-            console.log("PostgreSQL connection closed");
         },
     });
 }

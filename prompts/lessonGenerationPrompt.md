@@ -5,28 +5,14 @@
 A complete phase object containing:
 ```json
 {
-    "phase_goal": "Master foundational body mechanics and basic hippy jump execution",
-    "description": "This phase focuses on establishing correct foot placement, initiating a straight hippy jump while keeping the board flat, and optimizing upper body hinging for maximum jump power.",
-    "estimated_duration": "2-3 hours (across 2-3 daily practice sessions)",
-    "recommended_resources": [
-      {
-        "resource_title": "Understanding the Ollie Complex: Hippy Jump Basics",
-        "segment_id": 2
-      },
-      {
-        "resource_title": "Achieving Proper Foot Placement for Ollies",
-        "segment_id": 3
-      },
-      {
-        "resource_title": "Initiating the Hippy Jump and Maintaining Board Flatness",
-        "segment_id": 4
-      },
-      {
-        "resource_title": "Optimizing Upper Body Hinging for Jump Power",
-        "segment_id": 5
-      }
-    ]
-  }
+  "phase_goal": "Master foundational body mechanics and basic hippy jump execution",
+  "description": "This phase focuses on establishing correct foot placement, initiating a straight hippy jump while keeping the board flat, and optimizing upper body hinging for maximum jump power.",
+  "estimated_duration": "2-3 hours (across 2-3 daily practice sessions)",
+  "recommended_resources": [
+    "271e52ac-b453-428b-b955-1c6a64458df3",
+    "9871c061-a5ab-46ec-a642-b4b3819cda25"
+  ]
+}
 ```
 **Practice session schedule** "1 hour every other day"
 
@@ -283,7 +269,7 @@ Choose quiz types based on available memory insights or use variety:
     "submission_format": "video",
     "references": [
       {
-        "segment_id": "movement_integration_yt_004",
+        "segment_id": "271e52ac-b453-428b-b955-1c6a64458df3",
         "reference_location": {
           "startTime": "01:45",
           "endTime": "03:15"

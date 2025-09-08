@@ -218,10 +218,7 @@ Provide a JSON array where each phase contains:
 **Resource Reference Format:**
 When referencing resources in `recommended_resources`, use this structure:
 ```json
-{
-  "resource_title": "Title of the resource",
-  "segment_id": "The specific segment ID from the analyzed resource"
-}
+"The specific segment ID from the analyzed resource"
 ```
 
 **Example Format:**
@@ -231,16 +228,7 @@ When referencing resources in `recommended_resources`, use this structure:
     "phase_goal": "Master basic chord formations and transitions",
     "description": "Build muscle memory for fundamental open chords using proper finger positioning and develop smooth transitions between chord changes.",
     "estimated_duration": "2-3 weeks with daily 30-minute practice",
-    "recommended_resources": [
-      {
-        "resource_title": "How to Hold your guitar",
-        "segment_id": "yt_003"
-      },
-      {
-        "resource_title": "How to Hold your guitar Pick",
-        "segment_id": "yt_004"
-      }
-    ]
+    "recommended_resources": [ "271e52ac-b453-428b-b955-1c6a64458df3", "9871c061-a5ab-46ec-a642-b4b3819cda25"]
   }
 ]
 ```

@@ -33,6 +33,9 @@ export default class AppSecrets {
     postgresCredentials: PostgresCredentials
     redisCredentials: RedisCredentials
     googleOAuthCredentials: GoogleOAuthCredentials
+    googleAPIKey: string
+    maxVideoLength : number
+    baseYoutubeApiUrl : string
 
 
     constructor() {
@@ -69,6 +72,9 @@ export default class AppSecrets {
             callbackUrl: this.getEnvironmentVariable("GOOGLE_CLIENT_CALLBACK_URL"),
         }
 
+        this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
+        this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 600)
+        this.baseYoutubeApiUrl = this.getEnvironmentVariableOrFallback("BASE_YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3/videos")
     }
 
     getEnvironmentVariable(key: string): string {

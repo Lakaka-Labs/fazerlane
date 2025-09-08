@@ -3,6 +3,7 @@ import Ports from "./internals/port";
 import Adapters from "./internals/adapters";
 import {bunPostgresClientConnection, ioRedisClient} from "./packages/utils/connections.ts";
 import Services from "./internals/services";
+import {QueueName} from "./internals/domain/queue";
 
 class FazerlaneBackend {
     adapters: Adapters
@@ -20,7 +21,7 @@ class FazerlaneBackend {
             redisClient
         })
         this.services = new Services(this.adapters)
-        this.port = new Ports(appSecrets, this.services)
+        this.port = new Ports(appSecrets, this.services, this.adapters)
     }
 
     run() {

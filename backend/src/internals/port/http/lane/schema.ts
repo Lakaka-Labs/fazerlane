@@ -1,0 +1,11 @@
+import { z } from "zod";
+
+export default class LaneSchema {
+    createLaneSchema= z.object({
+        name: z.string(),
+        goal: z.string().optional(),
+        schedule: z.string().optional(),
+        experience: z.string().optional(),
+        youtubes: z.array(z.string()),
+    })
+}

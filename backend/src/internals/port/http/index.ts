@@ -10,26 +10,28 @@ import Route404 from "./middlewares/invalidRoute.ts";
 import passport from "passport";
 import AuthenticationHandler from "./authentication/handler.ts";
 import type Services from "../../services";
+import type QueueRepository from "../../domain/queue/queueRepository.ts";
+import LaneHandler from "./lane/handler.ts";
+import {Authorize} from "./middlewares/authorization.ts";
 
-export default class HTTPPort {
-    applicationSecret: AppSecrets
+export default class ExpressHTTP {
+    appSecrets: AppSecrets
     services: Services
-    server : Express
+    server: Express
     router = express.Router();
 
-    constructor(applicationSecret: AppSecrets, services: Services) {
-        this.applicationSecret = applicationSecret
+    constructor(appSecrets: AppSecrets, services: Services) {
+        this.appSecrets = appSecrets
         this.services = services
         this.server = express()
-        this.router = express.Router();
 
         // Middlewares
         this.server.use(express.json());
         this.server.use(express.urlencoded({extended: true}));
         this.server.use(helmet())
-        this.server.use(cookieParser(this.applicationSecret.cookieSecret));
+        this.server.use(cookieParser(this.appSecrets.cookieSecret));
         const corsOptions = {
-            origin: this.applicationSecret.clientOrigin,
+            origin: this.appSecrets.clientOrigin,
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: [
@@ -48,6 +50,7 @@ export default class HTTPPort {
 
         this.health()
         this.authentication()
+        this.lane()
 
         this.server.use(`/api/v1`, this.router);
 
@@ -55,20 +58,25 @@ export default class HTTPPort {
         this.server.use(ErrorHandlerMiddleware);
     }
 
-    health () {
+    health() {
         this.server.get('/health', (req, res) => {
-           return res.status(StatusCodes.OK).send("server up")
+            return res.status(StatusCodes.OK).send("server up")
         })
     }
 
     authentication = () => {
-        const router = new AuthenticationHandler(this.services.authenticationService, this.applicationSecret);
+        const router = new AuthenticationHandler(this.services.authenticationService, this.appSecrets);
         this.server.use("/auth", router.router);
     };
 
-    listen () {
-        this.server.listen(this.applicationSecret.port,()=>{
-            console.log(`Listening on port http://localhost:${this.applicationSecret.port}...`);
+    lane = () => {
+        const router = new LaneHandler(this.services.laneService);
+        this.router.use("/lane", Authorize(this.services.authenticationService), router.router);
+    };
+
+    listen() {
+        this.server.listen(this.appSecrets.port, () => {
+            console.log(`Listening on port http://localhost:${this.appSecrets.port}...`);
         })
     }
 }

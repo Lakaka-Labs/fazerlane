@@ -15,13 +15,12 @@ import type AppSecrets from "../../../../packages/secret";
 export default class AuthenticationHandler {
     authenticationService: AuthenticationService
     appSecret: AppSecrets
-    router: Router
+    router = Router()
     googleStrategy: GoogleStrategy
 
     constructor(authenticationService: AuthenticationService, appSecret: AppSecrets) {
         this.authenticationService = authenticationService
         this.appSecret = appSecret
-        this.router = Router();
         this.googleStrategy = new GoogleStrategy({
             clientID: this.appSecret.googleOAuthCredentials.id,
             clientSecret: this.appSecret.googleOAuthCredentials.secret,
@@ -79,7 +78,7 @@ export default class AuthenticationHandler {
                 value: refreshToken,
             }
         ];
-        new SuccessResponseWithCookies(res, cookie, {jwt: token, user}).send();
+        new SuccessResponseWithCookies(res, cookie, {jwt: token,refreshToken, user}).send();
     };
 
     generateNewToken = async (req: Request, res: Response) => {
