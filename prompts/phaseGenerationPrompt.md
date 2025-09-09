@@ -93,7 +93,7 @@
     "summary": "This segment details the correct upper body movement during the ollie, specifically emphasizing hinging forward from the waist rather than pulling the chest up. It explains how proper hinging allows for better power transfer from the legs, maximizing jump height for clearing obstacles.",
     "learningObjectives": [
       "Master the upper body hinging technique during the squat",
-      "Avoid pulling the chest up during the initial squat phase",
+      "Avoid pulling the chest up during the initial squat milestone",
       "Maximize leg power by directing energy downwards into the board",
       "Understand how upper body position affects jump height"
     ],
@@ -201,19 +201,19 @@
 ```
 
 **Request:**
-Create an optimal progression plan that leverages the provided resource analysis to guide learning phases. Design as many phases as needed for effective skill building, ensuring each phase:
+Create an optimal progression plan that leverages the provided resource analysis to guide learning milestones. Design as many milestones as needed for effective skill building, ensuring each milestone:
 
-1. **Maps to Available Resources:** Reference specific video segments, document chapters, or images that support each phase
+1. **Maps to Available Resources:** Reference specific video segments, document chapters, or images that support each milestone
 2. **Builds Progressively:** Use the learning objectives and summaries from resources to create logical skill progression
-3. **Maximizes Resource Utilization:** Incorporate multiple resource types per phase when beneficial
-4. **Aligns with Schedule:** Consider the depth of available material when estimating phase duration
+3. **Maximizes Resource Utilization:** Incorporate multiple resource types per milestone when beneficial
+4. **Aligns with Schedule:** Consider the depth of available material when estimating milestone duration
 
 **Output Format:**
-Provide a JSON array where each phase contains:
-- `phase_goal`: Clear, specific objective for this phase
-- `description`: Concise overview in 1-2 sentences explaining the phase focus
-- `recommended_resources`: Array of specific resources from the provided analysis that support this phase
-- `estimated_duration`: Suggested time to complete this phase based on available practice schedule and resource depth
+Provide a JSON array where each milestone contains:
+- `milestone_goal`: Clear, specific objective for this milestone
+- `description`: Concise overview in 1-2 sentences explaining the milestone focus
+- `recommended_resources`: Array of specific resources from the provided analysis that support this milestone
+- `estimated_duration`: Suggested time to complete this milestone based on available practice schedule and resource depth
 
 **Resource Reference Format:**
 When referencing resources in `recommended_resources`, use this structure:
@@ -225,7 +225,7 @@ When referencing resources in `recommended_resources`, use this structure:
 ```json
 [
   {
-    "phase_goal": "Master basic chord formations and transitions",
+    "milestone_goal": "Master basic chord formations and transitions",
     "description": "Build muscle memory for fundamental open chords using proper finger positioning and develop smooth transitions between chord changes.",
     "estimated_duration": "2-3 weeks with daily 30-minute practice",
     "recommended_resources": [ "271e52ac-b453-428b-b955-1c6a64458df3", "9871c061-a5ab-46ec-a642-b4b3819cda25"]
@@ -233,4 +233,4 @@ When referencing resources in `recommended_resources`, use this structure:
 ]
 ```
 
-**Note:** Each phase will be further broken down into specific daily lessons in follow-up prompts, incorporating the detailed transcriptions and learning objectives from the analyzed resources.
+**Note:** Each milestone will be further broken down into specific daily challenges in follow-up prompts, incorporating the detailed transcriptions and learning objectives from the analyzed resources.

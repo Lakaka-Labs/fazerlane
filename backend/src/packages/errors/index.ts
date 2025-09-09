@@ -1,6 +1,6 @@
 import {StatusCodes} from "http-status-codes";
 
-export class AppError extends Error {
+export class ApiError extends Error {
     statusCode: number;
 
     constructor(message: string) {
@@ -9,30 +9,49 @@ export class AppError extends Error {
     }
 }
 
-export class NotFoundError extends AppError {
+export class NotFoundError extends ApiError {
     constructor(message: string) {
         super(message);
         this.statusCode = StatusCodes.NOT_FOUND;
     }
 }
 
-export class BadRequestError extends AppError {
+export class BadRequestError extends ApiError {
     constructor(message: string) {
         super(message);
         this.statusCode = StatusCodes.BAD_REQUEST;
     }
 }
 
-export class UnAuthorizedError extends AppError {
+export class UnAuthorizedError extends ApiError {
     constructor(message: string) {
         super(message);
         this.statusCode = StatusCodes.UNAUTHORIZED;
     }
 }
 
-export class ForbiddenError extends AppError {
+export class ForbiddenError extends ApiError {
     constructor(message: string) {
         super(message);
         this.statusCode = StatusCodes.FORBIDDEN;
     }
 }
+
+export class DuplicateError extends Error {
+    constructor(message: string) {
+        super(message);
+    }
+}
+
+export class NothingToSegmentError extends Error {
+    constructor() {
+        super("nothing to segment");
+    }
+}
+
+export class InvalidSegmentsError extends Error {
+    constructor() {
+        super("invalid segment");
+    }
+}
+

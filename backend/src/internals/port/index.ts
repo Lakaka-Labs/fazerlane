@@ -9,7 +9,7 @@ export default class Ports {
     queuePort: BullMQueue
 
     constructor(applicationSecret: AppSecrets, services: Services, adapters: Adapters) {
-        this.httpPort = new ExpressHTTP(applicationSecret, services)
+        this.httpPort = new ExpressHTTP(applicationSecret, services,adapters)
         this.queuePort = new BullMQueue(applicationSecret, services, adapters.parameters.redisClient)
     }
 }

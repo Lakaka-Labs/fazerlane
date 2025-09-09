@@ -1,12 +1,12 @@
-**Task:** Break down the provided phase into individual daily lessons suitable for the specified practice session schedule, including mapped resource references for each lesson, while leveraging available memory context for personalized lesson generation.
+**Task:** Break down the provided milestone into individual daily challenges suitable for the specified practice session schedule, including mapped resource references for each challenge, while leveraging available memory context for personalized challenge generation.
 
 ## Input:
 
-A complete phase object containing:
+A complete milestone object containing:
 ```json
 {
-  "phase_goal": "Master foundational body mechanics and basic hippy jump execution",
-  "description": "This phase focuses on establishing correct foot placement, initiating a straight hippy jump while keeping the board flat, and optimizing upper body hinging for maximum jump power.",
+  "milestone_goal": "Master foundational body mechanics and basic hippy jump execution",
+  "description": "This milestone focuses on establishing correct foot placement, initiating a straight hippy jump while keeping the board flat, and optimizing upper body hinging for maximum jump power.",
   "estimated_duration": "2-3 hours (across 2-3 daily practice sessions)",
   "recommended_resources": [
     "271e52ac-b453-428b-b955-1c6a64458df3",
@@ -18,7 +18,7 @@ A complete phase object containing:
 
 **Memory Context (variable structure):**
 The memory context will be provided from the mem0 memory layer containing relevant information that may include:
-- Previous lessons from this specific game (particularly from earlier phases)
+- Previous challenges from this specific game (particularly from earlier milestones)
 - Relevant user performance data or completion patterns
 - User preferences or learning patterns (if available)
 - Any relevant achievements or progress indicators
@@ -96,7 +96,7 @@ The memory context will be provided from the mem0 memory layer containing releva
     "summary": "This segment details the correct upper body movement during the ollie, specifically emphasizing hinging forward from the waist rather than pulling the chest up. It explains how proper hinging allows for better power transfer from the legs, maximizing jump height for clearing obstacles.",
     "learningObjectives": [
       "Master the upper body hinging technique during the squat",
-      "Avoid pulling the chest up during the initial squat phase",
+      "Avoid pulling the chest up during the initial squat milestone",
       "Maximize leg power by directing energy downwards into the board",
       "Understand how upper body position affects jump height"
     ],
@@ -117,39 +117,39 @@ The memory context will be provided from the mem0 memory layer containing releva
 ## Memory Integration Approach:
 
 **Use available memory context to:**
-- **Avoid game-internal redundancy:** If previous lessons from this game are present in memory, ensure new lessons don't duplicate similar content
-- **Build logical progression:** Reference completed lessons from this game where relevant for continuity
-- **Apply available personalization:** Use any user preference or performance patterns found in memory to optimize lesson structure
+- **Avoid game-internal redundancy:** If previous challenges from this game are present in memory, ensure new challenges don't duplicate similar content
+- **Build logical progression:** Reference completed challenges from this game where relevant for continuity
+- **Apply available personalization:** Use any user preference or performance patterns found in memory to optimize challenge structure
 - **Maintain appropriate difficulty:** Adjust based on any skill level indicators present in memory
 
-**Important:** Work with whatever memory context is provided - don't expect comprehensive data. If limited or no relevant memory is available, create well-structured lessons using standard progression principles.
+**Important:** Work with whatever memory context is provided - don't expect comprehensive data. If limited or no relevant memory is available, create well-structured challenges using standard progression principles.
 
 ## Requirements:
 
-- Each lesson should build progressively toward the phase goal
-- Lessons must be achievable within the specified practice session schedule
-- Include clear success criteria for each lesson
-- Map lesson components (practice instructions, assignment, quizzes) to relevant resource segments
-- Create structured reference arrays that support all major lesson components
+- Each challenge should build progressively toward the milestone goal
+- challenges must be achievable within the specified practice session schedule
+- Include clear success criteria for each challenge
+- Map challenge components (practice instructions, assignment, quizzes) to relevant resource segments
+- Create structured reference arrays that support all major challenge components
 - Ensure references use appropriate location structures based on resource type
 - **Use available memory:** Leverage whatever memory context is provided for personalization and progression
 - **Smart redundancy avoidance:** Prevent duplication of content found in this game's memory (if available)
 
 ## Output Format:
 
-Provide a JSON array where each lesson contains:
+Provide a JSON array where each challenge contains:
 
-- **lesson_title:** Clear, descriptive name for the lesson (ensure uniqueness from any existing lessons found in memory)
-- **objective:** What the student should achieve by the end of this lesson
-- **prerequisite_lessons:** Array of lesson titles from memory that should be completed first (if applicable and found in memory)
-- **builds_on_context:** Brief description of how this lesson relates to or builds on information found in the memory context (if applicable)
+- **challenge_title:** Clear, descriptive name for the challenge (ensure uniqueness from any existing challenges found in memory)
+- **objective:** What the student should achieve by the end of this challenge
+- **prerequisite_challenges:** Array of challenge titles from memory that should be completed first (if applicable and found in memory)
+- **builds_on_context:** Brief description of how this challenge relates to or builds on information found in the memory context (if applicable)
 - **practice_instructions:** Array of clear, actionable instruction strings written in **markdown format** (personalized based on available memory insights)
 - **assignment:** Specific deliverable to demonstrate progress (format optimized based on memory patterns if available)
 - **submission_format:** How to submit proof of completion (choose based on memory preferences if available, or default to: "video", "images", "audio", or "text")
-- **references:** Array of resource references that support this lesson
+- **references:** Array of resource references that support this challenge
 - **quizzes:** Array of 2-4 knowledge check questions (types chosen based on available memory insights or mixed for variety)
-- **success_criteria:** Clear benchmarks to determine if the lesson is complete (adjusted based on available memory context)
-- **memory_adaptations:** Brief explanation of how this lesson was customized based on the available memory context (if no relevant memory found, state "No relevant memory context available - using standard lesson structure")
+- **success_criteria:** Clear benchmarks to determine if the challenge is complete (adjusted based on available memory context)
+- **memory_adaptations:** Brief explanation of how this challenge was customized based on the available memory context (if no relevant memory found, state "No relevant memory context available - using standard challenge structure")
 
 ## Reference Format:
 
@@ -162,7 +162,7 @@ Each reference in the references array should contain:
     "endTime": "01:30"
   },
   "reference_location_description": "Natural language description of where to find this content",
-  "reference_purpose": "Natural language explanation of how this reference supports the lesson"
+  "reference_purpose": "Natural language explanation of how this reference supports the challenge"
 }
 ```
 
@@ -237,35 +237,35 @@ Choose quiz types based on available memory insights or use variety:
 ## Memory Analysis Guidelines:
 
 **Extract Available Information:**
-- Look for any previous lessons from this game to avoid redundancy
+- Look for any previous challenges from this game to avoid redundancy
 - Identify any user preferences or successful patterns mentioned in memory
 - Note any skill level indicators or performance data
 - Find any relevant achievements or progress markers
 - Use any other contextually relevant information provided
 
 **Apply Memory Insights Flexibly:**
-- If previous game lessons exist, build logical progression and avoid duplication
-- If user preferences are available, optimize lesson format accordingly
+- If previous game challenges exist, build logical progression and avoid duplication
+- If user preferences are available, optimize challenge format accordingly
 - If performance data exists, adjust difficulty appropriately
-- If no relevant memory is available, create well-structured standard lessons
+- If no relevant memory is available, create well-structured standard challenges
 - Reference memory context naturally without forcing connections
 
 ## Example format:
 ```json
 [
   {
-    "lesson_title": "Progressive Movement Integration",
+    "challenge_title": "Progressive Movement Integration",
     "objective": "Combine static balance skills with controlled movement techniques",
-    "prerequisite_lessons": ["Static Balance Fundamentals"],
-    "builds_on_context": "Builds on completed 'Static Balance Fundamentals' lesson from earlier phase, advancing to dynamic movement while maintaining established balance principles",
+    "prerequisite_challenges": ["Static Balance Fundamentals"],
+    "builds_on_context": "Builds on completed 'Static Balance Fundamentals' challenge from earlier milestone, advancing to dynamic movement while maintaining established balance principles",
     "practice_instructions": [
-      "**Start with your established static balance position** from the previous phase",
+      "**Start with your established static balance position** from the previous milestone",
       "Introduce **gentle weight shifts** while maintaining board contact - build on your proven stability foundation",
       "Practice **controlled transitions** for 30-second intervals based on your previous successful timing patterns",
-      "Focus on **maintaining balance reference points** established in earlier lessons",
+      "Focus on **maintaining balance reference points** established in earlier challenges",
       "**Record key moments** of successful transitions for review and progress tracking"
     ],
-    "assignment": "Demonstrate controlled movement integration while maintaining balance consistency from previous lessons",
+    "assignment": "Demonstrate controlled movement integration while maintaining balance consistency from previous challenges",
     "submission_format": "video",
     "references": [
       {
@@ -291,10 +291,10 @@ Choose quiz types based on available memory insights or use variety:
         "correct_answer": false
       }
     ],
-    "success_criteria": "Successfully integrate controlled movement while maintaining 80% of static balance consistency from previous phase",
-    "memory_adaptations": "Lesson builds on identified 'Static Balance Fundamentals' from game memory, uses video submission format based on user's previous successful submissions, and references established timing patterns from earlier lessons. Difficulty calibrated based on previous lesson completion data."
+    "success_criteria": "Successfully integrate controlled movement while maintaining 80% of static balance consistency from previous milestone",
+    "memory_adaptations": "challenge builds on identified 'Static Balance Fundamentals' from game memory, uses video submission format based on user's previous successful submissions, and references established timing patterns from earlier challenges. Difficulty calibrated based on previous challenge completion data."
   }
 ]
 ```
 
-**Note:** Work flexibly with whatever memory context is available. Focus on using relevant information for personalization and progression logic, while ensuring lessons remain well-structured and effective even with limited memory data.
+**Note:** Work flexibly with whatever memory context is available. Focus on using relevant information for personalization and progression logic, while ensuring challenges remain well-structured and effective even with limited memory data.

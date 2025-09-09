@@ -78,7 +78,7 @@
     "summary": "This segment details the correct upper body movement during the ollie, specifically emphasizing hinging forward from the waist rather than pulling the chest up. It explains how proper hinging allows for better power transfer from the legs, maximizing jump height for clearing obstacles.",
     "learningObjectives": [
       "Master the upper body hinging technique during the squat",
-      "Avoid pulling the chest up during the initial squat phase",
+      "Avoid pulling the chest up during the initial squat milestone",
       "Maximize leg power by directing energy downwards into the board",
       "Understand how upper body position affects jump height"
     ],

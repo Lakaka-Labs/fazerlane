@@ -4,26 +4,39 @@ import type Services from "../../services";
 import type AppSecrets from "../../../packages/secret";
 import {QueueName} from "../../domain/queue";
 import ResourceAnalysis from "./resourceAnalysis";
-import PhaseGeneration from "./phaseGeneration";
-import LessonGeneration from "./lessonGeneration";
+import milestoneGeneration from "./milestoneGeneration";
+import challengeGeneration from "./challengeGeneration";
 
 export default class BullMQueue {
     connection: Redis
     appSecrets: AppSecrets
     services: Services
 
-    constructor(appSecrets: AppSecrets, services: Services,connection: Redis) {
+    constructor(appSecrets: AppSecrets, services: Services, connection: Redis) {
         this.appSecrets = appSecrets
         this.services = services
         this.connection = connection
 
         this.resourceAnalysis()
-        this.phaseGeneration()
-        this.lessonGeneration()
+        this.milestoneGeneration()
+        this.challengeGeneration()
     }
 
     resourceAnalysis = () => {
-        const worker = new Worker(QueueName.resourceAnalysis, new ResourceAnalysis().handler, {
+        const worker = new Worker(QueueName.resourceSegmentation, new ResourceAnalysis(this.services.resourceService).handler, {
+            connection: this.connection,
+            concurrency: 150
+        });
+        worker.on('completed', (job, result) => {
+            // console.log({job: job.data, completed: "completed"})
+        });
+        worker.on('failed', (job, err) => {
+            // console.log({job: job?.data, failed: "failed"})
+        });
+    }
+
+    milestoneGeneration = () => {
+        const worker = new Worker(QueueName.milestoneGeneration, new milestoneGeneration().handler, {
             connection: this.connection,
             concurrency: 150
         });
@@ -33,19 +46,8 @@ export default class BullMQueue {
         });
     }
 
-    phaseGeneration = () => {
-        const worker = new Worker(QueueName.phaseGeneration, new PhaseGeneration().handler, {
-            connection: this.connection,
-            concurrency: 150
-        });
-        worker.on('completed', (job, result) => {
-        });
-        worker.on('failed', (job, err) => {
-        });
-    }
-
-    lessonGeneration = () => {
-        const worker = new Worker(QueueName.lessonGeneration, new LessonGeneration().handler, {
+    challengeGeneration = () => {
+        const worker = new Worker(QueueName.challengeGeneration, new challengeGeneration().handler, {
             connection: this.connection,
             concurrency: 150
         });

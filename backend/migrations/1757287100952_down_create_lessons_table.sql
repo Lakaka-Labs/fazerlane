@@ -1,3 +1,3 @@
-DROP TABLE lesson_quizzes;
-DROP TABLE lesson_references;
-DROP TABLE lessons;
+DROP TABLE challenge_quizzes;
+DROP TABLE challenge_references;
+DROP TABLE challenges;

@@ -4,6 +4,7 @@ CREATE TABLE lanes
     creator    UUID NOT NULL
         REFERENCES users (id) ON UPDATE CASCADE,
     name       TEXT NOT NULL,
+    state      TEXT NOT NULL CHECK (state IN ('processing', 'created', 'failed')) DEFAULT 'processing',
     youtubes   TEXT[],
     goal       TEXT,
     schedule   TEXT,

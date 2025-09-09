@@ -1,10 +1,10 @@
-CREATE TABLE lessons
+CREATE TABLE challenges
 (
     id                    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    phase                 UUID   NOT NULL REFERENCES phases (id) ON DELETE CASCADE,
-    lesson_title          TEXT   NOT NULL UNIQUE,
+    milestone                 UUID   NOT NULL REFERENCES milestones (id) ON DELETE CASCADE,
+    challenge_title          TEXT   NOT NULL UNIQUE,
     objective             TEXT   NOT NULL,
-    prerequisite_lessons  TEXT[]           DEFAULT '{}',
+    prerequisite_challenges  TEXT[]           DEFAULT '{}',
     builds_on_context     TEXT,
     practice_instructions TEXT[] NOT NULL,
     assignment            TEXT   NOT NULL,
@@ -13,10 +13,10 @@ CREATE TABLE lessons
     memory_adaptations    TEXT
 );
 
-CREATE TABLE lesson_references
+CREATE TABLE challenge_references
 (
     id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    lesson               UUID NOT NULL REFERENCES lessons (id) ON DELETE CASCADE,
+    challenge               UUID NOT NULL REFERENCES challenges (id) ON DELETE CASCADE,
     segment              TEXT NOT NULL,
     start_time           TEXT NOT NULL,
     end_time             TEXT NOT NULL,
@@ -24,10 +24,10 @@ CREATE TABLE lesson_references
     purpose              TEXT NOT NULL
 );
 
-CREATE TABLE lesson_quizzes
+CREATE TABLE challenge_quizzes
 (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    lesson          UUID NOT NULL REFERENCES lessons (id) ON DELETE CASCADE,
+    challenge          UUID NOT NULL REFERENCES challenges (id) ON DELETE CASCADE,
     quiz_type       TEXT NOT NULL CHECK (quiz_type IN
                                          ('single_choice', 'multiple_choice', 'true_false', 'sequence', 'drag_drop',
                                           'slider')),

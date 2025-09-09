@@ -1,1 +1,1 @@
-DROP TABLE phases;
+DROP TABLE milestones;

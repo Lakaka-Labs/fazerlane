@@ -1,10 +1,10 @@
 import {Job} from "bullmq";
 
-export default class PhaseGeneration {
+export default class milestoneGeneration {
     constructor() {
     }
 
-    handler = (job: Job) => {
+    handler = async (job: Job) => {
         console.log({jobData: job.data, id: job.id, name: "pg"})
     }
 }

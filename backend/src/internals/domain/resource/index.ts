@@ -1,4 +1,4 @@
-export type ResourceSegment = {
+export type Segment = {
     id: number;
     youtube: string;
     startTime: string;
@@ -8,4 +8,11 @@ export type ResourceSegment = {
     learningObjectives: string[];
     visualElements: string[];
     transcription: string;
+};
+
+export type Youtube = {
+    id: string;
+    title: string;
+    duration: number;
+    segmented: boolean
 };

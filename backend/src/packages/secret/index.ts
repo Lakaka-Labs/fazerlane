@@ -20,6 +20,11 @@ export type GoogleOAuthCredentials = {
     callbackUrl: string
 }
 
+export type GeminiConfiguration = {
+    apiKey: string
+    model: string
+}
+
 export default class AppSecrets {
     port: number;
     clientOrigin: string
@@ -29,13 +34,16 @@ export default class AppSecrets {
     jwtSecret: string
     refreshJWTExpires: number
     refreshJWTSecret: string
+    wsUrl: string
 
     postgresCredentials: PostgresCredentials
     redisCredentials: RedisCredentials
     googleOAuthCredentials: GoogleOAuthCredentials
+    geminiConfiguration: GeminiConfiguration
     googleAPIKey: string
     maxVideoLength : number
     baseYoutubeApiUrl : string
+
 
 
     constructor() {
@@ -47,6 +55,7 @@ export default class AppSecrets {
         this.jwtSecret = this.getEnvironmentVariable("JWT_SECRET");
         this.refreshJWTExpires = this.getEnvironmentVariableAsNumber("REFRESH_JWT_EXPIRES", 2592000);
         this.refreshJWTSecret = this.getEnvironmentVariable("REFRESH_JWT_SECRET");
+        this.wsUrl = this.getEnvironmentVariableOrFallback("WS_URL", "ws://localhost:1364");
 
         this.postgresCredentials = {
             user: this.getEnvironmentVariable("POSTGRES_USER"),
@@ -72,9 +81,16 @@ export default class AppSecrets {
             callbackUrl: this.getEnvironmentVariable("GOOGLE_CLIENT_CALLBACK_URL"),
         }
 
+        this.geminiConfiguration = {
+            apiKey:this.getEnvironmentVariable("GEMINI_API_KEY"),
+            model:this.getEnvironmentVariableOrFallback("GEMINI_MODEL","gemini-2.5-flash"),
+        }
+
         this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
+
         this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 600)
         this.baseYoutubeApiUrl = this.getEnvironmentVariableOrFallback("BASE_YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3/videos")
+
     }
 
     getEnvironmentVariable(key: string): string {

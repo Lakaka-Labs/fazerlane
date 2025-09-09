@@ -1,10 +1,10 @@
 import {Job} from "bullmq";
 
-export default class LessonGeneration {
+export default class challengeGeneration {
     constructor() {
     }
 
-    handler = (job: Job) => {
+    handler = async (job: Job) => {
         console.log({jobData: job.data, id: job.id, name: "lg"})
     }
 }

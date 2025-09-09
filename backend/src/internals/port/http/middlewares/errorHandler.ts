@@ -3,7 +3,7 @@ import {ZodError} from "zod";
 import {StatusCodes} from "http-status-codes";
 import {JsonWebTokenError} from "jsonwebtoken";
 import {ErrorResponse} from "../../../../packages/responses/error.ts";
-import {AppError} from "../../../../packages/errors";
+import {ApiError} from "../../../../packages/errors";
 
 const ErrorHandlerMiddleware: ErrorRequestHandler = async (
     err: any,
@@ -12,12 +12,12 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = async (
     next: NextFunction
 ) => {
     console.log(err);
-    if (err instanceof AppError) {
+    if (err instanceof ApiError) {
         return new ErrorResponse(res, err.message, err.statusCode).send();
     }
 
     if (err instanceof ZodError) {
-        const errorMessages = (err as any).errors.map((issue: any) => ({
+        const errorMessages = err.issues.map((issue: any) => ({
             message: `${issue.path.join(".")} is ${issue.message}`,
         }));
         return new ErrorResponse(res, "Invalid data", StatusCodes.BAD_REQUEST, {

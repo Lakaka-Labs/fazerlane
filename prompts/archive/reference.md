@@ -1,12 +1,12 @@
-Lesson Reference Generation Request
+challenge Reference Generation Request
 
-Task: Generate an array of resource references for a single lesson by mapping lesson components to the provided segmented resources, using raw data files as reference context.
+Task: Generate an array of resource references for a single challenge by mapping challenge components to the provided segmented resources, using raw data files as reference context.
 
 Input:
 
-A single lesson object containing:
-- lesson_title: The lesson name
-- objective: Learning goal for the lesson
+A single challenge object containing:
+- challenge_title: The challenge name
+- objective: Learning goal for the challenge
 - practice_instructions: Array of instruction steps
 - assignment: Specific deliverable
 - quizzes: Knowledge check questions
@@ -39,11 +39,11 @@ Raw data files for reference context:
 Requirements:
 
 - Analyze raw data files to understand complete resource content
-- Map lesson components (practice instructions, assignment, quizzes) to relevant resource segments
+- Map challenge components (practice instructions, assignment, quizzes) to relevant resource segments
 - Create structured reference_location objects that match the resource type structure
 - Provide natural language descriptions for both location and purpose
-- Determine how each reference supports the lesson content
-- Ensure all critical lesson components are supported by appropriate resource references
+- Determine how each reference supports the challenge content
+- Ensure all critical challenge components are supported by appropriate resource references
 
 Output Format:
 Provide a JSON array where each reference contains these four fields:
@@ -56,7 +56,7 @@ Provide a JSON array where each reference contains these four fields:
       "endTime": "01:30"
     },
     "reference_location_description": "Natural language description of where to find this content",
-    "reference_purpose": "Natural language explanation of how this reference supports the lesson"
+    "reference_purpose": "Natural language explanation of how this reference supports the challenge"
   }
 ]
 ```
@@ -67,9 +67,9 @@ Guidelines:
 - **Structured References**: Use appropriate reference_location object structure based on resource type
 - **Natural Language Clarity**: Write reference_location_description and reference_purpose in clear, conversational language
 - **Precise Targeting**: For videos, specify exact time ranges; for documents, specific page ranges; for images, relevant visual elements
-- **Comprehensive Coverage**: Include references for all major lesson components
-- **Descriptive Purpose**: Explain specifically how each reference helps the learner achieve the lesson objective
-- **Logical Flow**: Order references to support lesson progression
+- **Comprehensive Coverage**: Include references for all major challenge components
+- **Descriptive Purpose**: Explain specifically how each reference helps the learner achieve the challenge objective
+- **Logical Flow**: Order references to support challenge progression
 - **Human-Friendly Descriptions**: Make location descriptions easy to understand for learners navigating the resources
 
 Example Output:
@@ -95,4 +95,4 @@ Example Output:
   }
 ]
 ```
-Note: Analyze the raw data files thoroughly to ensure each reference accurately maps to content that supports the lesson objectives. Write natural language descriptions that are clear, helpful, and easy for learners to follow when accessing the resources.
+Note: Analyze the raw data files thoroughly to ensure each reference accurately maps to content that supports the challenge objectives. Write natural language descriptions that are clear, helpful, and easy for learners to follow when accessing the resources.

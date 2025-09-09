@@ -1,8 +1,8 @@
 ```json
 [
   {
-    "phase_goal": "Master foundational body mechanics and basic hippy jump execution",
-    "description": "This phase focuses on establishing correct foot placement, initiating a straight hippy jump while keeping the board flat, and optimizing upper body hinging for maximum jump power.",
+    "milestone_goal": "Master foundational body mechanics and basic hippy jump execution",
+    "description": "This milestone focuses on establishing correct foot placement, initiating a straight hippy jump while keeping the board flat, and optimizing upper body hinging for maximum jump power.",
     "estimated_duration": "2-3 hours (across 2-3 daily practice sessions)",
     "recommended_resources": [
       {
@@ -24,8 +24,8 @@
     ]
   },
   {
-    "phase_goal": "Develop front foot control to lift the board's nose during a hippy jump",
-    "description": "This phase isolates the front foot's role in elevating the board's nose without tail contact, focusing on timing the jump with creating space and feeling the necessary tension to lift the board.",
+    "milestone_goal": "Develop front foot control to lift the board's nose during a hippy jump",
+    "description": "This milestone isolates the front foot's role in elevating the board's nose without tail contact, focusing on timing the jump with creating space and feeling the necessary tension to lift the board.",
     "estimated_duration": "3-4 hours (across 3-4 daily practice sessions)",
     "recommended_resources": [
       {
@@ -39,7 +39,7 @@
     ]
   },
   {
-    "phase_goal": "Integrate the tail pop and begin coordinating it with front foot movement for initial board leveling",
+    "milestone_goal": "Integrate the tail pop and begin coordinating it with front foot movement for initial board leveling",
     "description": "Learn to execute a powerful tail pop and simultaneously guide the board with the front foot, focusing on feeling the board's bounce off the ground and starting to control its angle in the air for increased height.",
     "estimated_duration": "4-5 hours (across 4-5 daily practice sessions)",
     "recommended_resources": [
@@ -54,8 +54,8 @@
     ]
   },
   {
-    "phase_goal": "Perform a complete ollie with proper board flattening and begin clearing small obstacles",
-    "description": "This final phase combines all previously learned elements into a cohesive ollie, emphasizing the crucial small forward movement of the front foot at the jump's peak to flatten the board, which is essential for maximizing height and successfully clearing obstacles.",
+    "milestone_goal": "Perform a complete ollie with proper board flattening and begin clearing small obstacles",
+    "description": "This final milestone combines all previously learned elements into a cohesive ollie, emphasizing the crucial small forward movement of the front foot at the jump's peak to flatten the board, which is essential for maximizing height and successfully clearing obstacles.",
     "estimated_duration": "5-7+ hours (across 5-7+ daily practice sessions, with ongoing practice)",
     "recommended_resources": [
       {

@@ -1,6 +1,7 @@
 import {SQL} from "bun";
 import type {PostgresCredentials, RedisCredentials} from "../secret";
 import Redis from "ioredis";
+import {GoogleGenAI} from '@google/genai';
 
 export const bunPostgresClientConnection = (credentials: PostgresCredentials): SQL => {
     return new SQL({
@@ -26,4 +27,8 @@ export const ioRedisClient = (credentials: RedisCredentials): Redis => {
         password: credentials.password,
         maxRetriesPerRequest: credentials.maxRetriesPerRequest
     });
+}
+
+export const googleGeminiClient = (geminiAPIKey: string): GoogleGenAI => {
+    return new GoogleGenAI({apiKey: geminiAPIKey});
 }

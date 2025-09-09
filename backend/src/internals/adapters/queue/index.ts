@@ -7,37 +7,55 @@ import {BadRequestError} from "../../../packages/errors";
 export default class BullMQ implements QueueRepository {
     connection: Redis
     resourceAnalysisQueue: Queue
-    phaseGenerationQueue: Queue
-    lessonGenerationQueue: Queue
+    milestoneGenerationQueue: Queue
+    challengeGenerationQueue: Queue
 
     constructor(connection: Redis) {
         this.connection = connection
 
-        this.resourceAnalysisQueue = new Queue(QueueName.resourceAnalysis, {
+        this.resourceAnalysisQueue = new Queue(QueueName.resourceSegmentation, {
             connection,
-            defaultJobOptions: {attempts: 2},
+            defaultJobOptions: {
+                attempts: 2,
+                backoff: {
+                    type: 'exponential',
+                    delay: 2000,
+                },
+            },
         })
-        this.phaseGenerationQueue = new Queue(QueueName.phaseGeneration, {
+        this.milestoneGenerationQueue = new Queue(QueueName.milestoneGeneration, {
             connection,
-            defaultJobOptions: {attempts: 2},
+            defaultJobOptions: {
+                attempts: 2,
+                backoff: {
+                    type: 'exponential',
+                    delay: 2000,
+                },
+            },
         })
-        this.lessonGenerationQueue = new Queue(QueueName.lessonGeneration, {
+        this.challengeGenerationQueue = new Queue(QueueName.challengeGeneration, {
             connection,
-            defaultJobOptions: {attempts: 2},
+            defaultJobOptions: {
+                attempts: 2,
+                backoff: {
+                    type: 'exponential',
+                    delay: 2000,
+                },
+            },
         })
     }
 
     async addJob(queue: QueueName, data: any) {
         switch (queue) {
-            case QueueName.resourceAnalysis:
+            case QueueName.resourceSegmentation:
                 await this.resourceAnalysisQueue.add(queue, data);
-                return
-            case QueueName.phaseGeneration:
-                await this.phaseGenerationQueue.add(queue, data);
-                return
-            case QueueName.lessonGeneration:
-                await this.lessonGenerationQueue.add(queue, data);
-                return
+                break
+            case QueueName.milestoneGeneration:
+                await this.milestoneGenerationQueue.add(queue, data);
+                break
+            case QueueName.challengeGeneration:
+                await this.challengeGenerationQueue.add(queue, data);
+                break
             default:
                 throw new BadRequestError("invalid queue")
         }

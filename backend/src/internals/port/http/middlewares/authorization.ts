@@ -1,8 +1,10 @@
 import type {NextFunction, Request, Response} from "express";
-import {UnAuthorizedError} from "../../../../packages/errors";
+import {BadRequestError, UnAuthorizedError} from "../../../../packages/errors";
 import {verifyToken} from "../../../../packages/utils/encryption";
 import type Payload from "../../../../packages/types/payload";
 import AccountServices from "../../../services/authentication";
+import {IncomingMessage} from "http";
+import {z} from "zod";
 
 export const Authorize = (services: AccountServices) => {
     return async (req: Request, res: Response, next: NextFunction) => {

@@ -1,35 +1,35 @@
-# Phase Lesson Breakdown Request
+# milestone challenge Breakdown Request
 
-**Task:** Break down the provided phase into individual daily lessons suitable for the specified practice session schedule.
+**Task:** Break down the provided milestone into individual daily challenges suitable for the specified practice session schedule.
 
 ## Input:
 
-A complete phase object containing:
-- **phase_goal:** The main objective of this phase
-- **description:** Detailed explanation of what the phase focuses on
-- **estimated_duration:** Expected time commitment for the phase
+A complete milestone object containing:
+- **milestone_goal:** The main objective of this milestone
+- **description:** Detailed explanation of what the milestone focuses on
+- **estimated_duration:** Expected time commitment for the milestone
 - **recommended_resources:** Array of segmented learning resources (documents, images, videos, YouTube) with detailed content (for context only)
 
 **Practice session schedule** (e.g., "30 minutes daily", "45 minutes twice-weekly", "1 hour every other day")
 
 ## Requirements:
 
-- Each lesson should build progressively toward the phase goal
-- Lessons must be achievable within the specified practice session schedule
-- Include clear success criteria for each lesson
+- Each challenge should build progressively toward the milestone goal
+- challenges must be achievable within the specified practice session schedule
+- Include clear success criteria for each challenge
 - Focus on creating comprehensive practice instructions without resource references
 
 ## Output Format:
 
-Provide a JSON array where each lesson contains:
+Provide a JSON array where each challenge contains:
 
-- **lesson_title:** Clear, descriptive name for the lesson
-- **objective:** What the student should achieve by the end of this lesson
+- **challenge_title:** Clear, descriptive name for the challenge
+- **objective:** What the student should achieve by the end of this challenge
 - **practice_instructions:** Array of clear, actionable instruction strings written in **markdown format** (each step should be 1-2 sentences for flashcard display, but can include markdown formatting for emphasis, lists, etc.)
 - **assignment:** Specific deliverable to demonstrate progress
 - **submission_format:** How to submit proof of completion (choose one: "video", "images", "audio", or "text")
-- **quizzes:** Array of 2-4 knowledge check questions covering the key concepts taught in this lesson (see quiz format options below)
-- **success_criteria:** Clear benchmarks to determine if the lesson is complete
+- **quizzes:** Array of 2-4 knowledge check questions covering the key concepts taught in this challenge (see quiz format options below)
+- **success_criteria:** Clear benchmarks to determine if the challenge is complete
 
 ## Quiz Format Options:
 
@@ -100,16 +100,16 @@ Choose one of the following quiz types for each question:
 ```
 
 ## Quiz Guidelines:
-- Include 2-4 quizzes per lesson to adequately assess understanding without overwhelming
-- Focus on the most important concepts taught in that specific lesson
+- Include 2-4 quizzes per challenge to adequately assess understanding without overwhelming
+- Focus on the most important concepts taught in that specific challenge
 - Mix quiz types to maintain engagement and test different aspects of knowledge
-- Ensure questions directly relate to the lesson objective and practice instructions
+- Ensure questions directly relate to the challenge objective and practice instructions
 
 ## Example format:
 ```json
 [
   {
-    "lesson_title": "Establishing Proper Stance",
+    "challenge_title": "Establishing Proper Stance",
     "objective": "Achieve consistent foot placement for the foundational ollie position",
     "practice_instructions": [
       "**Study** the foot placement diagram in the kickflip illustration to understand proper positioning",
@@ -144,4 +144,4 @@ Choose one of the following quiz types for each question:
 ]
 ```
 
-**Note:** Design lessons that logically progress from basic to advanced within the phase, ensuring each builds on the previous lesson's achievements. The provided segmented resources are for context only - focus on creating clear, actionable practice instructions in markdown format that can later be enhanced with specific resource references.
+**Note:** Design challenges that logically progress from basic to advanced within the milestone, ensuring each builds on the previous challenge's achievements. The provided segmented resources are for context only - focus on creating clear, actionable practice instructions in markdown format that can later be enhanced with specific resource references.

@@ -1,20 +1,25 @@
 import type LaneRepository from "../../../domain/lane/repository.ts";
-import {BadRequestError, NotFoundError} from "../../../../packages/errors";
+import {BadRequestError} from "../../../../packages/errors";
 import type QueueRepository from "../../../domain/queue/queueRepository.ts";
 import type YoutubeRepository from "../../../domain/youtube/repository.ts";
-import type {Lane, Youtube} from "../../../domain/lane";
+import type {Lane} from "../../../domain/lane";
 import AppSecrets from "../../../../packages/secret";
+import {QueueName} from "../../../domain/queue";
+import type {Youtube} from "../../../domain/resource";
+import type ResourceRepository from "../../../domain/resource/repository.ts";
 
 export default class CreateLane {
     appSecrets: AppSecrets
     laneRepository: LaneRepository
     queueRepository: QueueRepository
     youtubeRepository: YoutubeRepository
+    resourceRepository: ResourceRepository
 
-    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, appSecrets: AppSecrets) {
+    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, appSecrets: AppSecrets) {
         this.laneRepository = laneRepository
         this.queueRepository = queueRepository
         this.youtubeRepository = youtubeRepository
+        this.resourceRepository = resourceRepository
         this.appSecrets = appSecrets
     }
 
@@ -30,7 +35,9 @@ export default class CreateLane {
             }
         }
 
-        let laneId = await this.laneRepository.create(lane, youtubes)
+        lane.youtubes = await this.resourceRepository.addYoutubes(youtubes)
+        let laneId = await this.laneRepository.create(lane)
+        await this.queueRepository.addJob(QueueName.resourceSegmentation, {laneId})
         return laneId
     }
 }

@@ -1,7 +1,7 @@
-CREATE TABLE resource_segments
+CREATE TABLE segments
 (
     id                  SERIAL PRIMARY KEY,
-    youtube     TEXT NOT NULL
+    youtube             TEXT        NOT NULL
         REFERENCES youtubes (id) ON DELETE CASCADE,
     start_time          VARCHAR(31) NOT NULL,
     end_time            VARCHAR(31) NOT NULL,

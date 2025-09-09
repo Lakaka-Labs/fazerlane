@@ -1,7 +1,7 @@
-export type Phase = {
+export type milestone = {
     id: string;
     lane: string;
-    phase_goal: string;
+    milestone_goal: string;
     description: string;
     estimated_duration: string;
     recommended_resources: string[];

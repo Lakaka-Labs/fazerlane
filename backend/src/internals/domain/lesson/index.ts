@@ -1,5 +1,5 @@
 export type Reference = {
-    lesson: string;
+    challenge: string;
     segment: string;
     reference_location: {
         startTime: string;
@@ -11,40 +11,40 @@ export type Reference = {
 
 export type Quiz =
     | {
-    lesson: string;
+    challenge: string;
     type: 'single_choice';
     question: string;
     options: string[];
     correct_answer: string;
 }
     | {
-    lesson: string;
+    challenge: string;
     type: 'multiple_choice';
     question: string;
     options: string[];
     correct_answers: string[];
 }
     | {
-    lesson: string;
+    challenge: string;
     type: 'true_false';
     question: string;
     correct_answer: boolean;
 }
     | {
-    lesson: string;
+    challenge: string;
     type: 'sequence';
     question: string;
     options: string[];
     correct_order: string[];
 }
     | {
-    lesson: string;
+    challenge: string;
     type: 'drag_drop';
     question: string;
     pairs: { item: string; match: string }[];
 }
     | {
-    lesson: string;
+    challenge: string;
     type: 'slider';
     question: string;
     min_value: number;
@@ -53,12 +53,12 @@ export type Quiz =
     unit: string;
 };
 
-export type Lesson = {
+export type challenge = {
     id: string,
-    phase: string,
-    lesson_title: string;
+    milestone: string,
+    challenge_title: string;
     objective: string;
-    prerequisite_lessons: string[];
+    prerequisite_challenges: string[];
     builds_on_context?: string;
     practice_instructions: string[];
     assignment: string;

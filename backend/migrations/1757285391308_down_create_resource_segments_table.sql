@@ -1,1 +1,1 @@
-DROP TABLE resource_segments;
+DROP TABLE segments;

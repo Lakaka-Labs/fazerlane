@@ -1,9 +1,12 @@
 import AppSecrets from "./packages/secret";
 import Ports from "./internals/port";
 import Adapters from "./internals/adapters";
-import {bunPostgresClientConnection, ioRedisClient} from "./packages/utils/connections.ts";
+import {
+    bunPostgresClientConnection,
+    ioRedisClient,
+    googleGeminiClient
+} from "./packages/utils/connections.ts";
 import Services from "./internals/services";
-import {QueueName} from "./internals/domain/queue";
 
 class FazerlaneBackend {
     adapters: Adapters
@@ -14,11 +17,13 @@ class FazerlaneBackend {
         const appSecrets = new AppSecrets()
         const postgresClient = bunPostgresClientConnection(appSecrets.postgresCredentials)
         const redisClient = ioRedisClient(appSecrets.redisCredentials)
+        const geminiClient = googleGeminiClient(appSecrets.geminiAPIKey)
 
         this.adapters = new Adapters({
             appSecrets,
             postgresClient,
-            redisClient
+            redisClient,
+            geminiClient
         })
         this.services = new Services(this.adapters)
         this.port = new Ports(appSecrets, this.services, this.adapters)
