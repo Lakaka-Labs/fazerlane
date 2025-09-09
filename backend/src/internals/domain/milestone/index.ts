@@ -1,8 +1,9 @@
-export type milestone = {
+export type Milestone = {
     id: string;
     lane: string;
-    milestone_goal: string;
+    goal: string;
     description: string;
-    estimated_duration: string;
-    recommended_resources: string[];
+    estimatedDuration: string;
+    recommendedResources: string[];
 };
+

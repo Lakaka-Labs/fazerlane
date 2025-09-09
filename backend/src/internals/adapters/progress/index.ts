@@ -23,7 +23,7 @@ export default class ProgressPG implements ProgressRepository {
                    stage,
                    created_at as "createdAt"
             FROM progresses
-            WHERE id = ${laneId}
+            WHERE lane = ${laneId}
         `;
 
     }

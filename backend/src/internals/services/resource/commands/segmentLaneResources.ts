@@ -56,7 +56,6 @@ export default class SegmentLaneResources {
         }
 
         let hasRetry = false;
-        const processedVideos: string[] = [];
         const failedVideos: string[] = [];
 
         for (const youtube of youtubes) {
@@ -64,7 +63,6 @@ export default class SegmentLaneResources {
                 if (!youtube.segmented) {
                     await this.processYoutubeSegmentation(youtube);
 
-                    processedVideos.push(youtube.title);
                     await this.sendProgress({
                         lane: laneId,
                         message: `Analysis done: ${youtube.title}`,
@@ -73,7 +71,6 @@ export default class SegmentLaneResources {
                     });
                 } else {
                     if (attemps == 1) {
-                        processedVideos.push(youtube.title);
                         await this.sendProgress({
                             lane: laneId,
                             message: `Analysis done: ${youtube.title}`,
@@ -123,6 +120,7 @@ export default class SegmentLaneResources {
                 type: "success",
                 stage: "analysis"
             });
+            await this.laneRepository.update(laneId, {state: "context-analysed"});
             await this.queueRepository.addJob(QueueName.milestoneGeneration, {laneId});
         }
 

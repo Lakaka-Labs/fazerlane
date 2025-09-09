@@ -4,7 +4,7 @@ export type Lane = {
     id: string;
     creator: string;
     name: string;
-    state: 'processing' | 'created' | 'failed'
+    state: 'accepted' | 'context-analysed' | 'milestone-generated' | 'completed' | 'failed'
     goal?: string;
     schedule?: string;
     experience?: string;

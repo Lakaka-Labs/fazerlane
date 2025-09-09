@@ -5,18 +5,25 @@ import type YoutubeRepository from "../../domain/youtube/repository.ts";
 import CreateLane from "./commands/createLane.ts";
 import type AppSecrets from "../../../packages/secret";
 import type ResourceRepository from "../../domain/resource/repository.ts";
+import RedoLane from "./commands/redoLane.ts";
+import type ProgressRepository from "../../domain/progress/repository.ts";
+import GetLaneProgress from "./queries/getLaneProgress.ts";
 
 export class Commands {
     createLane: CreateLane
+    redoLane: RedoLane
 
     constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, appSecrets: AppSecrets) {
         this.createLane = new CreateLane(laneRepository, queueRepository, youtubeRepository, resourceRepository, appSecrets)
+        this.redoLane = new RedoLane(laneRepository, queueRepository, youtubeRepository, resourceRepository, appSecrets)
     }
-
 }
 
 export class Queries {
-    constructor(laneRepository: LaneRepository) {
+    getLaneProgress : GetLaneProgress
+    constructor(progressRepository: ProgressRepository) {
+        this.getLaneProgress = new GetLaneProgress(progressRepository)
+
     }
 }
 
@@ -24,8 +31,8 @@ export default class LaneService {
     commands: Commands
     queries: Queries
 
-    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, appSecrets: AppSecrets) {
+    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository,progressRepository: ProgressRepository, appSecrets: AppSecrets) {
         this.commands = new Commands(laneRepository, queueRepository, youtubeRepository, resourceRepository, appSecrets)
-        this.queries = new Queries(laneRepository)
+        this.queries = new Queries(progressRepository)
     }
 }

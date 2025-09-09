@@ -10,7 +10,14 @@ export default class Services {
 
     constructor(adapters: Adapters) {
         this.authenticationService = new AuthenticationService(adapters.userRepository)
-        this.laneService = new LaneService(adapters.laneRepository, adapters.queueRepository, adapters.youtubeRepository, adapters.resourceRepository, adapters.parameters.appSecrets)
+        this.laneService = new LaneService(
+            adapters.laneRepository,
+            adapters.queueRepository,
+            adapters.youtubeRepository,
+            adapters.resourceRepository,
+            adapters.progressRepository,
+            adapters.parameters.appSecrets
+        )
         this.resourceService = new ResourceService(
             adapters.laneRepository,
             adapters.queueRepository,
