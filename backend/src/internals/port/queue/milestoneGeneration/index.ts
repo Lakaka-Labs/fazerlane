@@ -1,10 +1,15 @@
 import {Job} from "bullmq";
+import type MilestoneService from "../../../services/milestone";
 
 export default class milestoneGeneration {
-    constructor() {
+    milestoneService: MilestoneService
+
+    constructor(milestoneService: MilestoneService) {
+        this.milestoneService = milestoneService
     }
 
     handler = async (job: Job) => {
-        console.log({jobData: job.data, id: job.id, name: "pg"})
+        const {laneId} = job.data
+        await this.milestoneService.commands.generateMilestone.handle(laneId, job.attemptsMade + 1, job.opts.attempts || 0)
     }
 }

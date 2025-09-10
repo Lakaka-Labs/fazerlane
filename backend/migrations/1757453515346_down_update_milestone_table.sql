@@ -1,1 +1,0 @@
-ALTER TABLE milestones RENAME COLUMN goal TO milestone_goal;

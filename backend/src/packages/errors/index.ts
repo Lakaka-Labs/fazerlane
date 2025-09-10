@@ -55,3 +55,9 @@ export class InvalidSegmentsError extends Error {
     }
 }
 
+export class InvalidMilestonesError extends Error {
+    constructor() {
+        super("invalid segment");
+    }
+}
+

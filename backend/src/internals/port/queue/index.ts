@@ -36,7 +36,7 @@ export default class BullMQueue {
     }
 
     milestoneGeneration = () => {
-        const worker = new Worker(QueueName.milestoneGeneration, new milestoneGeneration().handler, {
+        const worker = new Worker(QueueName.milestoneGeneration, new milestoneGeneration(this.services.milestoneService).handler, {
             connection: this.connection,
             concurrency: 150
         });

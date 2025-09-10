@@ -7,6 +7,7 @@ import AppSecrets from "../../../../packages/secret";
 import {QueueName} from "../../../domain/queue";
 import type {Youtube} from "../../../domain/resource";
 import type ResourceRepository from "../../../domain/resource/repository.ts";
+import type ProgressRepository from "../../../domain/progress/repository.ts";
 
 export default class RedoLane {
     appSecrets: AppSecrets
@@ -14,12 +15,14 @@ export default class RedoLane {
     queueRepository: QueueRepository
     youtubeRepository: YoutubeRepository
     resourceRepository: ResourceRepository
+    progressRepository: ProgressRepository
 
-    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, appSecrets: AppSecrets) {
+    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, progressRepository: ProgressRepository, appSecrets: AppSecrets) {
         this.laneRepository = laneRepository
         this.queueRepository = queueRepository
         this.youtubeRepository = youtubeRepository
         this.resourceRepository = resourceRepository
+        this.progressRepository = progressRepository
         this.appSecrets = appSecrets
     }
 
@@ -40,6 +43,7 @@ export default class RedoLane {
             }
             lane.youtubes = await this.resourceRepository.addYoutubes(youtubes)
         }
+        await this.progressRepository.delete(id)
         await this.laneRepository.update(id, lane)
         await this.queueRepository.addJob(QueueName.resourceSegmentation, {laneId: id})
     }

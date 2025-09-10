@@ -42,7 +42,7 @@ export default class SegmentLaneResources {
     async handle(laneId: string, attemps: number, maxAttempt: number): Promise<boolean> {
         await this.sendProgress({
             lane: laneId,
-            message: `content analysis in progress`,
+            message: `analysing contexts...`,
             type: "success",
             stage: "analysis"
         });
@@ -116,7 +116,7 @@ export default class SegmentLaneResources {
         if (!hasRetry) {
             await this.sendProgress({
                 lane: laneId,
-                message: `Lane analysis complete`,
+                message: `Lane analysis complete, `,
                 type: "success",
                 stage: "analysis"
             });

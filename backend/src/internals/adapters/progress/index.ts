@@ -27,4 +27,12 @@ export default class ProgressPG implements ProgressRepository {
         `;
 
     }
+
+    delete = async (laneId: string): Promise<void> => {
+        return this.sql`
+            DELETE
+            FROM progresses
+            WHERE lane = ${laneId}
+        `;
+    }
 }

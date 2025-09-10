@@ -11,9 +11,9 @@ export default class MilestonePG implements MilestoneRepository {
 
     add = async (laneId: string, milestones: Omit<Milestone, "id" | "lane">[]): Promise<void> => {
         await this.sql.begin(async tx => {
-            await tx(`DELETE
-                      FROM milestones
-                      WHERE lane = ${laneId}`);
+            console.log("deleted 1")
+            await tx`DELETE FROM milestones WHERE lane = ${laneId}`;
+            console.log("deleted 2")
 
             const milestonesParameter = milestones.map((m) => {
                 return {
@@ -21,11 +21,11 @@ export default class MilestonePG implements MilestoneRepository {
                     goal: m.goal,
                     description: m.description,
                     estimated_duration: m.estimatedDuration,
-                    recommended_resources: m.recommendedResources,
+                    recommended_resources: `{${m.recommendedResources.map((id) => `${id}`).join(',')}}`,
                 }
             });
 
-            await tx`INSERT INTO milestones ${this.sql(milestonesParameter)}`;
+            await tx`INSERT INTO milestones ${tx(milestonesParameter)}`;
         });
     };
 

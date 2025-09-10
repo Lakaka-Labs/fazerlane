@@ -4,6 +4,6 @@ export type Milestone = {
     goal: string;
     description: string;
     estimatedDuration: string;
-    recommendedResources: string[];
+    recommendedResources: number[];
 };
 

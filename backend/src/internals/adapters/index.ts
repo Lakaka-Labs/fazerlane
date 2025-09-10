@@ -18,6 +18,8 @@ import type {ProgressWebsocketRepository} from "../domain/websocket/repository.t
 import {ProgressWebsocket} from "./websocket";
 import ProgressPG from "./progress";
 import type ProgressRepository from "../domain/progress/repository.ts";
+import type MilestoneRepository from "../domain/milestone/repository.ts";
+import MilestonePG from "./milestone";
 
 export type AdapterParameters = {
     postgresClient: SQL
@@ -36,6 +38,7 @@ export default class Adapters {
     resourceRepository: ResourceRepository
     progressRepository: ProgressRepository
     progressWebsocketRepository: ProgressWebsocketRepository
+    milestoneRepository: MilestoneRepository
 
     constructor(parameters: AdapterParameters) {
         this.parameters = parameters
@@ -47,5 +50,6 @@ export default class Adapters {
         this.resourceRepository = new SegmentPG(parameters.postgresClient)
         this.progressRepository = new ProgressPG(parameters.postgresClient)
         this.progressWebsocketRepository = new ProgressWebsocket()
+        this.milestoneRepository = new MilestonePG(parameters.postgresClient)
     }
 }
