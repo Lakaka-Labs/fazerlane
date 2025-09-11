@@ -57,7 +57,13 @@ export class InvalidSegmentsError extends Error {
 
 export class InvalidMilestonesError extends Error {
     constructor() {
-        super("invalid segment");
+        super("invalid milestone generated");
+    }
+}
+
+export class InvalidMilestonesReferenceError extends Error {
+    constructor() {
+        super("invalid milestone references generated");
     }
 }
 

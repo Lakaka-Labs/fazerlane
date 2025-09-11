@@ -15,7 +15,11 @@ export default class Gemini implements LLMRepository {
     }
 
     getText = async (messages: Message[]): Promise<string> => {
-        const chat = this.ai.chats.create({model: this.appSecrets.geminiConfiguration.model});
+        const chat = this.ai.chats.create({model: this.appSecrets.geminiConfiguration.model,config: {
+            thinkingConfig: {
+                thinkingBudget: 8000,
+            }
+            }});
         const parts: Part[] = messages.map(({ text, data }) => ({
             text,
             fileData: data ? { fileUri: data.fileUri } : undefined,

@@ -6,4 +6,3 @@ export type Milestone = {
     estimatedDuration: string;
     recommendedResources: number[];
 };
-
