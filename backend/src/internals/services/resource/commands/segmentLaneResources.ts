@@ -39,10 +39,10 @@ export default class SegmentLaneResources {
         this.llmRepository = llmRepository
     }
 
-    async handle(laneId: string, attemps: number, maxAttempt: number): Promise<boolean> {
+    async handle(laneId: string, attempts: number, maxAttempt: number): Promise<boolean> {
         await this.sendProgress({
             lane: laneId,
-            message: `analysing contexts...`,
+            message: `analysing contexts ${attempts > 1 ? "again" : ""}...`,
             type: "success",
             stage: "analysis"
         });
@@ -70,7 +70,7 @@ export default class SegmentLaneResources {
                         stage: "analysis"
                     });
                 } else {
-                    if (attemps == 1) {
+                    if (attempts == 1) {
                         await this.sendProgress({
                             lane: laneId,
                             message: `Analysis done: ${youtube.title}`,
@@ -86,7 +86,7 @@ export default class SegmentLaneResources {
                     continue;
                 }
 
-                if (attemps >= maxAttempt) {
+                if (attempts >= maxAttempt) {
                     failedVideos.push(youtube.title);
                     await this.sendProgress({
                         lane: laneId,
@@ -107,7 +107,7 @@ export default class SegmentLaneResources {
         }
 
         // If we've reached max attempts and have failed videos, fail the lane
-        if (attemps >= maxAttempt && failedVideos.length > 0) {
+        if (attempts >= maxAttempt && failedVideos.length > 0) {
             const message = `Analysis failed - ${failedVideos.length} content(s) could not be segmented: ${failedVideos.join(', ')}`;
             await this.updateLaneAsFailed(laneId, message);
             return false;

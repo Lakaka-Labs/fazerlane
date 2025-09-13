@@ -43,11 +43,11 @@ export default class GenerateMilestone {
         this.milestoneRepository = milestoneRepository
     }
 
-    async handle(laneId: string, attemps: number, maxAttempt: number): Promise<void> {
+    async handle(laneId: string, attempts: number, maxAttempt: number): Promise<void> {
         try {
             await this.sendProgress({
                 lane: laneId,
-                message: `generating milestones...`,
+                message: `generating milestones ${attempts > 1 ? "again":""}...`,
                 type: "success",
                 stage: "milestone_generation"
             });
@@ -60,7 +60,7 @@ export default class GenerateMilestone {
             ];
             const llmResult = await this.llmRepository.getText(messages);
             const milestones = this.extractMilestones(llmResult);
-            await this.milestoneRepository.add(laneId, milestones);
+           await this.milestoneRepository.add(laneId, milestones);
 
             await this.sendProgress({
                 lane: laneId,
@@ -72,7 +72,7 @@ export default class GenerateMilestone {
             await this.queueRepository.addJob(QueueName.challengeGeneration, {laneId});
         } catch (e) {
             console.log(e)
-            if (attemps >= maxAttempt) {
+            if (attempts >= maxAttempt) {
                 const message = `Failed to generate milestones for lane, retry`;
                 await this.updateLaneAsFailed(laneId, message);
             } else {

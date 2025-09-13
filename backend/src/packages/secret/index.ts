@@ -43,7 +43,7 @@ export default class AppSecrets {
     googleAPIKey: string
     maxVideoLength : number
     baseYoutubeApiUrl : string
-
+    openaiAPIKey: string
 
 
     constructor() {
@@ -90,6 +90,7 @@ export default class AppSecrets {
 
         this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 600)
         this.baseYoutubeApiUrl = this.getEnvironmentVariableOrFallback("BASE_YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3/videos")
+        this.openaiAPIKey = this.getEnvironmentVariable("OPENAI_API_KEY")
 
     }
 

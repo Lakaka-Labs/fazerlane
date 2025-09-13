@@ -20,12 +20,20 @@ import ProgressPG from "./progress";
 import type ProgressRepository from "../domain/progress/repository.ts";
 import type MilestoneRepository from "../domain/milestone/repository.ts";
 import MilestonePG from "./milestone";
+import type {Memory} from "mem0ai/oss";
+import type ChallengeRepository from "../domain/challenge/repository.ts";
+import ChallengePG from "./challenge";
+import type {ChallengeMemoriesRepository, UserMemoriesRepository} from "../domain/memories/repository.ts";
+import ChallengeMemoriesMem0 from "./memories/challenge.ts";
+import UserMemoriesMem0 from "./memories/user.ts";
 
 export type AdapterParameters = {
     postgresClient: SQL
     redisClient: Redis
     geminiClient: GoogleGenAI
     appSecrets: AppSecrets
+    mem0UserClient: Memory
+    mem0ChallengeClient: Memory
 }
 
 export default class Adapters {
@@ -39,6 +47,9 @@ export default class Adapters {
     progressRepository: ProgressRepository
     progressWebsocketRepository: ProgressWebsocketRepository
     milestoneRepository: MilestoneRepository
+    challengeRepository: ChallengeRepository
+    challengeMemoriesRepository: ChallengeMemoriesRepository
+    userMemoriesRepository: UserMemoriesRepository
 
     constructor(parameters: AdapterParameters) {
         this.parameters = parameters
@@ -51,5 +62,8 @@ export default class Adapters {
         this.progressRepository = new ProgressPG(parameters.postgresClient)
         this.progressWebsocketRepository = new ProgressWebsocket()
         this.milestoneRepository = new MilestonePG(parameters.postgresClient)
+        this.challengeRepository = new ChallengePG(parameters.postgresClient)
+        this.challengeMemoriesRepository = new ChallengeMemoriesMem0(parameters.mem0ChallengeClient)
+        this.userMemoriesRepository = new UserMemoriesMem0(parameters.mem0UserClient)
     }
 }

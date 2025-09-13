@@ -47,7 +47,7 @@ export default class BullMQueue {
     }
 
     challengeGeneration = () => {
-        const worker = new Worker(QueueName.challengeGeneration, new challengeGeneration().handler, {
+        const worker = new Worker(QueueName.challengeGeneration, new challengeGeneration(this.services.challengeService).handler, {
             connection: this.connection,
             concurrency: 150
         });

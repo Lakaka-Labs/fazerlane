@@ -1,12 +1,12 @@
 export type Reference = {
     challenge: string;
     segment: string;
-    reference_location: {
+    referenceLocation: {
         startTime: string;
         endTime: string;
     };
-    reference_location_description: string;
-    reference_purpose: string;
+    referenceLocationDescription: string;
+    referencePurpose: string;
 };
 
 export type Quiz =
@@ -15,27 +15,27 @@ export type Quiz =
     type: 'single_choice';
     question: string;
     options: string[];
-    correct_answer: string;
+    correctAnswer: string;
 }
     | {
     challenge: string;
     type: 'multiple_choice';
     question: string;
     options: string[];
-    correct_answers: string[];
+    correctAnswers: string[];
 }
     | {
     challenge: string;
     type: 'true_false';
     question: string;
-    correct_answer: boolean;
+    correctAnswer: boolean;
 }
     | {
     challenge: string;
     type: 'sequence';
     question: string;
     options: string[];
-    correct_order: string[];
+    correctOrder: string[];
 }
     | {
     challenge: string;
@@ -47,24 +47,24 @@ export type Quiz =
     challenge: string;
     type: 'slider';
     question: string;
-    min_value: number;
-    max_value: number;
-    correct_range: { min: number; max: number };
+    minValue: number;
+    maxValue: number;
+    correctRange: { min: number; max: number };
     unit: string;
 };
 
-export type challenge = {
+export type Challenge = {
     id: string,
     milestone: string,
-    challenge_title: string;
+    challengeTitle: string;
     objective: string;
-    prerequisite_challenges: string[];
-    builds_on_context?: string;
-    practice_instructions: string[];
+    prerequisiteChallenges: string[];
+    buildsOnContext?: string;
+    practiceInstructions: string[];
     assignment: string;
-    submission_format: 'video' | 'images' | 'audio' | 'text';
+    submissionFormat: 'video' | 'images' | 'audio' | 'text';
     references: Reference[];
     quizzes: Quiz[];
-    success_criteria: string;
-    memory_adaptations?: string;
+    successCriteria: string;
+    memoryAdaptations?: string;
 };

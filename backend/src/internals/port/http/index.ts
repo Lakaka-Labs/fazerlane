@@ -79,7 +79,9 @@ export default class ExpressHTTP {
     }
 
     health() {
-        this.server.get('/health', (req, res) => {
+        this.server.get('/health', async (req, res) => {
+            const milestones =await this.adapters.milestoneRepository.get("cc79d1bd-23cf-4852-a865-bc6478816387")
+            console.log({milestones})
             return res.status(StatusCodes.OK).send("server up")
         })
     }

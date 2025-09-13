@@ -67,3 +67,9 @@ export class InvalidMilestonesReferenceError extends Error {
     }
 }
 
+export class InvalidChallengesError extends Error {
+    constructor() {
+        super("invalid challenge generated");
+    }
+}
+

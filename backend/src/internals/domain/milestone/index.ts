@@ -5,4 +5,5 @@ export type Milestone = {
     description: string;
     estimatedDuration: string;
     recommendedResources: number[];
+    challengeGenerated: boolean
 };
