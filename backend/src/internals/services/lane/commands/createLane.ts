@@ -25,7 +25,7 @@ export default class CreateLane {
 
     async handle(creator: string, youtube: string): Promise<string> {
         let video = await this.youtubeRepository.getDetails(youtube)
-        if (video.duration > this.appSecrets.maxVideoLength) throw new BadRequestError(`video: ${youtube} is too long`)
+        if (video.duration > this.appSecrets.maxYoutubeLength) throw new BadRequestError(`video: ${youtube} is too long`)
         let yts = await this.resourceRepository.addYoutubes([video])
         if (!yts[0]) throw new Error("failed to add youtube video")
         let laneId = await this.laneRepository.create(creator,yts[0])

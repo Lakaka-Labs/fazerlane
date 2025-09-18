@@ -1,7 +1,7 @@
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
 import type {Challenge} from "../../../domain/challenge";
 
-export default class GetChallenge {
+export default class GetChallenges {
     challengeRepository: ChallengeRepository
 
     constructor(
@@ -10,8 +10,8 @@ export default class GetChallenge {
         this.challengeRepository = challengeRepository
     }
 
-    async handle(id: string): Promise<Challenge> {
-        return await this.challengeRepository.getById(id);
+    async handle(laneId: string, userId?: string): Promise<Challenge[]> {
+        return await this.challengeRepository.get(laneId, userId);
 
     }
 }

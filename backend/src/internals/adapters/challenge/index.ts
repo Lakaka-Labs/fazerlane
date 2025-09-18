@@ -1,7 +1,8 @@
 import {SQL} from "bun";
 import type ChallengeRepository from "../../domain/challenge/repository.ts";
-import type {Challenge} from "../../domain/challenge";
+import type {Challenge, Attempt} from "../../domain/challenge";
 import {DuplicateError, NotFoundError} from "../../../packages/errors";
+import type BaseFilter from "../../../packages/types/filter";
 
 export default class ChallengePG implements ChallengeRepository {
     sql: SQL
@@ -59,8 +60,8 @@ export default class ChallengePG implements ChallengeRepository {
         });
     };
 
-    get = async (laneId: string): Promise<Challenge[]> => {
-        // Get challenges with their references and quizzes
+    get = async (laneId: string, userId?: string): Promise<Challenge[]> => {
+        // Get challenges with their references and user completion/attempt data
         const result = await this.sql`
             SELECT c.id,
                    c.lane,
@@ -87,27 +88,112 @@ export default class ChallengePG implements ChallengeRepository {
                                        END
                                            ) FILTER (WHERE cr.id IS NOT NULL),
                                    '[]'::json
-                   ) as "references"
+                   ) as "references",
+
+                   -- User completion status (only when userId is provided)
+                   ${userId ? this.sql`
+                   CASE 
+                       WHEN cu.user_id IS NOT NULL THEN true 
+                       ELSE false 
+                   END as "isCompleted",
+                   
+                   -- Count of attempts for this user and challenge
+                   COALESCE(ca.attempts_count, 0) as "attemptsCount"
+               ` : this.sql`
+                   NULL as "isCompleted",
+                   NULL as "attemptsCount"
+               `}
+
             FROM challenges c
                      LEFT JOIN challenge_references cr ON c.id = cr.challenge
+                ${userId ? this.sql`
+                     LEFT JOIN challenge_users cu ON c.id = cu.challenge_id AND cu.user_id = ${userId}
+                     LEFT JOIN (
+                         SELECT 
+                             challenge_id, 
+                             COUNT(*) as attempts_count
+                         FROM challenge_attempts 
+                         WHERE user_id = ${userId}
+                         GROUP BY challenge_id
+                     ) ca ON c.id = ca.challenge_id
+                 ` : this.sql``}
             WHERE c.lane = ${laneId}
-            GROUP BY c.id, c.lane, c.title, c.objective, c.instruction, c.assignment, c.submission_format,
-                     c.success_criteria,c.position
+            GROUP BY c.id, c.lane, c.title, c.objective, c.instruction, c.assignment, c.submission_format,c.success_criteria, c.position
+                         ${userId ? this.sql`, cu.user_id, ca.attempts_count` : this.sql``}
             ORDER BY c.position
         `;
 
         // Transform the result to match the Challenge type structure
-        return result.map((row: any) => ({
-            id: row.id,
-            lane: row.lane,
-            title: row.title,
-            objective: row.objective,
-            instruction: row.instruction || [],
-            assignment: row.assignment,
-            submissionFormat: row.submission_format as 'video' | 'images' | 'audio' | 'text',
-            references: Array.isArray(row.references) ? row.references : [],
-            successCriteria: row.success_criteria,
-        }));
+        return result.map((row: any) => {
+            const challenge: Challenge = {
+                id: row.id,
+                lane: row.lane,
+                title: row.title,
+                objective: row.objective,
+                instruction: row.instruction || [],
+                assignment: row.assignment,
+                submissionFormat: row.submission_format as 'video' | 'image' | 'audio' | 'text' | 'code',
+                references: Array.isArray(row.references) ? row.references : [],
+                successCriteria: row.success_criteria,
+            };
+
+            // Add optional fields only when userId is provided
+            if (userId) {
+                challenge.isCompleted = row.isCompleted;
+                challenge.attemptsCount = row.attemptsCount;
+            }
+
+            return challenge;
+        });
+    };
+
+    getById = async (id: string): Promise<Challenge> => {
+        const result = await this.sql`
+            SELECT c.id,
+                   c.lane,
+                   c.title,
+                   c.objective,
+                   c.instruction,
+                   c.assignment,
+                   c.submission_format,
+                   c.success_criteria,
+                   COALESCE(
+                                   JSON_AGG(
+                                   CASE
+                                       WHEN cr.id IS NOT NULL THEN
+                                           JSON_BUILD_OBJECT(
+                                                   'challenge', c.title,
+                                                   'location', JSON_BUILD_OBJECT(
+                                                           'startTime', cr.start_time,
+                                                           'endTime', cr.end_time
+                                                               ),
+                                                   'purpose', cr.purpose
+                                           )
+                                       END
+                                           ) FILTER (WHERE cr.id IS NOT NULL),
+                                   '[]'::json
+                   ) as "references"
+            FROM challenges c
+                     LEFT JOIN challenge_references cr ON c.id = cr.challenge
+            WHERE c.id = ${id}
+            GROUP BY c.id
+        `;
+
+        const challenges = result.map((row: any) => {
+            const challenge: Challenge = {
+                id: row.id,
+                lane: row.lane,
+                title: row.title,
+                objective: row.objective,
+                instruction: row.instruction || [],
+                assignment: row.assignment,
+                submissionFormat: row.submission_format as 'video' | 'image' | 'audio' | 'text' | 'code',
+                references: Array.isArray(row.references) ? row.references : [],
+                successCriteria: row.success_criteria,
+            };
+            return challenge;
+        });
+        return challenges[0]
     };
 
     getChallengeDetails = async (id: string): Promise<Challenge> => {
@@ -157,13 +243,13 @@ export default class ChallengePG implements ChallengeRepository {
             objective: row.objective,
             instruction: row.instruction || [],
             assignment: row.assignment,
-            submissionFormat: row.submission_format as 'video' | 'images' | 'audio' | 'text',
+            submissionFormat: row.submission_format as 'video' | 'image' | 'audio' | 'text',
             references: Array.isArray(row.references) ? row.references : [],
             successCriteria: row.success_criteria,
         };
     };
 
-    getChallengeOrder = async (laneId: string): Promise<{id: string, position: number,title: string}[]> => {
+    getChallengeOrder = async (laneId: string): Promise<{ id: string, position: number, title: string }[]> => {
         const result = await this.sql`
             SELECT id,
                    title,
@@ -192,9 +278,10 @@ export default class ChallengePG implements ChallengeRepository {
         if (ids.length === 0) return;
 
         await this.sql`
-            DELETE FROM challenge_users
+            DELETE
+            FROM challenge_users
             WHERE user_id = ${user_id}
-            AND challenge_id = ANY(${`{${ids.map((id) => `"${id}"`).join(',')}}`})
+              AND challenge_id = ANY (${`{${ids.map((id) => `"${id}"`).join(',')}}`})
         `;
     };
 
@@ -202,12 +289,48 @@ export default class ChallengePG implements ChallengeRepository {
         const result = await this.sql`
             SELECT cu.challenge_id
             FROM challenge_users cu
-            JOIN challenges c ON cu.challenge_id = c.id
+                     JOIN challenges c ON cu.challenge_id = c.id
             WHERE c.lane = ${laneId}
-            AND cu.user_id = ${user_id}
+              AND cu.user_id = ${user_id}
         `;
 
         return result.map((row: any) => row.challenge_id);
+    };
+
+    addAttempt = async (feedback: Omit<Attempt, "id" | "createdAt">): Promise<void> => {
+        await this.sql`
+        INSERT INTO challenge_attempts (user_id, challenge_id, feedback, pass)
+        VALUES (${feedback.userId}, ${feedback.challengeId}, ${feedback.feedback}, ${feedback.pass})
+    `;
+    };
+
+    getAttempts = async (id: string, userId: string, filter?: BaseFilter): Promise<Attempt[]> => {
+        const page = filter?.page || 1;
+        const limit = filter?.limit || 10;
+        const offset = (page - 1) * limit;
+
+        const result = await this.sql`
+        SELECT 
+            id,
+            user_id as "userId",
+            challenge_id as "challengeId", 
+            feedback,
+            pass,
+            created_at as "createdAt"
+        FROM challenge_attempts 
+        WHERE challenge_id = ${id} AND user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+    `;
+
+        return result.map((row: any) => ({
+            id: row.id,
+            userId: row.userId,
+            challengeId: row.challengeId,
+            feedback: row.feedback,
+            pass: row.pass,
+            createdAt: row.createdAt
+        }));
     };
 
 }

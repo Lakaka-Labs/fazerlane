@@ -10,6 +10,8 @@ import GetChallenge from "./queries/getChallenge.ts";
 import MarkChallenge from "./commands/markChallenge.ts";
 import UnmarkChallenge from "./commands/unmarkChallenge.ts";
 import UnmarkAllChallenge from "./commands/unmarkAllChallenge.ts";
+import GetAttempts from "./queries/getAttempts.ts";
+import GetChallenges from "./queries/getChallenges.ts";
 
 export class Commands {
     generateChallenge: GenerateChallenges
@@ -36,7 +38,7 @@ export class Commands {
             challengeRepository,
         )
         this.markChallenge = new MarkChallenge(
-            challengeRepository
+            challengeRepository, llmRepository
         )
         this.unmarkChallenge = new UnmarkChallenge(
             challengeRepository
@@ -50,9 +52,13 @@ export class Commands {
 
 export class Queries {
     getChallenge: GetChallenge
+    getChallenges: GetChallenges
+    getAttempts: GetAttempts
 
     constructor(challengeRepository: ChallengeRepository) {
         this.getChallenge = new GetChallenge(challengeRepository)
+        this.getChallenges = new GetChallenges(challengeRepository)
+        this.getAttempts = new GetAttempts(challengeRepository)
     }
 }
 

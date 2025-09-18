@@ -97,7 +97,7 @@ export default class ExpressHTTP {
     };
 
     challenge = () => {
-        const router = new ChallengeHandler(this.services.challengeService);
+        const router = new ChallengeHandler(this.services.challengeService, this.appSecrets);
         this.router.use("/challenge", Authorize(this.services.authenticationService), router.router);
     };
 

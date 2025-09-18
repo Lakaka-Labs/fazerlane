@@ -5,6 +5,9 @@ import {JsonWebTokenError} from "jsonwebtoken";
 import {ErrorResponse} from "../../../../packages/responses/error.ts";
 import {ApiError} from "../../../../packages/errors";
 import {SQL} from "bun";
+import {MulterError} from "multer";
+import fs from "node:fs";
+import {SuccessResponse} from "../../../../packages/responses/success.ts";
 
 const ErrorHandlerMiddleware: ErrorRequestHandler = async (
     err: any,
@@ -13,6 +16,10 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = async (
     next: NextFunction
 ) => {
     console.log(err);
+    if (req.file) {
+        fs.unlink(req.file.path, () => {
+        });
+    }
     if (err instanceof ApiError) {
         return new ErrorResponse(res, err.message, err.statusCode).send();
     }
@@ -61,6 +68,23 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = async (
                 return new ErrorResponse(res, err.detail, StatusCodes.INTERNAL_SERVER_ERROR).send();
         }
     }
+    if (err instanceof MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return new ErrorResponse(res,"File size too large", StatusCodes.INTERNAL_SERVER_ERROR).send()
+        }
+        if (err.code === 'LIMIT_FILE_COUNT') {
+            return new ErrorResponse(res,"Too many files", StatusCodes.INTERNAL_SERVER_ERROR).send()
+        }
+        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+            return new ErrorResponse(res,"Unexpected field name", StatusCodes.INTERNAL_SERVER_ERROR).send()
+        }
+    }
+    if (err && err.name === 'INVALID_FILE_TYPE') {
+        return res.status(400).json({
+            error: err.message
+        });
+    }
+
     return new ErrorResponse(res).send();
 };
 

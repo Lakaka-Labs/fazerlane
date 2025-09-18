@@ -41,6 +41,7 @@ export default class AppSecrets {
     googleOAuthCredentials: GoogleOAuthCredentials
     geminiConfiguration: GeminiConfiguration
     googleAPIKey: string
+    maxYoutubeLength : number
     maxVideoLength : number
     baseYoutubeApiUrl : string
     openaiAPIKey: string
@@ -88,7 +89,8 @@ export default class AppSecrets {
 
         this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
 
-        this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 600)
+        this.maxYoutubeLength = this.getEnvironmentVariableAsNumber("MAX_YOUTUBE_LENGTH", 600)
+        this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 120)
         this.baseYoutubeApiUrl = this.getEnvironmentVariableOrFallback("BASE_YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3/videos")
         this.openaiAPIKey = this.getEnvironmentVariable("OPENAI_API_KEY")
 

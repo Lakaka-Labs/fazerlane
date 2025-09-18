@@ -6,7 +6,7 @@ CREATE TABLE challenges
     objective         TEXT   NOT NULL,
     instruction       TEXT   NOT NULL,
     assignment        TEXT   NOT NULL,
-    submission_format TEXT   NOT NULL CHECK (submission_format IN ('video', 'images', 'audio', 'text')),
+    submission_format TEXT   NOT NULL CHECK (submission_format IN ('video', 'image', 'audio', 'text', 'code')),
     success_criteria  TEXT   NOT NULL,
     position          SERIAL NOT NULL
 );

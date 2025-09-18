@@ -75,7 +75,7 @@ export default class LanePG implements LaneRepository {
         }
 
         if (filter.page) {
-            query = this.sql`${query} OFFSET ${filter.page - 1}`;
+            query = this.sql`${query} OFFSET ${(filter.page - 1) * filter.limit}`;
         }
 
         const rows = await query;

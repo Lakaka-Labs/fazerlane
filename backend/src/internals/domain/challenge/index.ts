@@ -15,6 +15,17 @@ export type Challenge = {
     instruction: string;
     assignment: string;
     successCriteria: string;
-    submissionFormat: 'video' | 'images' | 'audio' | 'text';
+    submissionFormat: 'video' | 'image' | 'audio' | 'text' | 'code';
     references: Reference[];
+    isCompleted?: boolean;
+    attemptsCount?: number
 };
+
+export type Attempt = {
+    id: string
+    userId: string
+    challengeId: string
+    feedback: string
+    pass: boolean
+    createdAt: Date
+}
