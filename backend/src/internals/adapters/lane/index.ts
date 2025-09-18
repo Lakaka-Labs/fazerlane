@@ -10,29 +10,38 @@ export default class LanePG implements LaneRepository {
         this.sql = postgresClient
     }
 
-    async update(id: string, lane: Partial<Omit<Lane, "createdAt" | "updatedAt" | "id" | "creator">>): Promise<void> {
+    async update(id: string, lane: Partial<Pick<Lane, "challengeGenerated" | "state">>): Promise<void> {
         if (Object.keys(lane).length === 0) {
             return;
         }
 
-        const updateData: any = { ...lane };
-        if (lane.youtubes) {
-            updateData.youtubes = `{${lane.youtubes.map((id) => `"${id}"`).join(',')}}`;
+        const updateData: any = {};
+        if (lane.challengeGenerated) {
+            updateData.challenge_generated = lane.challengeGenerated
+        }
+        if (lane.state) {
+            updateData.state = lane.state
         }
 
-        await this.sql`UPDATE lanes SET ${this.sql(updateData)} WHERE id = ${id}`;
+        await this.sql`UPDATE lanes
+                       SET ${this.sql(updateData)}
+                       WHERE id = ${id}`;
     };
 
-    async create(
-        lane: Omit<Lane, 'createdAt' | 'updatedAt' | 'id' | 'state'>
-    ): Promise<string> {
-        const laneRow = {
-            ...lane,
-            youtubes: `{${lane.youtubes.map((id) => `"${id}"`).join(',')}}`,
-        };
-        const [{id}] =
-            await this.sql`INSERT INTO lanes ${this.sql(laneRow)} RETURNING id`;
-        return id;
+    async create(creator: string, youtube: string): Promise<string> {
+        let id = await this.sql.begin(async tx => {
+            const laneRow = {
+                creator,
+                youtube,
+            };
+            const [{id}] =
+                await tx`INSERT INTO lanes ${tx(laneRow)} RETURNING id`;
+
+            await tx`INSERT INTO user_lanes (user_id, lane_id)
+                     VALUES (${creator}, ${id})`
+            return id;
+        });
+        return id
     }
 
     async getById(id: string): Promise<Lane> {
@@ -45,19 +54,46 @@ export default class LanePG implements LaneRepository {
         return {
             id: row.id,
             creator: row.creator,
-            name: row.name,
             state: row.state,
-            goal: row.goal,
-            schedule: row.schedule,
-            experience: row.experience,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
-            youtubes: row.youtubes,
+            youtube: row.youtube,
+            challengeGenerated: row.challenge_generated
         }
     }
 
-    async getMany(filter: LaneFilter): Promise<Lane[]> {
-        return Promise.resolve([]);
+    async getLanes(filter: LaneFilter): Promise<Lane[]> {
+        let query = this.sql`
+            SELECT l.*
+            FROM lanes l
+            INNER JOIN user_lanes ul ON l.id = ul.lane_id
+            WHERE ul.user_id = ${filter.userId}
+        `;
+
+        if (filter.limit) {
+            query = this.sql`${query} LIMIT ${filter.limit}`;
+        }
+
+        if (filter.page) {
+            query = this.sql`${query} OFFSET ${filter.page - 1}`;
+        }
+
+        const rows = await query;
+
+        return rows.map((row: any) => ({
+            id: row.id,
+            creator: row.creator,
+            state: row.state,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            youtube: row.youtube,
+            challengeGenerated: row.challenge_generated
+        }));
     }
 
+    async addLane(id: string, userId: string): Promise<void> {
+        await this.sql`INSERT INTO user_lanes (user_id, lane_id)
+                       VALUES (${userId}, ${id})
+                       ON CONFLICT (user_id, lane_id) DO NOTHING`;
+    }
 }

@@ -5,7 +5,7 @@
     "objective": "Understand and consistently apply correct foot placement on the skateboard, and execute a foundational hippy jump while keeping the board flat on the ground.",
     "prerequisite_challenges": [],
     "builds_on_context": "No relevant memory context available - using standard challenge structure.",
-    "practice_instructions": [
+    "instruction": [
       "**Review proper foot placement:** Observe where your front and back feet should be positioned on the board for optimal stability and power. Pay close attention to keeping your entire foot on the board, avoiding hanging your toes off the rails. [3]",
       "**Deliberate Foot Placement:** Before each attempt, consciously look down and place your feet precisely where they belong. Make this a disciplined habit. [3]",
       "**Basic Hippy Jump (Board Flat):** Practice jumping straight up, allowing your feet to completely leave the board. The goal for this step is to ensure the skateboard remains flat on the ground beneath you. Land softly with your feet returning to their correct positions. [2]"
@@ -68,7 +68,7 @@
     "objective": "Initiate hippy jumps with a straight trajectory, actively maintaining board flatness and avoiding unwanted leaning or swerving during the jump.",
     "prerequisite_challenges": ["Foot Placement Fundamentals and Basic Hippy Jump"],
     "builds_on_context": "No relevant memory context available - using standard challenge structure.",
-    "practice_instructions": [
+    "instruction": [
       "**Utilize Ground Markings:** Find a ground crack or straight line and position your skateboard wheels precisely along it. This will provide immediate visual feedback on whether you are maintaining a straight trajectory during your jumps. [4]",
       "**Push Evenly, Jump Straight:** Focus on pushing directly and evenly against the board as you initiate your jump. Actively concentrate on keeping the board perfectly flat beneath you. Avoid any leaning towards the heel or toe side, which can cause the board to swerve. [4]",
       "**Observe and Correct:** After each jump, note if the board moved off the line or if you leaned. Use this feedback to adjust your balance and push for the next attempt. [4]",
@@ -128,7 +128,7 @@
     "objective": "Master proper upper body hinging during the squat to maximize jump power, and apply this technique to execute hippy jumps that involve lifting the nose and making deliberate tail contact.",
     "prerequisite_challenges": ["Straight Hippy Jumps and Board Flatness Control"],
     "builds_on_context": "No relevant memory context available - using standard challenge structure.",
-    "practice_instructions": [
+    "instruction": [
       "**Practice Upper Body Hinging:** During your squat, actively hinge your upper body forward so your chest is pointed approximately 45 degrees towards the ground. Focus on this movement from the waist, avoiding the tendency to pull your chest straight up. [5]",
       "**Jump with Hinging:** Initiate your jumps by pushing into your legs, keeping your upper body hinged. Allow your upper body to naturally extend upwards only at the end of the jump. [5]",
       "**Hippy Jump (Lift Nose, No Tail Contact):** Apply the proper upper body hinging to perform hippy jumps where you lift the nose of the board off the ground, ensuring the tail *does not* hit the ground. This tests your control over the board's angle. [2]",

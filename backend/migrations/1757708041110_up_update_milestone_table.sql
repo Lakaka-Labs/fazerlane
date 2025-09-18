@@ -1,1 +1,0 @@
-ALTER TABLE IF EXISTS milestones ADD COLUMN IF NOT EXISTS challenge_generated BOOLEAN DEFAULT false;

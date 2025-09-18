@@ -23,21 +23,14 @@ export default class CreateLane {
         this.appSecrets = appSecrets
     }
 
-    async handle(lane: Omit<Lane, "id" | "createdAt" | "updatedAt">): Promise<string> {
-        let youtubes: Youtube[] = []
-        for await (const id of lane.youtubes) {
-            try {
-                let video = await this.youtubeRepository.getDetails(id)
-                if (video.duration > this.appSecrets.maxVideoLength) throw new BadRequestError(`video: ${id} is too long`)
-                youtubes.push({...video, segmented: false})
-            } catch (e) {
-                throw e
-            }
-        }
-
-        lane.youtubes = await this.resourceRepository.addYoutubes(youtubes)
-        let laneId = await this.laneRepository.create(lane)
-        await this.queueRepository.addJob(QueueName.resourceSegmentation, {laneId})
+    async handle(creator: string, youtube: string): Promise<string> {
+        let video = await this.youtubeRepository.getDetails(youtube)
+        if (video.duration > this.appSecrets.maxVideoLength) throw new BadRequestError(`video: ${youtube} is too long`)
+        let yts = await this.resourceRepository.addYoutubes([video])
+        if (!yts[0]) throw new Error("failed to add youtube video")
+        let laneId = await this.laneRepository.create(creator,yts[0])
+        await this.queueRepository.addJob(QueueName.challengeGeneration, {laneId})
         return laneId
+
     }
 }

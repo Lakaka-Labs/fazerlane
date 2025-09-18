@@ -18,6 +18,7 @@ import {WebSocketServer} from "ws";
 import {BadRequestError} from "../../../packages/errors";
 import type Adapters from "../../adapters";
 import {ApiError} from "../../../packages/errors/";
+import ChallengeHandler from "./challenge/handler.ts";
 
 export default class ExpressHTTP {
     appSecrets: AppSecrets
@@ -65,6 +66,7 @@ export default class ExpressHTTP {
         this.health()
         this.authentication()
         this.lane()
+        this.challenge()
 
         this.server.use(`/api/v1`, this.router);
 
@@ -80,8 +82,6 @@ export default class ExpressHTTP {
 
     health() {
         this.server.get('/health', async (req, res) => {
-            const milestones =await this.adapters.milestoneRepository.get("cc79d1bd-23cf-4852-a865-bc6478816387")
-            console.log({milestones})
             return res.status(StatusCodes.OK).send("server up")
         })
     }
@@ -94,6 +94,11 @@ export default class ExpressHTTP {
     lane = () => {
         const router = new LaneHandler(this.services.laneService);
         this.router.use("/lane", Authorize(this.services.authenticationService), router.router);
+    };
+
+    challenge = () => {
+        const router = new ChallengeHandler(this.services.challengeService);
+        this.router.use("/challenge", Authorize(this.services.authenticationService), router.router);
     };
 
     websocketSetup = () => {

@@ -1,2 +1,2 @@
-DROP TABLE youtubes;
 DROP TABLE lanes;
+DROP TABLE youtubes;

@@ -2,18 +2,10 @@ import {z} from "zod";
 
 export default class LaneSchema {
     createLaneSchema = z.object({
-        name: z.string(),
-        goal: z.string().optional(),
-        schedule: z.string().optional(),
-        experience: z.string().optional(),
-        youtubes: z.array(z.string()).min(1, "provide at least one youtube video"),
+        youtube: z.string()
     })
-
-    redoLaneSchema = z.object({
-        name: z.string().optional(),
-        goal: z.string().optional(),
-        schedule: z.string().optional(),
-        experience: z.string().optional(),
-        youtubes: z.array(z.string()).optional(),
+    getLanesSchema = z.object({
+        page: z.number().optional().default(1),
+        limit: z.number().optional().default(20)
     })
 }

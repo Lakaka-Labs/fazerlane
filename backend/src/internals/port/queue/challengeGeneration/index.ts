@@ -10,9 +10,6 @@ export default class challengeGeneration {
 
     handler = async (job: Job) => {
         const {laneId} = job.data
-        const retry = await this.challengeService.commands.segmentLaneResources.handle(laneId, job.attemptsMade + 1, job.opts.attempts || 0)
-        if (retry) {
-            throw new Error()
-        }
+        await this.challengeService.commands.generateChallenge.handle(laneId, job.attemptsMade + 1, job.opts.attempts || 0)
     }
 }

@@ -3,7 +3,6 @@ import type {PostgresCredentials, RedisCredentials} from "../secret";
 import Redis from "ioredis";
 import {GoogleGenAI} from '@google/genai';
 import {Memory} from "mem0ai/oss";
-import {challengeFactExtractionPrompt} from "../prompts/challengFactExtraction.ts";
 
 export const bunPostgresClientConnection = (credentials: PostgresCredentials) => {
     return new SQL({
@@ -33,35 +32,6 @@ export const ioRedisClient = (credentials: RedisCredentials) => {
 
 export const googleGeminiClient = (geminiAPIKey: string) => {
     return new GoogleGenAI({apiKey: geminiAPIKey});
-}
-
-export const mem0ChallengeMemory = (openaiAPIKey: string, credentials: PostgresCredentials) => {
-    return new Memory({
-        llm: {
-            provider: 'openai',
-            config: {
-                apiKey: openaiAPIKey,
-                model: 'gpt-5-nano',
-            },
-        },
-        embedder: {
-            provider: 'openai',
-            config: {
-                apiKey: openaiAPIKey,
-                model: 'text-embedding-3-large',
-            },
-        },
-        vectorStore: {
-            provider: "qdrant",
-            config: {
-                collectionName: 'challenge_memories',
-                dimension: 3072,
-                host: 'localhost',
-                port: 6333,
-            },
-        },
-        customPrompt: challengeFactExtractionPrompt
-    });
 }
 
 export const mem0UserMemory = (openaiAPIKey: string, credentials: PostgresCredentials) => {

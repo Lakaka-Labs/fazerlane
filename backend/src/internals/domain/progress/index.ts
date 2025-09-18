@@ -3,7 +3,6 @@ export type Progress = {
     lane: string
     message: string
     type: 'success' | 'fail' | 'info'
-    stage: 'analysis' | 'milestone_generation' | 'challenge_generation'
     createdAt: Date
 }
 

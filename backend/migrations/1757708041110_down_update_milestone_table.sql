@@ -1,1 +1,0 @@
-ALTER TABLE IF EXISTS milestones DROP COLUMN IF EXISTS challenge_generated;

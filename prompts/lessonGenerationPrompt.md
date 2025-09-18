@@ -143,7 +143,7 @@ Provide a JSON array where each challenge contains:
 - **objective:** What the student should achieve by the end of this challenge
 - **prerequisite_challenges:** Array of challenge titles from memory that should be completed first (if applicable and found in memory)
 - **builds_on_context:** Brief description of how this challenge relates to or builds on information found in the memory context (if applicable)
-- **practice_instructions:** Array of clear, actionable instruction strings written in **markdown format** (personalized based on available memory insights)
+- **instruction:** Array of clear, actionable instruction strings written in **markdown format** (personalized based on available memory insights)
 - **assignment:** Specific deliverable to demonstrate progress (format optimized based on memory patterns if available)
 - **submission_format:** How to submit proof of completion (choose based on memory preferences if available, or default to: "video", "images", "audio", or "text")
 - **references:** Array of resource references that support this challenge
@@ -258,7 +258,7 @@ Choose quiz types based on available memory insights or use variety:
     "objective": "Combine static balance skills with controlled movement techniques",
     "prerequisite_challenges": ["Static Balance Fundamentals"],
     "builds_on_context": "Builds on completed 'Static Balance Fundamentals' challenge from earlier milestone, advancing to dynamic movement while maintaining established balance principles",
-    "practice_instructions": [
+    "instruction": [
       "**Start with your established static balance position** from the previous milestone",
       "Introduce **gentle weight shifts** while maintaining board contact - build on your proven stability foundation",
       "Practice **controlled transitions** for 30-second intervals based on your previous successful timing patterns",

@@ -20,7 +20,6 @@ export default class ProgressPG implements ProgressRepository {
                    lane,
                    type,
                    message,
-                   stage,
                    created_at as "createdAt"
             FROM progresses
             WHERE lane = ${laneId}

@@ -25,7 +25,7 @@ Provide a JSON array where each challenge contains:
 
 - **challenge_title:** Clear, descriptive name for the challenge
 - **objective:** What the student should achieve by the end of this challenge
-- **practice_instructions:** Array of clear, actionable instruction strings written in **markdown format** (each step should be 1-2 sentences for flashcard display, but can include markdown formatting for emphasis, lists, etc.)
+- **instruction:** Array of clear, actionable instruction strings written in **markdown format** (each step should be 1-2 sentences for flashcard display, but can include markdown formatting for emphasis, lists, etc.)
 - **assignment:** Specific deliverable to demonstrate progress
 - **submission_format:** How to submit proof of completion (choose one: "video", "images", "audio", or "text")
 - **quizzes:** Array of 2-4 knowledge check questions covering the key concepts taught in this challenge (see quiz format options below)
@@ -111,7 +111,7 @@ Choose one of the following quiz types for each question:
   {
     "challenge_title": "Establishing Proper Stance",
     "objective": "Achieve consistent foot placement for the foundational ollie position",
-    "practice_instructions": [
+    "instruction": [
       "**Study** the foot placement diagram in the kickflip illustration to understand proper positioning",
       "Place your **back foot on the tail** and **front foot angled behind the front bolts** as shown",
       "Practice the *crouch position* described in stage 2, keeping your **head straight**",

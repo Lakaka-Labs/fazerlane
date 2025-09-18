@@ -7,7 +7,7 @@ Input:
 A single challenge object containing:
 - challenge_title: The challenge name
 - objective: Learning goal for the challenge
-- practice_instructions: Array of instruction steps
+- instruction: Array of instruction steps
 - assignment: Specific deliverable
 - quizzes: Knowledge check questions
 - success_criteria: Completion benchmarks

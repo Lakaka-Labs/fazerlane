@@ -4,6 +4,7 @@ import {StatusCodes} from "http-status-codes";
 import {JsonWebTokenError} from "jsonwebtoken";
 import {ErrorResponse} from "../../../../packages/responses/error.ts";
 import {ApiError} from "../../../../packages/errors";
+import {SQL} from "bun";
 
 const ErrorHandlerMiddleware: ErrorRequestHandler = async (
     err: any,
@@ -33,7 +34,33 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = async (
         return new ErrorResponse(res, "Invalid token", StatusCodes.BAD_REQUEST).send();
 
     }
+    if (err instanceof SQL.PostgresError) {
+        console.log(err.code); // PostgreSQL error code
+        console.log(err.detail); // Detailed error message
+        console.log(err.hint); // Helpful hint from PostgreSQL
+        switch (err.errno) {
+            case '23505':
+                return new ErrorResponse(res, err.detail, StatusCodes.CONFLICT).send();
 
+            case '23503':
+                return new ErrorResponse(res, "entity doesn't exist", StatusCodes.NOT_FOUND).send();
+
+            case '23502':
+            case '23514':
+                return new ErrorResponse(res, err.detail, StatusCodes.BAD_REQUEST).send();
+
+            case '08000':
+            case '08003':
+            case '08006':
+                return new ErrorResponse(res, err.detail, StatusCodes.SERVICE_UNAVAILABLE).send();
+
+            case '53300':
+                return new ErrorResponse(res, err.detail, StatusCodes.SERVICE_UNAVAILABLE).send();
+
+            default:
+                return new ErrorResponse(res, err.detail, StatusCodes.INTERNAL_SERVER_ERROR).send();
+        }
+    }
     return new ErrorResponse(res).send();
 };
 

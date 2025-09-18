@@ -26,25 +26,10 @@ export default class RedoLane {
         this.appSecrets = appSecrets
     }
 
-    async handle(id: string, lane: Partial<Omit<Lane, "createdAt" | "updatedAt" | "id" | "creator">>): Promise<void> {
+    async handle(id: string): Promise<void> {
         const original = await this.laneRepository.getById(id)
         if (original.state != "failed" && original.state != "completed") throw new BadRequestError("you can only redo a completed or failed lane")
-
-        if (lane.youtubes && lane.youtubes.length > 0) {
-            let youtubes: Youtube[] = []
-            for await (const id of lane.youtubes) {
-                try {
-                    let video = await this.youtubeRepository.getDetails(id)
-                    if (video.duration > this.appSecrets.maxVideoLength) throw new BadRequestError(`video: ${id} is too long`)
-                    youtubes.push({...video, segmented: false})
-                } catch (e) {
-                    throw e
-                }
-            }
-            lane.youtubes = await this.resourceRepository.addYoutubes(youtubes)
-        }
         await this.progressRepository.delete(id)
-        await this.laneRepository.update(id, lane)
-        await this.queueRepository.addJob(QueueName.resourceSegmentation, {laneId: id})
+        await this.queueRepository.addJob(QueueName.challengeGeneration, {laneId: id})
     }
 }

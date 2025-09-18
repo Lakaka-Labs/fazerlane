@@ -9,6 +9,7 @@ import type {User} from "../../../domain/user";
 import {StatusCodes} from "http-status-codes";
 import {BadRequestError} from "../../../../packages/errors";
 import {z} from "zod";
+import type {LaneFilter} from "../../../domain/lane";
 
 export default class LaneHandler extends LaneSchema {
     laneService: LaneService
@@ -26,6 +27,9 @@ export default class LaneHandler extends LaneSchema {
             '/',
             ValidationMiddleware(this.createLaneSchema, "body"),
             this.createLane
+        ).get(            '/',
+            ValidationMiddleware(this.getLanesSchema, "query"),
+            this.getLanes
         );
 
         this.router.patch(
@@ -33,7 +37,6 @@ export default class LaneHandler extends LaneSchema {
             ValidationMiddleware(z.object({
                 laneId: z.uuid(),
             }), "params"),
-            ValidationMiddleware(this.redoLaneSchema, "body"),
             this.redoLane
         );
 
@@ -44,6 +47,13 @@ export default class LaneHandler extends LaneSchema {
             }), "params"),
             this.getLaneProgress
         );
+        this.router.post(
+            '/:laneId/add',
+            ValidationMiddleware(z.object({
+                laneId: z.uuid(),
+            }), "params"),
+            this.addLane
+        );
     }
 
     createLane = async (req: Request, res: Response) => {
@@ -52,7 +62,7 @@ export default class LaneHandler extends LaneSchema {
             ...req.body,
             creator
         }
-        const laneId = await this.laneService.commands.createLane.handle(lane)
+        const laneId = await this.laneService.commands.createLane.handle(creator,req.body.youtube)
         res.statusCode = StatusCodes.ACCEPTED
         new SuccessResponse(res, {message: "Lane creation in progress", laneId}).send();
     }
@@ -63,12 +73,7 @@ export default class LaneHandler extends LaneSchema {
         if (!req.params.laneId) throw new BadRequestError("provide lane id")
         const laneId = req.params.laneId;
 
-        const lane = {
-            ...req.body,
-            creator
-        }
-
-        await this.laneService.commands.redoLane.handle(laneId, lane)
+        await this.laneService.commands.redoLane.handle(laneId)
         res.statusCode = StatusCodes.ACCEPTED
         new SuccessResponse(res, {message: "Lane redo in progress", laneId}).send();
     }
@@ -79,5 +84,26 @@ export default class LaneHandler extends LaneSchema {
 
         const progress = await this.laneService.queries.getLaneProgress.handle(laneId)
         new SuccessResponse(res, {progress}).send();
+    }
+
+    getLanes = async (req: Request, res: Response) => {
+        const userId = (req.user as User).id;
+        const filter : LaneFilter = {
+            userId: userId,
+            page: Number(req.query.page),
+            limit: Number(req.query.page)
+        }
+
+        const lanes = await this.laneService.queries.getLanes.handle(filter)
+        new SuccessResponse(res, {lanes}).send();
+    }
+
+    addLane = async (req: Request, res: Response) => {
+        const userId = (req.user as User).id;
+        if (!req.params.laneId) throw new BadRequestError("provide lane id")
+        const laneId = req.params.laneId;
+
+        await this.laneService.commands.addLane.handle(laneId,userId)
+        new SuccessResponse(res).send();
     }
 }

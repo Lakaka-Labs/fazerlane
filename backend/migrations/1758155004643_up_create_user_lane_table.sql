@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS user_lanes
+(
+    user_id      UUID REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE ,
+    lane_id UUID REFERENCES lanes (id) ON DELETE CASCADE ON UPDATE CASCADE ,
+    PRIMARY KEY (user_id, lane_id)
+)
