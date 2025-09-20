@@ -25,11 +25,21 @@ export type GeminiConfiguration = {
     model: string
 }
 
+export type SMTPCredentials = {
+    fromAddress: string
+    host: string
+    port: number
+    username: string
+    password: string
+}
+
 export default class AppSecrets {
     port: number;
     clientOrigin: string
     cookieExpires: number
     cookieSecret: string
+    emailJWTExpires: number
+    emailJWTSecret: string
     jwtExpires: number
     jwtSecret: string
     refreshJWTExpires: number
@@ -41,10 +51,12 @@ export default class AppSecrets {
     googleOAuthCredentials: GoogleOAuthCredentials
     geminiConfiguration: GeminiConfiguration
     googleAPIKey: string
-    maxYoutubeLength : number
-    maxVideoLength : number
-    baseYoutubeApiUrl : string
+    maxYoutubeLength: number
+    maxVideoLength: number
+    baseYoutubeApiUrl: string
     openaiAPIKey: string
+    smtpCredential: SMTPCredentials
+    verificationUIUrl: string
 
 
     constructor() {
@@ -52,6 +64,8 @@ export default class AppSecrets {
         this.clientOrigin = this.getEnvironmentVariableOrFallback("CLIENT_ORIGIN", "localhost:3000")
         this.cookieExpires = this.getEnvironmentVariableAsNumber("COOKIE_EXPIRES", 604_800);
         this.cookieSecret = this.getEnvironmentVariable("COOKIE_SECRET")
+        this.emailJWTExpires = this.getEnvironmentVariableAsNumber("EMAIL_JWT_EXPIRES", 604_800);
+        this.emailJWTSecret = this.getEnvironmentVariable("EMAIL_JWT_SECRET");
         this.jwtExpires = this.getEnvironmentVariableAsNumber("JWT_EXPIRES", 604_800);
         this.jwtSecret = this.getEnvironmentVariable("JWT_SECRET");
         this.refreshJWTExpires = this.getEnvironmentVariableAsNumber("REFRESH_JWT_EXPIRES", 2592000);
@@ -83,8 +97,8 @@ export default class AppSecrets {
         }
 
         this.geminiConfiguration = {
-            apiKey:this.getEnvironmentVariable("GEMINI_API_KEY"),
-            model:this.getEnvironmentVariableOrFallback("GEMINI_MODEL","gemini-2.5-flash"),
+            apiKey: this.getEnvironmentVariable("GEMINI_API_KEY"),
+            model: this.getEnvironmentVariableOrFallback("GEMINI_MODEL", "gemini-2.5-flash"),
         }
 
         this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
@@ -94,6 +108,15 @@ export default class AppSecrets {
         this.baseYoutubeApiUrl = this.getEnvironmentVariableOrFallback("BASE_YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3/videos")
         this.openaiAPIKey = this.getEnvironmentVariable("OPENAI_API_KEY")
 
+        this.smtpCredential = {
+            fromAddress: this.getEnvironmentVariable("SMTP_FROM_ADDRESS"),
+            host: this.getEnvironmentVariable("SMTP_HOST"),
+            password: this.getEnvironmentVariable("SMTP_PASSWORD"),
+            port: this.getEnvironmentVariableAsNumber("SMTP_PORT", 587),
+            username: this.getEnvironmentVariable("SMTP_USERNAME")
+        }
+
+        this.verificationUIUrl = this.getEnvironmentVariable("VERIFICATION_UI_URL")
     }
 
     getEnvironmentVariable(key: string): string {

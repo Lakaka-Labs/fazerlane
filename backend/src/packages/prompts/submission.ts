@@ -10,7 +10,7 @@ You are an expert evaluator tasked with analyzing user submissions against speci
 
 1. **Challenge Data**: 
 \`\`\`json
-${challenge}
+${JSON.stringify(challenge)}
 \`\`\`    
 2. **Submission Data**: ${
         (challenge.submissionFormat != "video" &&

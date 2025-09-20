@@ -12,6 +12,7 @@ import {GetVideoDuration} from "../../../../packages/utils/video.ts";
 import type {Challenge} from "../../../domain/challenge";
 import * as fs from "node:fs";
 import type {markChallengeParameters} from "../../../services/challenge/commands/markChallenge.ts";
+import multer from "multer";
 
 export default class ChallengeHandler extends ChallengeSchema {
     appSecrets: AppSecrets
@@ -50,7 +51,7 @@ export default class ChallengeHandler extends ChallengeSchema {
             }), "params"),
             ValidationMiddleware(z.object({
                 text: z.string().optional(),
-            }), "params"),
+            }), "body"),
             this.uploadMiddleware,
             this.validateFileSubmission, // Add this new middleware
             this.markChallenge
@@ -112,7 +113,11 @@ export default class ChallengeHandler extends ChallengeSchema {
         let challenge = await this.challengeService.queries.getChallenge.handle(challengeId)
 
         if (challenge.submissionFormat != "image" && challenge.submissionFormat != "video" && challenge.submissionFormat != "audio") {
-            return next()
+            const textUpload = multer().none();
+            return textUpload(req, res, (err: any) => {
+                if (err) return next(err);
+                next();
+            });
         }
 
         (req as any).challenge = challenge;

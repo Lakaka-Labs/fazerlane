@@ -23,6 +23,8 @@ import type ChallengeRepository from "../domain/challenge/repository.ts";
 import ChallengePG from "./challenge";
 import type {UserMemoriesRepository} from "../domain/memories/repository.ts";
 import UserMemoriesMem0 from "./memories/user.ts";
+import SMTPClass from "./email/smtp.ts";
+import type {EmailRepository} from "../domain/email/repository.ts";
 
 export type AdapterParameters = {
     postgresClient: SQL
@@ -44,6 +46,7 @@ export default class Adapters {
     progressWebsocketRepository: ProgressWebsocketRepository
     challengeRepository: ChallengeRepository
     userMemoriesRepository: UserMemoriesRepository
+    emailRepository: EmailRepository
 
     constructor(parameters: AdapterParameters) {
         this.parameters = parameters
@@ -57,5 +60,6 @@ export default class Adapters {
         this.progressWebsocketRepository = new ProgressWebsocket()
         this.challengeRepository = new ChallengePG(parameters.postgresClient)
         this.userMemoriesRepository = new UserMemoriesMem0(parameters.mem0UserClient)
+        this.emailRepository = new SMTPClass(parameters.appSecrets.smtpCredential)
     }
 }

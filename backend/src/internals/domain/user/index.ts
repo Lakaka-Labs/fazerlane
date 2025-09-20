@@ -1,6 +1,7 @@
 export type User = {
     id: string
     email: string
+    password?: string
     googleId?: string
     username?: string
     createdAt: string

@@ -69,21 +69,48 @@ export default class UserRepositoryPG implements Repository {
         const userData = {
             email: user.email,
             ...(user.googleId && {google_id: user.googleId}),
-            ...(user.username && {username: user.username})
+            ...(user.username && {username: user.username}),
+            ...(user.password && {password: user.password})
         };
 
         const [newUser] = await this.sql`
             INSERT INTO users ${this.sql(userData)}
-                RETURNING id, email, google_id, username, created_at, updated_at
+                RETURNING id, email, password, google_id, username, created_at, updated_at
         `;
 
         return {
             id: newUser.id,
             email: newUser.email,
-            googleId: newUser.google_id,
-            username: newUser.username,
+            ...(user.googleId && {google_id: user.googleId}),
+            ...(user.username && {username: user.username}),
+            ...(user.password && {password: user.password}),
             createdAt: newUser.created_at,
             updatedAt: newUser.updated_at
         };
+    };
+
+    async update(id: string, user: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>): Promise<User> {
+        const [newUser] = await this.sql`
+            UPDATE users
+            SET ${this.sql(user)}
+            WHERE id = ${id}
+            RETURNING id, email, password, google_id, username, created_at, updated_at
+        `;
+
+        return {
+            id: newUser.id,
+            email: newUser.email,
+            ...(user.googleId && {google_id: user.googleId}),
+            ...(user.username && {username: user.username}),
+            ...(user.password && {password: user.password}),
+            createdAt: newUser.created_at,
+            updatedAt: newUser.updated_at
+        };
+    };
+
+    async delete(id: string): Promise<void> {
+        await this.sql`DELETE
+                       FROM users
+                       WHERE id = ${id}`;
     };
 }
