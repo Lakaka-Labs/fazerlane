@@ -51,11 +51,11 @@
   --radius: 0.625rem;
 
   /* Your custom colors */
-  --text: oklab(13.44% 0.000 0.00);
-  --background: oklab(100.00% 0.000 0.00);
+  --text: oklab(13.44% 0 0);
+  --background: oklab(100% 0 0);
   --primary: oklab(63.28% 0.227 0.11);
-  --secondary: oklab(100.00% 0.000 0.00);
-  --accent: oklab(0.00% 0.000 0.00);
+  --secondary: oklab(100% 0 0);
+  --accent: oklab(0% 0 0);
 
   /* Updated theme variables using your colors */
   --foreground: var(--text);
@@ -63,15 +63,15 @@
   --card-foreground: var(--text);
   --popover: var(--background);
   --popover-foreground: var(--text);
-  --primary-foreground: oklab(100.00% 0.000 0.00);
+  --primary-foreground: oklab(100% 0 0);
   --secondary-foreground: var(--text);
-  --muted: oklab(97.00% 0.000 0.00);
-  --muted-foreground: oklab(55.60% 0.000 0.00);
-  --accent-foreground: oklab(100.00% 0.000 0.00);
+  --muted: oklab(97% 0 0);
+  --muted-foreground: oklab(55.6% 0 0);
+  --accent-foreground: oklab(100% 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklab(92.20% 0.000 0.00);
-  --input: oklab(92.20% 0.000 0.00);
-  --ring: oklab(70.80% 0.000 0.00);
+  --border: oklab(92.2% 0 0);
+  --input: oklab(92.2% 0 0);
+  --ring: oklab(70.8% 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -89,33 +89,33 @@
 
 .dark {
   /* Your custom dark colors */
-  --text: oklab(97.61% 0.000 0.00);
-  --background: oklab(0.00% 0.000 0.00);
+  --text: oklab(97.61% 0 0);
+  --background: oklab(0% 0 0);
   --primary: oklab(60.08% 0.218 0.11);
-  --secondary: oklab(0.00% 0.000 0.00);
-  --accent: oklab(100.00% 0.000 0.00);
+  --secondary: oklab(0% 0 0);
+  --accent: oklab(100% 0 0);
 
   /* Updated dark theme variables using your colors */
   --foreground: var(--text);
-  --card: oklab(20.50% 0.000 0.00);
+  --card: oklab(20.5% 0 0);
   --card-foreground: var(--text);
-  --popover: oklab(20.50% 0.000 0.00);
+  --popover: oklab(20.5% 0 0);
   --popover-foreground: var(--text);
   --primary-foreground: var(--background);
   --secondary-foreground: var(--text);
-  --muted: oklab(26.90% 0.000 0.00);
-  --muted-foreground: oklab(70.80% 0.000 0.00);
+  --muted: oklab(26.9% 0 0);
+  --muted-foreground: oklab(70.8% 0 0);
   --accent-foreground: var(--background);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklab(100.00% 0.000 0.00 / 10%);
-  --input: oklab(100.00% 0.000 0.00 / 15%);
-  --ring: oklab(55.60% 0.000 0.00);
+  --border: oklab(100% 0 0 / 10%);
+  --input: oklab(100% 0 0 / 15%);
+  --ring: oklab(55.6% 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklab(20.50% 0.000 0.00);
+  --sidebar: oklab(20.5% 0 0);
   --sidebar-foreground: var(--text);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: var(--text);
