@@ -14,10 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ForgotPasswordFields, forgotPasswordSchema } from "@/schemas/auth";
-import Image from "next/image";
 import appRoutes from "@/config/routes";
-import TextSeperator from "@/components/seperator/seperator-with-text";
+
 import Link from "next/link";
+import AuthTitle from "@/components/title/auth.title";
 
 export default function ForgotPassword() {
   const forgotPasswordForm = useForm<ForgotPasswordFields>({
@@ -30,12 +30,10 @@ export default function ForgotPassword() {
     forgotPasswordForm.reset();
   }
 
-  function googleOAuth() {
-    console.log("Google OAuth");
-  }
-
   return (
     <div className="flex flex-col gap-5">
+      <AuthTitle title="Reset Your Password" />
+
       <Form {...forgotPasswordForm}>
         <form
           onSubmit={forgotPasswordForm.handleSubmit(onForgotPassword)}

@@ -19,6 +19,7 @@ import appRoutes from "@/config/routes";
 import TextSeperator from "@/components/seperator/seperator-with-text";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import AuthTitle from "@/components/title/auth.title";
 
 export default function Signin() {
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +40,8 @@ export default function Signin() {
 
   return (
     <div className="flex flex-col gap-5">
+      <AuthTitle title="Welcome Back, Champ!" />
+
       <Button variant="outline" className="w-full gap-2" onClick={googleOAuth}>
         <Image
           src={"/icons/google-icon.svg"}

@@ -6,6 +6,8 @@ const appRoutes = {
     signIn: "/auth/signin",
     signUp: "/auth/signup",
     forgotPassword: "/auth/forgot-password",
+    verify: "/auth/verify",
+    reset: "/auth/reset",
   },
   dashboard: {
     user: {

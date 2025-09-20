@@ -11,18 +11,14 @@ export const metadata: Metadata = {
 export default function AuthLayout({ children }: PropsWithChildren) {
   return (
     <div className="relative">
-      <div className={`w-screen h-screen overflow-hidden `}>
+      <div className={`h-screen w-screen overflow-hidden`}>
         <Hyperspeed
           effectOptions={hyperSpeedEffectOptions as HyperSpeedEffectOptions}
         />
       </div>
 
-      <div className="h-screen fixed top-0 left-0 z-50 w-full flex justify-center items-center ">
-        <div className="max-w-md backdrop-blur-md bg-white/5 w-full rounded-xl shadow-2xl px-8 pt-10 pb-8 border border-solid border-gray-500/20 flex flex-col gap-6">
-          <h1 className="text-2xl tracking-tighter font-semibold text-center">
-            Welcome to Fazerlane
-          </h1>
-
+      <div className="fixed top-0 left-0 z-50 flex h-screen w-full items-center justify-center">
+        <div className="flex w-full max-w-md flex-col gap-6 rounded-xl border border-solid border-gray-500/20 bg-white/5 px-8 pt-10 pb-8 shadow-2xl backdrop-blur-md">
           <div>{children}</div>
         </div>
       </div>

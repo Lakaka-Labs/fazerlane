@@ -19,6 +19,17 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email"),
 });
 
+export const passwordResetSchema = z
+  .object({
+    password: z.string().min(6, "At least 6 characters"),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: "Passwords don't match",
+    path: ["confirm"],
+  });
+
 export type SignInFields = z.infer<typeof signInSchema>;
 export type SignUpFields = z.infer<typeof signUpSchema>;
 export type ForgotPasswordFields = z.infer<typeof forgotPasswordSchema>;
+export type PasswordResetFields = z.infer<typeof passwordResetSchema>;

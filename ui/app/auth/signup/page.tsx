@@ -20,6 +20,7 @@ import appRoutes from "@/config/routes";
 import Image from "next/image";
 import TextSeperator from "@/components/seperator/seperator-with-text";
 import { Eye, EyeOff } from "lucide-react";
+import AuthTitle from "@/components/title/auth.title";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +40,8 @@ export default function Signup() {
 
   return (
     <div className="flex flex-col gap-5">
+      <AuthTitle title="Welcome to Fazerlane" />
+
       <Button variant="outline" className="w-full gap-2" onClick={googleOAuth}>
         <Image
           src={"/icons/google-icon.svg"}
