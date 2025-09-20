@@ -19,6 +19,8 @@ import {BadRequestError} from "../../../packages/errors";
 import type Adapters from "../../adapters";
 import {ApiError} from "../../../packages/errors/";
 import ChallengeHandler from "./challenge/handler.ts";
+import ProfileHandler from "./profile/handler.ts";
+import {rateLimit} from 'express-rate-limit';
 
 export default class ExpressHTTP {
     appSecrets: AppSecrets
@@ -42,6 +44,13 @@ export default class ExpressHTTP {
         this.server.use(express.json());
         this.server.use(express.urlencoded({extended: true}));
         this.server.use(helmet())
+        this.server.use(rateLimit({
+            windowMs: 60 * 1000,
+            max: 100,
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: {error: 'Too many requests, please try again later.'}
+        }))
         this.server.use(cookieParser(this.appSecrets.cookieSecret));
         const corsOptions = {
             origin: this.appSecrets.clientOrigin,
@@ -65,6 +74,7 @@ export default class ExpressHTTP {
 
         this.health()
         this.authentication()
+        this.profile()
         this.lane()
         this.challenge()
 
@@ -89,6 +99,11 @@ export default class ExpressHTTP {
     authentication = () => {
         const router = new AuthenticationHandler(this.services.authenticationService, this.appSecrets);
         this.server.use("/auth", router.router);
+    };
+
+    profile = () => {
+        const router = new ProfileHandler(this.services.authenticationService, this.appSecrets);
+        this.router.use("/profile", router.router);
     };
 
     lane = () => {

@@ -7,7 +7,7 @@ import type {EmailRepository} from "../../../domain/email/repository.ts";
 import {BadRequestError} from "../../../../packages/errors";
 import ResetPasswordEmail from "../../../../packages/emails/resetPasswordEmail.ts";
 
-export default class InitiateResetPassword {
+export default class ForgotPassword {
     accountRepository: Repository;
     appSecrets: AppSecrets;
     emailRepository: EmailRepository;
@@ -21,7 +21,6 @@ export default class InitiateResetPassword {
 
     handle = async (email: string): Promise<void> => {
         const user = await this.accountRepository.get({email})
-        if (user.emailVerified) throw new BadRequestError("email already verified")
 
         const verifyUrl = `${this.appSecrets.urls.resetPasswordEmail}?token=${generateEmailToken({id: user.id})}`
         const emailParameters: EmailParameters = {

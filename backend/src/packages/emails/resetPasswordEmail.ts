@@ -1,4 +1,4 @@
-export default function VerifyEmail(url: string, logo: string) {
+export default function ResetPasswordEmail(url: string, logo: string) {
     return `
     <!DOCTYPE html>
 <html lang="en">
@@ -200,7 +200,7 @@ export default function VerifyEmail(url: string, logo: string) {
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 24px auto;">
                 <tr>
                   <td style="border-radius: 10px; background-color: #e95757;">
-                    <a href="${url}" style="display: inline-block; background-color: #e95757; color: #ffffff; padding: 14px 24px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">Verify Email</a>
+                    <a href="${url}" style="display: inline-block; background-color: #e95757; color: #ffffff; padding: 14px 24px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 16px; font-family: Arial, Helvetica, sans-serif;">Reset Password</a>
                   </td>
                 </tr>
               </table>

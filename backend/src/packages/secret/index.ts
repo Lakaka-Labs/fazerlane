@@ -33,6 +33,12 @@ export type SMTPCredentials = {
     password: string
 }
 
+export type Urls = {
+    verifyEmail: string
+    resetPasswordEmail: string
+    logo: string
+}
+
 export default class AppSecrets {
     port: number;
     clientOrigin: string
@@ -56,7 +62,7 @@ export default class AppSecrets {
     baseYoutubeApiUrl: string
     openaiAPIKey: string
     smtpCredential: SMTPCredentials
-    verificationUIUrl: string
+    urls: Urls
 
 
     constructor() {
@@ -115,8 +121,11 @@ export default class AppSecrets {
             port: this.getEnvironmentVariableAsNumber("SMTP_PORT", 587),
             username: this.getEnvironmentVariable("SMTP_USERNAME")
         }
-
-        this.verificationUIUrl = this.getEnvironmentVariable("VERIFICATION_UI_URL")
+        this.urls = {
+            verifyEmail: this.getEnvironmentVariable("VERIFICATION_EMAIL_URL"),
+            resetPasswordEmail: this.getEnvironmentVariable("RESET_PASSWORD_EMAIL_URL"),
+            logo: this.getEnvironmentVariable("LOGO_URL")
+        }
     }
 
     getEnvironmentVariable(key: string): string {

@@ -42,9 +42,6 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = async (
 
     }
     if (err instanceof SQL.PostgresError) {
-        console.log(err.code); // PostgreSQL error code
-        console.log(err.detail); // Detailed error message
-        console.log(err.hint); // Helpful hint from PostgreSQL
         switch (err.errno) {
             case '23505':
                 return new ErrorResponse(res, err.detail, StatusCodes.CONFLICT).send();

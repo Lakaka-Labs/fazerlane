@@ -9,7 +9,7 @@ export default class Services {
     challengeService: ChallengeService
 
     constructor(adapters: Adapters) {
-        this.authenticationService = new AuthenticationService(adapters.userRepository)
+        this.authenticationService = new AuthenticationService(adapters.userRepository, adapters.parameters.appSecrets, adapters.emailRepository)
         this.laneService = new LaneService(
             adapters.laneRepository,
             adapters.queueRepository,

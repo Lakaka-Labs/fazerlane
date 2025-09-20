@@ -4,6 +4,7 @@ export type User = {
     password?: string
     googleId?: string
     username?: string
+    emailVerified: boolean
     createdAt: string
     updatedAt: string
 }

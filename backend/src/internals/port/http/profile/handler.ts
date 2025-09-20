@@ -1,150 +1,115 @@
-import passport, {use} from 'passport';
-import {Strategy as GoogleStrategy} from 'passport-google-oauth20';
-import jwt from 'jsonwebtoken';
 import type AuthenticationService from "../../../services/authentication";
 import {type Request, type Response, Router} from "express";
 import {BadRequestError, ForbiddenError} from "../../../../packages/errors";
-import {generateJWTToken, generateRefreshJWTToken} from "../../../../packages/utils/encryption.ts";
-import type Payload from "../../../../packages/types/payload";
-import {SuccessResponseWithCookies} from "../../../../packages/responses/success.ts";
-import type Cookie from "../../../../packages/types/cookies";
+import {SuccessResponse, SuccessResponseWithCookies} from "../../../../packages/responses/success.ts";
 import type {User} from "../../../domain/user";
-import {Authorize, AuthorizeEmailToken, AuthorizeRefreshToken} from "../middlewares/authorization.ts";
 import type AppSecrets from "../../../../packages/secret";
+import {Authorize, AuthorizeEmailToken} from "../middlewares/authorization.ts";
+import ValidationMiddleware from "../middlewares/validation.ts";
+import {z} from "zod";
 
-export default class AuthenticationHandler {
+export default class ProfileHandler {
     authenticationService: AuthenticationService
     appSecret: AppSecrets
     router = Router()
-    googleStrategy: GoogleStrategy
 
     constructor(authenticationService: AuthenticationService, appSecret: AppSecrets) {
         this.authenticationService = authenticationService
         this.appSecret = appSecret
-        this.googleStrategy = new GoogleStrategy({
-            clientID: this.appSecret.googleOAuthCredentials.id,
-            clientSecret: this.appSecret.googleOAuthCredentials.secret,
-            callbackURL: this.appSecret.googleOAuthCredentials.callbackUrl
-        }, async (accessToken, refreshToken, profile, done) => {
-            try {
-                const user = await this.authenticationService.commands.authenticate.handle(profile.emails?.[0]?.value!, profile.id)
-                return done(null, user);
-            } catch (error) {
-                return done(error, undefined);
-            }
-        })
 
         this.configureRoutes()
     }
 
     private configureRoutes() {
-        passport.use(this.googleStrategy)
-
-        this.router.post('/signup',
-            this.register
+        this.router.patch('/username',
+            ValidationMiddleware(z.object({
+                username: z.string().min(3),
+            }), "body"),
+            Authorize(this.authenticationService),
+            this.updateUsername
         );
 
-        this.router.post('/email/verify',
+        this.router.patch('/password/change',
+            ValidationMiddleware(z.object({
+                oldPassword: z.string(),
+                newPassword: z.string().min(8).max(128),
+            }), "body"),
+            Authorize(this.authenticationService),
+            this.changePassword
+        );
+
+        this.router.patch('/password/reset',
+            ValidationMiddleware(z.object({
+                password: z.string().min(8).max(128),
+            }), "body"),
+            AuthorizeEmailToken(this.authenticationService),
+            this.resetPassword
+        );
+
+        this.router.post('/password/forgot',
+            ValidationMiddleware(z.object({
+                email: z.email(),
+            }), "body"),
+            this.forgotPassword
+        );
+
+        this.router.patch('/email/verify',
             AuthorizeEmailToken(this.authenticationService),
             this.verifyEmail
         );
 
-        this.router.get('/google',
-            passport.authenticate('google', {scope: ['profile', 'email']})
+        this.router.post('/email/verify/resend',
+            ValidationMiddleware(z.object({
+                email: z.email(),
+            }), "body"),
+            this.resendVerificationEmail
         );
 
-        this.router.get('/google/callback',
-            passport.authenticate('google', {session: false}),
-            this.oauthCallback
-        )
-
-        this.router.get(
-            '/token/refresh',
-            AuthorizeRefreshToken(this.authenticationService),
-            this.generateNewToken
-        );
-        this.router.get(
-            '/token/clear',
-            this.logout
-        );
     }
 
-    oauthCallback = async (req: Request, res: Response) => {
+    updateUsername = async (req: Request, res: Response) => {
         let user = req.user as User;
-        user = await this.authenticationService.queries.getDetails.handle({id: user.id})
-        if (!user) {
-            throw new ForbiddenError("login again")
-        }
-        const payload: Payload = {id: user.id};
-        const token = generateJWTToken(payload);
-        const refreshToken = generateRefreshJWTToken(payload);
-        const cookie: Cookie[] = [
-            {
-                key: "token",
-                value: token,
-            }, {
-                key: "refreshToken",
-                value: refreshToken,
-            }
-        ];
-        new SuccessResponseWithCookies(res, cookie, {jwt: token, refreshToken, user}).send();
-    };
+        let {username} = req.body;
+        if (!username) throw new BadRequestError("provide username")
+        await this.authenticationService.commands.addUsername.handle(user.id, username)
 
-    generateNewToken = async (req: Request, res: Response) => {
-        let user = req.user as User;
-        if (!user) {
-            throw new ForbiddenError("login again")
-        }
-        const payload: Payload = {id: user.id};
-        const token = generateJWTToken(payload);
-        const cookie: Cookie[] = [
-            {
-                key: "token",
-                value: token,
-            }
-        ];
-        new SuccessResponseWithCookies(res, cookie, {jwt: token, user}).send();
-    }
-
-    register = async (req: Request, res: Response) => {
-        let {username, email, password} = req.body
-        if (!username || !email || !password) throw new BadRequestError("provide email, username and password")
-
-        let user = await this.authenticationService.commands.createAccount.handle(email, username, password)
-
-        const payload: Payload = {id: user.id};
-        const token = generateJWTToken(payload);
-        const refreshToken = generateRefreshJWTToken(payload);
-
-        const cookie: Cookie[] = [
-            {
-                key: "token",
-                value: token,
-            }, {
-                key: "refreshToken",
-                value: refreshToken,
-            }
-        ];
-        new SuccessResponseWithCookies(res, cookie, {jwt: token, refreshToken, user}).send();
+        new SuccessResponse(res, {message: "username added"}).send()
     }
 
     verifyEmail = async (req: Request, res: Response) => {
         let user = req.user as User;
         await this.authenticationService.commands.verifyEmail.handle(user.id)
 
-        new SuccessResponseWithCookies(res, [], {message: "email verified"}).logout()
+        new SuccessResponse(res, {message: "email verified"}).send()
     }
 
-    addUsername = async (req: Request, res: Response) => {
+    resendVerificationEmail = async (req: Request, res: Response) => {
+        let {email} = req.body;
+        if (!email) throw new BadRequestError("provide email")
+        await this.authenticationService.commands.resendVerificationEmail.handle(email)
+        new SuccessResponse(res, {message: "verification email sent"}).send()
+    }
+
+    forgotPassword = async (req: Request, res: Response) => {
+        let {email} = req.body;
+        if (!email) throw new BadRequestError("provide email")
+        await this.authenticationService.commands.forgotPassword.handle(email)
+        new SuccessResponse(res, {message: "reset password email sent"}).send()
+    }
+
+    resetPassword = async (req: Request, res: Response) => {
         let user = req.user as User;
-        let {username} = req.body;
-        if (!username) throw new BadRequestError("provide username")
-        await this.authenticationService.commands.addUsername.handle(user.id, username)
-
-        new SuccessResponseWithCookies(res, [], {message: "username added"}).logout()
+        let {password} = req.body;
+        if (!password) throw new BadRequestError("provide password")
+        await this.authenticationService.commands.resetPassword.handle(user.id, password)
+        new SuccessResponse(res, {message: "password reset"}).send()
     }
 
-    logout = async (req: Request, res: Response) => {
-        new SuccessResponseWithCookies(res, [], {message: "logged out"}).logout()
+    changePassword = async (req: Request, res: Response) => {
+        let user = req.user as User;
+        let {oldPassword, newPassword} = req.body;
+        if (!oldPassword || !newPassword) throw new BadRequestError("provide both old and new passwords")
+        await this.authenticationService.commands.changePassword.handle(user.id, oldPassword, newPassword)
+        new SuccessResponse(res, {message: "password changed"}).send()
     }
 }

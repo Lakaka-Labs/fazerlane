@@ -1,6 +1,6 @@
 import type {NextFunction, Request, Response} from "express";
 import {BadRequestError, UnAuthorizedError} from "../../../../packages/errors";
-import {verifyToken} from "../../../../packages/utils/encryption";
+import {verifyEmailToken, verifyToken} from "../../../../packages/utils/encryption";
 import type Payload from "../../../../packages/types/payload";
 import AccountServices from "../../../services/authentication";
 import {IncomingMessage} from "http";
@@ -28,6 +28,29 @@ export const Authorize = (services: AccountServices) => {
         }
     };
 };
+
+export const AuthorizeEmailToken = (services: AccountServices) => {
+        return async (req: Request, res: Response, next: NextFunction) => {
+            let token: any = req.headers.authorization?.split(" ")[1];
+
+            if (!token) {
+                token = req.query.token;
+            }
+            if (!token) throw new UnAuthorizedError("token has expired");
+
+            try {
+                const jwtPayload = verifyEmailToken(token);
+                const payload: Payload = jwtPayload as Payload;
+
+                req.user = await services.queries.getDetails.handle({id: payload.id});
+                next();
+            } catch (error) {
+                throw new UnAuthorizedError("token has expired");
+                throw error;
+            }
+        };
+    }
+;
 
 export const AuthorizeRefreshToken = (services: AccountServices) => {
     return async (req: Request, res: Response, next: NextFunction) => {

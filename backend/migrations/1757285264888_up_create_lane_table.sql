@@ -8,9 +8,9 @@ CREATE TABLE youtubes
 CREATE TABLE lanes
 (
     id                  UUID PRIMARY KEY                                                   DEFAULT uuid_generate_v4(),
-    creator             UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE,
+    creator             UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE SET NULL,
     state               TEXT NOT NULL CHECK (state IN ('accepted', 'completed', 'failed')) DEFAULT 'accepted',
-    youtube             TEXT NOT NULL REFERENCES youtubes (id) ON UPDATE CASCADE,
+    youtube             TEXT NOT NULL REFERENCES youtubes (id) ON UPDATE CASCADE ON DELETE SET NULL,
     challenge_generated BOOLEAN                                                            DEFAULT false,
     created_at          TIMESTAMPTZ                                                        DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMPTZ                                                        DEFAULT CURRENT_TIMESTAMP

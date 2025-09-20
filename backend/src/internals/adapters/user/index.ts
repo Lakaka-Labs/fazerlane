@@ -43,7 +43,14 @@ export default class UserRepositoryPG implements Repository {
         });
 
         const rows = await this.sql`
-            SELECT id, email, google_id, username, created_at, updated_at
+            SELECT id,
+                   email,
+                   password,
+                   google_id,
+                   username,
+                   email_verified,
+                   created_at,
+                   updated_at
             FROM users
             WHERE ${whereClause}
             LIMIT 1
@@ -58,8 +65,10 @@ export default class UserRepositoryPG implements Repository {
         return {
             id: row.id,
             email: row.email,
+            password: row.password,
             googleId: row.google_id,
             username: row.username,
+            emailVerified: row.email_verified,
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
@@ -70,12 +79,13 @@ export default class UserRepositoryPG implements Repository {
             email: user.email,
             ...(user.googleId && {google_id: user.googleId}),
             ...(user.username && {username: user.username}),
-            ...(user.password && {password: user.password})
+            ...(user.password && {password: user.password}),
+            ...(user.emailVerified && {email_verified: user.emailVerified})
         };
 
         const [newUser] = await this.sql`
             INSERT INTO users ${this.sql(userData)}
-                RETURNING id, email, password, google_id, username, created_at, updated_at
+                RETURNING id, email, password, google_id, username, email_verified,created_at, updated_at
         `;
 
         return {
@@ -83,18 +93,21 @@ export default class UserRepositoryPG implements Repository {
             email: newUser.email,
             ...(user.googleId && {google_id: user.googleId}),
             ...(user.username && {username: user.username}),
-            ...(user.password && {password: user.password}),
+            emailVerified: newUser.email_verified,
             createdAt: newUser.created_at,
             updatedAt: newUser.updated_at
         };
     };
 
     async update(id: string, user: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>): Promise<User> {
+        let setUser = {...user, ...(user.emailVerified && {email_verified: user.emailVerified})}
+        delete setUser.emailVerified
+        console.log({setUser})
         const [newUser] = await this.sql`
             UPDATE users
-            SET ${this.sql(user)}
+            SET ${this.sql(setUser)}
             WHERE id = ${id}
-            RETURNING id, email, password, google_id, username, created_at, updated_at
+            RETURNING id, email, password, google_id, username, email_verified, created_at, updated_at
         `;
 
         return {
@@ -102,7 +115,7 @@ export default class UserRepositoryPG implements Repository {
             email: newUser.email,
             ...(user.googleId && {google_id: user.googleId}),
             ...(user.username && {username: user.username}),
-            ...(user.password && {password: user.password}),
+            emailVerified: newUser.email_verified,
             createdAt: newUser.created_at,
             updatedAt: newUser.updated_at
         };
