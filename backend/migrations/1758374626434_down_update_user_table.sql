@@ -1,1 +1,0 @@
-ALTER TABLE IF EXISTS users DROP COLUMN email_verified;

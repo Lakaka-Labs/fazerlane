@@ -47,15 +47,25 @@ export default class Gemini implements LLMRepository {
         return response.text
     }
 
-    upload = async (path: string, mimeType: string): Promise<{ uri: string; mimeType: string; }> => {
+    upload = async (path: string, mimeType: string): Promise<{ uri: string; mimeType: string; name: string; }> => {
         const file = await this.ai.files.upload({
             file: path,
             config: {mimeType: mimeType},
         });
-        if (!file.uri || !file.mimeType) {
+        if (!file.uri || !file.mimeType || !file.name) {
             throw new Error("failed to analyse content")
         }
-        return {uri: file.uri, mimeType: file.mimeType}
+        return {uri: file.uri, mimeType: file.mimeType, name: file.name}
+    };
+
+    getFile = async (name: string): Promise<{ state: string; }> => {
+        const file = await this.ai.files.get({
+            name: name,
+        });
+        if (!file.state) {
+            throw new Error("failed to analyse content")
+        }
+        return {state: file.state}
     };
 
 }

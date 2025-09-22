@@ -10,7 +10,6 @@ import Route404 from "./middlewares/invalidRoute.ts";
 import passport from "passport";
 import AuthenticationHandler from "./authentication/handler.ts";
 import type Services from "../../services";
-import type QueueRepository from "../../domain/queue/queueRepository.ts";
 import LaneHandler from "./lane/handler.ts";
 import {Authorize} from "./middlewares/authorization.ts";
 import http from "http";
@@ -21,6 +20,7 @@ import {ApiError} from "../../../packages/errors/";
 import ChallengeHandler from "./challenge/handler.ts";
 import ProfileHandler from "./profile/handler.ts";
 import {rateLimit} from 'express-rate-limit';
+import XPHandler from "./xp/handler.ts";
 
 export default class ExpressHTTP {
     appSecrets: AppSecrets
@@ -77,6 +77,7 @@ export default class ExpressHTTP {
         this.profile()
         this.lane()
         this.challenge()
+        this.xp()
 
         this.server.use(`/api/v1`, this.router);
 
@@ -114,6 +115,11 @@ export default class ExpressHTTP {
     challenge = () => {
         const router = new ChallengeHandler(this.services.challengeService, this.appSecrets);
         this.router.use("/challenge", Authorize(this.services.authenticationService), router.router);
+    };
+
+    xp = () => {
+        const router = new XPHandler(this.services.xpService);
+        this.router.use("/xp", Authorize(this.services.authenticationService), router.router);
     };
 
     websocketSetup = () => {

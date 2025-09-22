@@ -91,7 +91,7 @@ export default class LaneHandler extends LaneSchema {
         const filter : LaneFilter = {
             userId: userId,
             page: Number(req.query.page),
-            limit: Number(req.query.page)
+            limit: Number(req.query.limit)
         }
 
         const lanes = await this.laneService.queries.getLanes.handle(filter)

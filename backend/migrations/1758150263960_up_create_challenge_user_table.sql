@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS challenge_users
 (
-    user_id      UUID REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE ,
-    challenge_id UUID REFERENCES challenges (id) ON DELETE CASCADE ON UPDATE CASCADE ,
-    PRIMARY KEY (user_id, challenge_id)
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id      UUID REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    challenge_id UUID REFERENCES challenges (id) ON DELETE CASCADE ON UPDATE CASCADE
 )

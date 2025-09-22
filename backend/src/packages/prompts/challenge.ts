@@ -108,8 +108,8 @@ Return your analysis as a **JSON array** following the **EXACT** format specific
     "objective": "What the student should achieve by the end of this challenge",
     "instruction": "**Clear, actionable instruction written in markdown format** that provides specific and actionable guidance for completing the challenge",
     "assignment": "Specific deliverable to demonstrate progress",
-    "successCriteria": "Clear benchmarks to determine if the challenge is complete",
-    "submissionFormat": "video|image|audio|text",
+    "difficulty": "easy|medium|hard",
+    "submissionFormat": ["video","image","audio","text", "code"], // each element can be either: video or image or audio or text or code, which would represent acceptable submission formats, and their must be at least one
     "references": [
       {
         "location": {

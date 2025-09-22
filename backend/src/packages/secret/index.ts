@@ -39,6 +39,19 @@ export type Urls = {
     logo: string
 }
 
+export type XPPoints = {
+    streak: number
+    easy: number
+    medium: number
+    hard: number
+    firstTry: number
+    deductPerFail: number
+    completed25: number
+    completed50: number
+    completed75: number
+    completed100: number
+}
+
 export default class AppSecrets {
     port: number;
     clientOrigin: string
@@ -51,7 +64,6 @@ export default class AppSecrets {
     refreshJWTExpires: number
     refreshJWTSecret: string
     wsUrl: string
-
     postgresCredentials: PostgresCredentials
     redisCredentials: RedisCredentials
     googleOAuthCredentials: GoogleOAuthCredentials
@@ -63,7 +75,7 @@ export default class AppSecrets {
     openaiAPIKey: string
     smtpCredential: SMTPCredentials
     urls: Urls
-
+    xpPoints: XPPoints
 
     constructor() {
         this.port = this.getEnvironmentVariableAsNumber("PORT", 5000);
@@ -126,6 +138,18 @@ export default class AppSecrets {
             resetPasswordEmail: this.getEnvironmentVariable("RESET_PASSWORD_EMAIL_URL"),
             logo: this.getEnvironmentVariable("LOGO_URL")
         }
+        this.xpPoints = {
+            streak: this.getEnvironmentVariableAsNumber("XP_POINT_STREAK", 25),
+            easy: this.getEnvironmentVariableAsNumber("XP_POINT_EASY", 10),
+            medium: this.getEnvironmentVariableAsNumber("XP_POINT_MEDIUM", 20),
+            hard: this.getEnvironmentVariableAsNumber("XP_POINT_HARD", 30),
+            firstTry: this.getEnvironmentVariableAsNumber("XP_POINT_FIRST_TRY", 5),
+            deductPerFail: this.getEnvironmentVariableAsNumber("XP_POINT_DEDUCT_PER_FAIL", 2),
+            completed25: this.getEnvironmentVariableAsNumber("XP_POINT_COMPLETED_25", 50),
+            completed50: this.getEnvironmentVariableAsNumber("XP_POINT_COMPLETED_50", 75),
+            completed75: this.getEnvironmentVariableAsNumber("XP_POINT_COMPLETED_75", 100),
+            completed100: this.getEnvironmentVariableAsNumber("XP_POINT_COMPLETED_100", 150),
+        }
     }
 
     getEnvironmentVariable(key: string): string {
@@ -136,6 +160,7 @@ export default class AppSecrets {
         }
         return value
     }
+
 
     getEnvironmentVariableOrFallback(key: string, fallback: string): string {
         let value = process.env[key]

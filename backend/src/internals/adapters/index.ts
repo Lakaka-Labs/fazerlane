@@ -25,6 +25,8 @@ import type {UserMemoriesRepository} from "../domain/memories/repository.ts";
 import UserMemoriesMem0 from "./memories/user.ts";
 import SMTPClass from "./email/smtp.ts";
 import type {EmailRepository} from "../domain/email/repository.ts";
+import type XPRepository from "../domain/xp/repository.ts";
+import XPPG from "./xp";
 
 export type AdapterParameters = {
     postgresClient: SQL
@@ -47,6 +49,7 @@ export default class Adapters {
     challengeRepository: ChallengeRepository
     userMemoriesRepository: UserMemoriesRepository
     emailRepository: EmailRepository
+    xpRepository: XPRepository
 
     constructor(parameters: AdapterParameters) {
         this.parameters = parameters
@@ -61,5 +64,6 @@ export default class Adapters {
         this.challengeRepository = new ChallengePG(parameters.postgresClient)
         this.userMemoriesRepository = new UserMemoriesMem0(parameters.mem0UserClient)
         this.emailRepository = new SMTPClass(parameters.appSecrets.smtpCredential)
+        this.xpRepository = new XPPG(parameters.postgresClient, parameters.appSecrets.xpPoints)
     }
 }

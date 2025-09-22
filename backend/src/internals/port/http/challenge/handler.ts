@@ -49,9 +49,9 @@ export default class ChallengeHandler extends ChallengeSchema {
             ValidationMiddleware(z.object({
                 challengeId: z.uuid(),
             }), "params"),
-            ValidationMiddleware(z.object({
-                text: z.string().optional(),
-            }), "body"),
+            // ValidationMiddleware(z.object({
+            //     text: z.string().optional(),
+            // }), "body"),
             this.uploadMiddleware,
             this.validateFileSubmission, // Add this new middleware
             this.markChallenge
@@ -111,8 +111,11 @@ export default class ChallengeHandler extends ChallengeSchema {
         const challengeId = req.params.challengeId;
 
         let challenge = await this.challengeService.queries.getChallenge.handle(challengeId)
-
-        if (challenge.submissionFormat != "image" && challenge.submissionFormat != "video" && challenge.submissionFormat != "audio") {
+        if (
+            !challenge.submissionFormat.includes("image") &&
+            !challenge.submissionFormat.includes("video") &&
+            !challenge.submissionFormat.includes("audio")
+        ) {
             const textUpload = multer().none();
             return textUpload(req, res, (err: any) => {
                 if (err) return next(err);
@@ -138,17 +141,18 @@ export default class ChallengeHandler extends ChallengeSchema {
             return next();
         }
 
-        if ((challenge.submissionFormat == "image" || challenge.submissionFormat == "audio") && !req.file) {
+        if ((challenge.submissionFormat.includes("image") ||
+            challenge.submissionFormat.includes("audio")) && (!req.files || (req.files as Express.Multer.File[]).length < 1)) {
             throw new BadRequestError(`provide ${challenge.submissionFormat} submission`)
         }
 
         if (challenge.submissionFormat == "video") {
-            if (!req.file?.path) {
-                throw new BadRequestError("provide video submission")
+            let duration = 0
+            if (!req.files || (req.files as Express.Multer.File[]).length < 1) throw new BadRequestError("provide at least one file")
+            for (const file of (req.files as Express.Multer.File[])) {
+                duration += await GetVideoDuration(file.path);
             }
-
-            const duration = await GetVideoDuration(req.file.path);
-
+            console.log({duration})
             if (duration > this.appSecrets.maxVideoLength) {
                 throw new BadRequestError("video submission too long")
             }
@@ -163,9 +167,14 @@ export default class ChallengeHandler extends ChallengeSchema {
         const challengeId = req.params.challengeId;
         const parameters: markChallengeParameters = {id: challengeId, userId: creator}
         if (req.body.text) parameters.text = req.body.text
-        if (req.file) {
-            parameters.filePath = req.file.path
-            parameters.fileMimeType = req.file.mimetype
+        if (req.files) {
+            parameters.files = []; // Initialize the array first
+            for (const file of req.files as Express.Multer.File[]) {
+                parameters.files.push({
+                    filePath: file.path,
+                    fileMimeType: file.mimetype
+                })
+            }
         }
         const {pass, feedback} = await this.challengeService.commands.markChallenge.handle(parameters)
         if (req.file) {

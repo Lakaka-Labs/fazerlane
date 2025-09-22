@@ -7,6 +7,8 @@ export type Reference = {
     purpose: string;
 };
 
+export type SubmissionFormat = 'video' | 'image' | 'audio' | 'text' | 'code'
+
 export type Challenge = {
     id: string,
     lane: string,
@@ -14,8 +16,8 @@ export type Challenge = {
     objective: string;
     instruction: string;
     assignment: string;
-    successCriteria: string;
-    submissionFormat: 'video' | 'image' | 'audio' | 'text' | 'code';
+    difficulty: 'easy' | 'medium' | 'hard';
+    submissionFormat: SubmissionFormat[];
     references: Reference[];
     isCompleted?: boolean;
     attemptsCount?: number

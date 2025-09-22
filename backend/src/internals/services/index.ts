@@ -2,11 +2,13 @@ import AuthenticationService from "./authentication";
 import Adapters from "../adapters";
 import LaneService from "./lane";
 import ChallengeService from "./challenge";
+import XPService from "./xp";
 
 export default class Services {
     authenticationService: AuthenticationService
     laneService: LaneService
     challengeService: ChallengeService
+    xpService: XPService
 
     constructor(adapters: Adapters) {
         this.authenticationService = new AuthenticationService(adapters.userRepository, adapters.parameters.appSecrets, adapters.emailRepository)
@@ -26,6 +28,10 @@ export default class Services {
             adapters.progressWebsocketRepository,
             adapters.llmRepository,
             adapters.challengeRepository,
+            adapters.xpRepository
+        )
+        this.xpService = new XPService(
+            adapters.xpRepository,
         )
     }
 }

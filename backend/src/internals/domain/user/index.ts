@@ -5,6 +5,8 @@ export type User = {
     googleId?: string
     username?: string
     emailVerified: boolean
+    streak: number
+    xp: number
     createdAt: string
     updatedAt: string
 }

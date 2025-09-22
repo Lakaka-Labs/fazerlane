@@ -28,7 +28,7 @@ Carefully analyze the submission against the challenge's success criteria and pr
 
 ### 1. **Understand the Challenge Context**
 - Read the challenge \`title\`, \`objective\`, and \`instruction\` to understand what the user is supposed to accomplish
-- Pay special attention to the \`success_criteria\` - this is your primary evaluation benchmark
+- Pay special attention to the \`difficulty\` - this is your primary evaluation benchmark
 - Note the expected \`submission_format\` to ensure the submission type matches expectations
 
 ### 2. **Analyze the Submission**

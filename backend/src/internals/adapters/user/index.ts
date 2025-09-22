@@ -49,6 +49,8 @@ export default class UserRepositoryPG implements Repository {
                    google_id,
                    username,
                    email_verified,
+                   streak,
+                   xp,
                    created_at,
                    updated_at
             FROM users
@@ -69,6 +71,8 @@ export default class UserRepositoryPG implements Repository {
             googleId: row.google_id,
             username: row.username,
             emailVerified: row.email_verified,
+            streak: row.streak,
+            xp: row.xp,
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
@@ -85,15 +89,17 @@ export default class UserRepositoryPG implements Repository {
 
         const [newUser] = await this.sql`
             INSERT INTO users ${this.sql(userData)}
-                RETURNING id, email, password, google_id, username, email_verified,created_at, updated_at
+                RETURNING id, email, password, google_id, username, email_verified, streak, xp, created_at, updated_at
         `;
 
         return {
             id: newUser.id,
             email: newUser.email,
-            ...(user.googleId && {google_id: user.googleId}),
-            ...(user.username && {username: user.username}),
+            ...(newUser.googleId && {google_id: user.googleId}),
+            ...(newUser.username && {username: user.username}),
             emailVerified: newUser.email_verified,
+            streak: newUser.streak,
+            xp: newUser.xp,
             createdAt: newUser.created_at,
             updatedAt: newUser.updated_at
         };
@@ -102,20 +108,22 @@ export default class UserRepositoryPG implements Repository {
     async update(id: string, user: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>): Promise<User> {
         let setUser = {...user, ...(user.emailVerified && {email_verified: user.emailVerified})}
         delete setUser.emailVerified
-        console.log({setUser})
+
         const [newUser] = await this.sql`
             UPDATE users
             SET ${this.sql(setUser)}
             WHERE id = ${id}
-            RETURNING id, email, password, google_id, username, email_verified, created_at, updated_at
+            RETURNING id, email, password, google_id, username, email_verified, streak, xp, created_at, updated_at
         `;
 
         return {
             id: newUser.id,
             email: newUser.email,
-            ...(user.googleId && {google_id: user.googleId}),
-            ...(user.username && {username: user.username}),
+            ...(newUser.googleId && {google_id: user.googleId}),
+            ...(newUser.username && {username: user.username}),
             emailVerified: newUser.email_verified,
+            streak: newUser.streak,
+            xp: newUser.xp,
             createdAt: newUser.created_at,
             updatedAt: newUser.updated_at
         };

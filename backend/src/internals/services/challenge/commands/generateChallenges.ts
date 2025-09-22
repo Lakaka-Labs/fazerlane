@@ -108,7 +108,7 @@ export default class GenerateChallenge {
     private validateChallenges(challenges: Omit<Challenge, "id" | "lane">[]): void {
         for (const c of challenges) {
             if (!c.title || !c.objective || !c.assignment ||
-                !c.submissionFormat || !c.successCriteria || !c.instruction ||
+                !Array.isArray(c.submissionFormat) || !c.difficulty || !c.instruction ||
                 !Array.isArray(c.references)) {
                 throw new InvalidChallengesError();
             }

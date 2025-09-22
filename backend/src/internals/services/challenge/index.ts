@@ -12,6 +12,7 @@ import UnmarkChallenge from "./commands/unmarkChallenge.ts";
 import UnmarkAllChallenge from "./commands/unmarkAllChallenge.ts";
 import GetAttempts from "./queries/getAttempts.ts";
 import GetChallenges from "./queries/getChallenges.ts";
+import type XPRepository from "../../domain/xp/repository.ts";
 
 export class Commands {
     generateChallenge: GenerateChallenges
@@ -26,7 +27,8 @@ export class Commands {
         progressRepository: ProgressRepository,
         progressWebsocketRepository: ProgressWebsocketRepository,
         llmRepository: LLMRepository,
-        challengeRepository: ChallengeRepository
+        challengeRepository: ChallengeRepository,
+        xpRepository: XPRepository
     ) {
         this.generateChallenge = new GenerateChallenges(
             laneRepository,
@@ -38,7 +40,7 @@ export class Commands {
             challengeRepository,
         )
         this.markChallenge = new MarkChallenge(
-            challengeRepository, llmRepository
+            challengeRepository, llmRepository, xpRepository, appSecrets
         )
         this.unmarkChallenge = new UnmarkChallenge(
             challengeRepository
@@ -73,7 +75,8 @@ export default class ChallengeService {
         progressRepository: ProgressRepository,
         progressWebsocketRepository: ProgressWebsocketRepository,
         llmRepository: LLMRepository,
-        challengeRepository: ChallengeRepository
+        challengeRepository: ChallengeRepository,
+        xpRepository: XPRepository
     ) {
         this.commands = new Commands(
             laneRepository,
@@ -83,6 +86,7 @@ export default class ChallengeService {
             progressWebsocketRepository,
             llmRepository,
             challengeRepository,
+            xpRepository,
         )
         this.queries = new Queries(challengeRepository)
     }
