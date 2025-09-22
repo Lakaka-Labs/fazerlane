@@ -1,3 +1,4 @@
+import { usePersistStore } from "@/store/persist.store";
 import { ApiError, RefreshResponse } from "@/types/api";
 import axios, {
   AxiosResponse,
@@ -5,7 +6,8 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+export const API_BARE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+export const API_BASE_URL = API_BARE_URL ? `${API_BARE_URL}/api/v1` : "";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -29,7 +31,8 @@ const onRefreshed = (token: string): void => {
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = localStorage.getItem("accessToken");
+    const { token: tkObj } = usePersistStore((store) => store);
+    const token = tkObj?.jwt;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -61,33 +64,41 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
+        const { token } = usePersistStore((store) => store);
+
+        const refreshToken = token?.refreshToken;
+
         if (!refreshToken) {
           throw new Error("No refresh token available");
         }
 
-        const response = await axios.post<RefreshResponse>(
-          `${API_BASE_URL}/auth/refresh`,
-          { refreshToken }
+        const response = await axios.get<RefreshResponse>(
+          `${API_BASE_URL}/auth/token/refresh`,
+          {
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          }
         );
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        const { jwt, refreshToken: newRefreshToken } = response.data;
 
-        localStorage.setItem("accessToken", accessToken);
-        if (newRefreshToken) {
-          localStorage.setItem("refreshToken", newRefreshToken);
-        }
+        usePersistStore.getState().setToken({
+          jwt,
+          ...(newRefreshToken && { refreshToken: newRefreshToken }),
+        });
 
         isRefreshing = false;
-        onRefreshed(accessToken);
+        onRefreshed(jwt);
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${jwt}`;
 
         return api(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        usePersistStore
+          .getState()
+          .setToken({ jwt: "", refreshToken: undefined });
 
         window.dispatchEvent(new CustomEvent("auth:logout"));
 

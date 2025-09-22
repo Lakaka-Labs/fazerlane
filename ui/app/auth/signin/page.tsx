@@ -20,8 +20,16 @@ import TextSeperator from "@/components/seperator/seperator-with-text";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import AuthTitle from "@/components/title/auth.title";
+import toast from "react-hot-toast";
+import { usePersistStore } from "@/store/persist.store";
+import { signInM } from "@/api/mutations/auth";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function Signin() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
 
   const signInForm = useForm<SignInFields>({
@@ -29,9 +37,46 @@ export default function Signin() {
     defaultValues: { email: "", password: "" },
   });
 
-  function onSignIn(values: SignInFields) {
-    console.log("Sign-In", values);
-    signInForm.reset();
+  const { setSession, setToken, setUser } = usePersistStore((state) => state);
+
+  const { isPending, mutateAsync } = useMutation({
+    mutationFn: signInM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("Logged in successfully!");
+        signInForm.reset();
+        if (data.data) {
+          setUser(data.data.user);
+          setToken({
+            jwt: data.data.jwt,
+            refreshToken: data.data.refreshToken,
+          });
+          setSession({
+            jwt: data.data.jwt,
+            refreshToken: data.data.refreshToken,
+            user: data.data.user,
+          });
+        }
+        toast.success("Redirecting to dashboard...");
+        router.push(appRoutes.dashboard.user.home);
+      }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
+
+  async function onSignIn(values: SignInFields) {
+    const payload = {
+      email: values.email,
+      password: values.password,
+    };
+
+    await mutateAsync(payload);
   }
 
   function googleOAuth() {
@@ -108,19 +153,14 @@ export default function Signin() {
               </Link>
             </div>
           </div>
-          {/* <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              {...signInForm.register("human")}
-              className="h-4 w-4"
-            />
-            <Label className="text-sm">Verify you are human</Label>
-          </div> 
-          <FormMessage>
-            {signInForm.formState.errors.human?.message}
-          </FormMessage> */}
-          <Button type="submit" size={"lg"} className="w-full">
-            Sign In
+
+          <Button
+            disabled={isPending}
+            type="submit"
+            size={"lg"}
+            className="w-full"
+          >
+            {isPending ? "Signing in..." : "Sign In"}
           </Button>
         </form>
       </Form>

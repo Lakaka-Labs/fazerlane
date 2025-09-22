@@ -8,6 +8,8 @@ import {
 } from "next/font/google";
 import "./globals.css";
 
+import { Toaster } from "react-hot-toast";
+
 import AppProvider from "@/providers";
 
 const geistSans = Geist({
@@ -88,6 +90,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${geistJulius.variable} ${geistLato.variable} ${geistNunito.variable} font-lato antialiased`}
       >
         <AppProvider>{children}</AppProvider>
+        <Toaster position="top-center" reverseOrder={false} gutter={8} />
       </body>
     </html>
   );
