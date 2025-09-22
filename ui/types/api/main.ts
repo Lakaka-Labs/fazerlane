@@ -1,8 +1,11 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role?: string;
+  username: string;
+  password: string;
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LoginCredentials {
@@ -11,18 +14,18 @@ export interface LoginCredentials {
 }
 
 export interface AuthTokens {
-  accessToken: string;
+  jwt: string;
   refreshToken: string;
 }
 
 export interface LoginResponse {
-  accessToken: string;
+  jwt: string;
   refreshToken: string;
   user: User;
 }
 
 export interface RefreshResponse {
-  accessToken: string;
+  jwt: string;
   refreshToken?: string;
 }
 
@@ -44,6 +47,11 @@ export interface ApiError {
   message: string;
   status?: number;
   code?: string | number;
+  error?: {
+    details: {
+      message: string;
+    }[];
+  };
 }
 
 export interface ApiRequestConfig {
@@ -52,8 +60,13 @@ export interface ApiRequestConfig {
   body?: any;
 }
 
-export interface ApiResponse<T = any> {
-  data: T;
-  status: number;
-  message?: string;
+export interface ApiResponse<T = unknown> {
+  statusCode: number;
+  message: string;
+  data?: T;
+  error?: {
+    details: {
+      message: string;
+    }[];
+  };
 }

@@ -18,6 +18,10 @@ import appRoutes from "@/config/routes";
 
 import Link from "next/link";
 import AuthTitle from "@/components/title/auth.title";
+import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import { forgotPasswordM } from "@/api/mutations/profile";
 
 export default function ForgotPassword() {
   const forgotPasswordForm = useForm<ForgotPasswordFields>({
@@ -25,9 +29,29 @@ export default function ForgotPassword() {
     defaultValues: { email: "" },
   });
 
-  function onForgotPassword(values: ForgotPasswordFields) {
-    console.log("Sign-In", values);
-    forgotPasswordForm.reset();
+  const { isPending, mutateAsync } = useMutation({
+    mutationFn: forgotPasswordM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("A password reset link has been sent to your email.");
+        forgotPasswordForm.reset();
+      }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
+
+  async function onForgotPassword(values: ForgotPasswordFields) {
+    const payload = {
+      email: values.email,
+    };
+
+    await mutateAsync(payload);
   }
 
   return (
@@ -53,8 +77,13 @@ export default function ForgotPassword() {
             )}
           />
 
-          <Button type="submit" size={"lg"} className="w-full">
-            Reset
+          <Button
+            disabled={isPending}
+            type="submit"
+            size={"lg"}
+            className="w-full"
+          >
+            {isPending ? "Processing..." : "Reset"}
           </Button>
         </form>
       </Form>

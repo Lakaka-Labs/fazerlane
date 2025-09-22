@@ -17,8 +17,18 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 import AuthTitle from "@/components/title/auth.title";
 import { PasswordResetFields, passwordResetSchema } from "@/schemas/auth";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { resetPasswordM } from "@/api/mutations/profile";
+import appRoutes from "@/config/routes";
 
 export default function PasswordReset() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
 
   const passwordResetForm = useForm<PasswordResetFields>({
@@ -26,9 +36,46 @@ export default function PasswordReset() {
     defaultValues: { password: "", confirm: "" },
   });
 
-  function onPasswordReset(values: PasswordResetFields) {
-    console.log("Password reset", values);
-    passwordResetForm.reset();
+  const { isPending, mutateAsync } = useMutation({
+    mutationFn: resetPasswordM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("Password has been reset successfully!");
+        passwordResetForm.reset();
+        setTimeout(() => {
+          toast.success("Redirecting to sign in...");
+          router.push(appRoutes.auth.signIn);
+        }, 1000);
+      }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
+
+  async function onPasswordReset(values: PasswordResetFields) {
+    const payload = {
+      token: token as string,
+      password: values.password,
+    };
+
+    await mutateAsync(payload);
+  }
+
+  if (!token) {
+    return (
+      <div className="flex flex-col gap-5">
+        <AuthTitle title="Invalid Reset Link" />
+        <p className="text-center italic">
+          The reset link is invalid. Please check your email for the correct
+          link, or request a new password reset.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -93,8 +140,13 @@ export default function PasswordReset() {
             </div>
           </div>
 
-          <Button type="submit" size={"lg"} className="w-full">
-            Reset Password
+          <Button
+            disabled={isPending}
+            type="submit"
+            size={"lg"}
+            className="w-full"
+          >
+            {isPending ? "Resetting..." : "Reset Password"}
           </Button>
         </form>
       </Form>
