@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -26,9 +26,12 @@ import { signInM } from "@/api/mutations/auth";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { googleLoginQ } from "@/api/queries/auth";
+import { parseAsString, useQueryState } from "nuqs";
 
 export default function Signin() {
   const router = useRouter();
+  const [googleError, setGoogleError] = useQueryState("error", parseAsString);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -80,8 +83,21 @@ export default function Signin() {
   }
 
   function googleOAuth() {
-    console.log("Google OAuth");
+    try {
+      googleLoginQ();
+    } catch (error) {
+      toast.error(
+        "Failed to initiate Google OAuth: " + (error as Error).message
+      );
+    }
   }
+
+  useEffect(() => {
+    if (googleError) {
+      toast.error(decodeURIComponent(googleError));
+      setGoogleError(null);
+    }
+  }, [googleError]);
 
   return (
     <div className="flex flex-col gap-5">
