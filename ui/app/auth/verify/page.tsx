@@ -1,60 +1,95 @@
 "use client";
 
+import { resendVerifyEmailM, verifyEmailM } from "@/api/mutations/profile";
 import AuthTitle from "@/components/title/auth.title";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import appRoutes from "@/config/routes";
+import { usePersistStore } from "@/store/persist.store";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Verification() {
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [showResend, setShowResend] = useState(false);
+  const userEmail = usePersistStore((state) => state.user.email);
+  const [manualEmail, setManualEmail] = useState(false);
+  const [promptedUserEmail, setPromptedUserEmail] = useState("");
 
-  const vtoken = searchParams.get("vtoken");
+  const vtoken = searchParams.get("token");
+
+  const { isPending, mutateAsync } = useMutation({
+    mutationFn: verifyEmailM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("Email verified successfully!");
+        setIsVerified(true);
+      }
+    },
+    onError: (error) => {
+      setShowResend(true);
+      setIsVerified(false);
+
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
+
+  const resendVerify = useMutation({
+    mutationFn: resendVerifyEmailM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("Verification email resent successfully!");
+        setShowResend(false);
+      }
+    },
+    onError: (error) => {
+      setShowResend(true);
+
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
 
   async function verifyEmail(token: string) {
-    setLoading(true);
-    console.log("Verifying email with token:", token);
+    const payload = {
+      token,
+    };
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        setIsVerified(true);
-        resolve(true);
-      }, 5000);
-    })
-      .catch((error) => {
-        setIsVerified(false);
-
-        console.error("Verification failed:", error);
-        setShowResend(true);
-      })
-      .finally(() => setLoading(false));
+    await mutateAsync(payload);
   }
 
   async function resendVerificationEmail() {
-    setLoading(true);
-    console.log("Resending verification email with token:");
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("Verification email resent");
-        resolve(true);
-      }, 3000);
-    })
-      .catch((error) => {
-        console.error("Resend failed:", error);
-      })
-      .finally(() => setLoading(false));
+    if (userEmail) {
+      await resendVerify.mutateAsync({ email: userEmail });
+    }
+
+    if (manualEmail && promptedUserEmail) {
+      await resendVerify.mutateAsync({ email: promptedUserEmail });
+    }
+
+    if (!userEmail && !manualEmail) {
+      toast.error("Please enter your email to resend verification.");
+      setManualEmail(true);
+    }
   }
 
   useEffect(() => {
     if (vtoken) {
-      verifyEmail(vtoken).then(() => {
-        console.log("Email verified");
-      });
+      verifyEmail(vtoken);
     }
   }, [vtoken]);
 
@@ -64,13 +99,13 @@ export default function Verification() {
         <AuthTitle title="Invalid Verification Link" />
         <p className="text-center italic">
           The verification link is invalid. Please check your email for the
-          correct link.
+          correct link, or request a new verification email.
         </p>
       </div>
     );
   }
 
-  if (!loading && isVerified) {
+  if (!isPending && isVerified) {
     return (
       <div className="flex flex-col gap-5">
         <AuthTitle title="Email Verified!" />
@@ -89,7 +124,7 @@ export default function Verification() {
     <div className="flex flex-col gap-5">
       <AuthTitle title="Email Verification" />
 
-      {loading && (
+      {isPending && (
         <div className="flex flex-col items-center gap-2">
           <LoaderCircle size={32} className="text-primary animate-spin" />
           <p className="text-center italic">
@@ -99,10 +134,25 @@ export default function Verification() {
       )}
 
       {showResend && (
-        <div className="w-full">
-          <p className="mb-2 text-center italic">
+        <div className="flex w-full flex-col gap-4">
+          <p className="text-center italic">
             Verification failed or link expired.
           </p>
+
+          {manualEmail && (
+            <div className="flex flex-col gap-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={promptedUserEmail}
+                onChange={(e) => {
+                  setPromptedUserEmail(e.target.value);
+                }}
+              />
+            </div>
+          )}
+
           <Button
             size={"lg"}
             onClick={() => {

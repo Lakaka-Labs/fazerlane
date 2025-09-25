@@ -21,17 +21,63 @@ import Image from "next/image";
 import TextSeperator from "@/components/seperator/seperator-with-text";
 import { Eye, EyeOff } from "lucide-react";
 import AuthTitle from "@/components/title/auth.title";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
+import { signUpM } from "@/api/mutations/auth";
+import { usePersistStore } from "@/store/persist.store";
+import { useRouter } from "next/navigation";
 
 export default function Signup() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const signUpForm = useForm<SignUpFields>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { email: "", password: "", confirm: "" },
+    defaultValues: { email: "", username: "", password: "", confirm: "" },
+  });
+  const { setSession, setToken, setUser } = usePersistStore((state) => state);
+
+  const { isPending, mutateAsync } = useMutation({
+    mutationFn: signUpM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("Account created successfully!");
+        signUpForm.reset();
+        if (data.data) {
+          setUser(data.data.user);
+          setToken({
+            jwt: data.data.jwt,
+            refreshToken: data.data.refreshToken,
+          });
+          setSession({
+            jwt: data.data.jwt,
+            refreshToken: data.data.refreshToken,
+            user: data.data.user,
+          });
+        }
+        setTimeout(() => {
+          toast.success("Redirecting to dashboard...");
+          router.push(appRoutes.dashboard.user.home);
+        }, 1000);
+      }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
   });
 
-  function onSignUp(values: SignUpFields) {
-    console.log("Sign-Up", values);
-    signUpForm.reset();
+  async function onSignUp(values: SignUpFields) {
+    const payload = {
+      email: values.email,
+      username: values.username,
+      password: values.password,
+    };
+
+    await mutateAsync(payload);
   }
 
   function googleOAuth() {
@@ -66,7 +112,25 @@ export default function Signup() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="you@example.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={signUpForm.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input type="text" placeholder="fazername" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -97,7 +161,6 @@ export default function Signup() {
               </FormItem>
             )}
           />
-
           <FormField
             control={signUpForm.control}
             name="confirm"
@@ -123,20 +186,13 @@ export default function Signup() {
             )}
           />
 
-          {/* <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              {...signUpForm.register("human")}
-              className="h-4 w-4"
-            />
-            <Label className="text-sm">Verify you are human</Label>
-          </div>
-          <FormMessage>
-            {signUpForm.formState.errors.human?.message}
-          </FormMessage> */}
-
-          <Button type="submit" size={"lg"} className="w-full">
-            Create account
+          <Button
+            disabled={isPending}
+            type="submit"
+            size={"lg"}
+            className="w-full"
+          >
+            {isPending ? "Creating..." : "Create account"}
           </Button>
         </form>
       </Form>
