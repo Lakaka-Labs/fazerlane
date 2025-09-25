@@ -37,6 +37,8 @@ export type Urls = {
     verifyEmail: string
     resetPasswordEmail: string
     logo: string
+    uiDashboard: string
+    uiLogin: string
 }
 
 export type XPPoints = {
@@ -136,7 +138,9 @@ export default class AppSecrets {
         this.urls = {
             verifyEmail: this.getEnvironmentVariable("VERIFICATION_EMAIL_URL"),
             resetPasswordEmail: this.getEnvironmentVariable("RESET_PASSWORD_EMAIL_URL"),
-            logo: this.getEnvironmentVariable("LOGO_URL")
+            logo: this.getEnvironmentVariable("LOGO_URL"),
+            uiDashboard: this.getEnvironmentVariable("UI_DASHBOARD_URL"),
+            uiLogin: this.getEnvironmentVariable("UI_LOGIN_URL")
         }
         this.xpPoints = {
             streak: this.getEnvironmentVariableAsNumber("XP_POINT_STREAK", 25),

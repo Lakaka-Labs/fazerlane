@@ -26,6 +26,9 @@ export class SuccessResponse {
     send = () => {
         this.response.status(this.success.statusCode).json(this.success);
     };
+    redirect = (url: string) => {
+        this.response.redirect(url);
+    };
 }
 
 export class SuccessResponseWithHTML {
@@ -46,6 +49,7 @@ export class SuccessResponseWithCookies {
     success: Success;
     response: Response;
     cookie: Cookie[];
+    appSecret: AppSecrets
 
     constructor(res: Response, cookie: Cookie[], data?: any, metadata?: any) {
         this.response = res;
@@ -54,6 +58,7 @@ export class SuccessResponseWithCookies {
             statusCode: res.statusCode,
             message: "success",
         };
+        this.appSecret = new AppSecrets()
         if (data !== null && data !== undefined) {
             this.success.data = data;
         }
@@ -63,26 +68,34 @@ export class SuccessResponseWithCookies {
         }
     }
 
-    send = () => {
-        const environmentVariables = new AppSecrets();
+    sendCookie = () => {
         if (this.cookie[0]) {
             this.response
                 .cookie(this.cookie[0].key, this.cookie[0].value, {
                     signed: true,
-                    maxAge: environmentVariables.cookieExpires,
+                    maxAge: this.appSecret.cookieExpires,
                     httpOnly: false,
                 })
         }
         if (this.cookie[1]) {
             this.response.cookie(this.cookie[1].key, this.cookie[1].value, {
                 signed: true,
-                maxAge: environmentVariables.cookieExpires,
+                maxAge: this.appSecret.cookieExpires,
                 httpOnly: false,
             })
 
         }
+    }
+    send = () => {
+        this.sendCookie()
         this.response.status(this.success.statusCode)
             .json(this.success);
+    }
+
+
+    redirect = (url: string) => {
+        this.sendCookie()
+        this.response.redirect(url);
     }
 
     logout = () => {
