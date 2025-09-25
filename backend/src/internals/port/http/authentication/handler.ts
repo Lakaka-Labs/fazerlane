@@ -1,18 +1,18 @@
-import passport, {use} from 'passport';
+import passport from 'passport';
 import {Strategy as GoogleStrategy} from 'passport-google-oauth20';
-import jwt from 'jsonwebtoken';
 import type AuthenticationService from "../../../services/authentication";
-import {type Request, type Response, Router} from "express";
+import {type Request, type Response, Router, type ErrorRequestHandler, type NextFunction} from "express";
 import {BadRequestError, ForbiddenError} from "../../../../packages/errors";
 import {generateJWTToken, generateRefreshJWTToken} from "../../../../packages/utils/encryption.ts";
 import type Payload from "../../../../packages/types/payload";
-import {SuccessResponseWithCookies} from "../../../../packages/responses/success.ts";
+import {SuccessResponse, SuccessResponseWithCookies} from "../../../../packages/responses/success.ts";
 import type Cookie from "../../../../packages/types/cookies";
 import type {User} from "../../../domain/user";
-import {Authorize, AuthorizeEmailToken, AuthorizeRefreshToken} from "../middlewares/authorization.ts";
+import {AuthorizeRefreshToken} from "../middlewares/authorization.ts";
 import type AppSecrets from "../../../../packages/secret";
 import ValidationMiddleware from "../middlewares/validation.ts";
 import {z} from "zod";
+import {SQL} from "bun";
 
 export default class AuthenticationHandler {
     authenticationService: AuthenticationService
@@ -32,6 +32,7 @@ export default class AuthenticationHandler {
                 const user = await this.authenticationService.commands.authenticate.handle(profile.emails?.[0]?.value!, profile.id)
                 return done(null, user);
             } catch (error) {
+                console.log({error})
                 return done(error, undefined);
             }
         })
@@ -68,8 +69,20 @@ export default class AuthenticationHandler {
         );
 
         this.router.get('/google/callback',
-            passport.authenticate('google', {session: false}),
-            this.oauthCallback
+            passport.authenticate('google', {
+                session: false,
+                failureRedirect: `${this.appSecret.urls.uiLogin}?auth_failed`
+            }),
+            this.oauthCallback,
+            (error: any, req: Request, res: Response, next: NextFunction) => {
+                if (error instanceof SQL.PostgresError) {
+                    switch (error.errno) {
+                        case '23505':
+                            new SuccessResponse(res, {message: "logged out"}).redirect(`${this.appSecret.urls.uiLogin}?error="wrong authentication method"`)
+                    }
+                }
+                throw error
+            }
         )
 
         this.router.get(
@@ -79,7 +92,7 @@ export default class AuthenticationHandler {
         );
 
         this.router.get(
-            '/token/clear',
+            '/logout',
             this.logout
         );
     }
@@ -88,7 +101,7 @@ export default class AuthenticationHandler {
         let user = req.user as User;
         user = await this.authenticationService.queries.getDetails.handle({id: user.id})
         if (!user) {
-            throw new ForbiddenError("login again")
+            new SuccessResponse(res, {message: "logged out"}).redirect(`${this.appSecret.urls.uiLogin}?error="issue authenticating user"`)
         }
         const payload: Payload = {id: user.id};
         const token = generateJWTToken(payload);
@@ -102,7 +115,11 @@ export default class AuthenticationHandler {
                 value: refreshToken,
             }
         ];
-        new SuccessResponseWithCookies(res, cookie, {jwt: token, refreshToken, user}).send();
+        new SuccessResponseWithCookies(res, cookie, {
+            jwt: token,
+            refreshToken,
+            user
+        }).redirect(this.appSecret.urls.uiDashboard);
     };
 
     generateNewToken = async (req: Request, res: Response) => {
@@ -167,6 +184,8 @@ export default class AuthenticationHandler {
     }
 
     logout = async (req: Request, res: Response) => {
-        new SuccessResponseWithCookies(res, [], {message: "logged out"}).logout()
+        res.clearCookie("token")
+        res.clearCookie("refreshToken")
+        new SuccessResponse(res, {message: "logged out"}).redirect(this.appSecret.urls.uiLogin)
     }
 }
