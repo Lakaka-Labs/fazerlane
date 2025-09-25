@@ -1,6 +1,6 @@
 type BaseFilter = {
-    page: number;
-    limit: number;
+    page?: number;
+    limit?: number;
     minAmount?: number;
     maxAmount?: number;
     startDate?: number;

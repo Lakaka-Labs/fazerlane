@@ -5,7 +5,7 @@ import {BadRequestError} from "../../../../packages/errors";
 import type {SubmissionFormat} from "../../../domain/challenge";
 
 const FILE_CONFIG: Record<SubmissionFormat, { exts: string[], size: number }> = {
-    image: {exts: ['.jpg', '.jpeg', '.png', '.gif', '.webp'], size: 1024 * 1024 * 1024},
+    image: {exts: ['.jpg', '.jpeg', '.png', '.gif', '.webp','.mp4', '.mpeg', '.webm', '.mov'], size: 1024 * 1024 * 1024},
     video: {exts: ['.mp4', '.mpeg', '.webm', '.mov'], size: 1024 * 1024 * 1024},
     audio: {exts: ['.mp3', '.wav', '.ogg', '.m4a'], size: 1024 * 1024 * 1024},
     text: {

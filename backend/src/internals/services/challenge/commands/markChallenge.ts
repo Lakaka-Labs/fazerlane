@@ -22,6 +22,7 @@ export type markChallengeParameters = {
     userId: string
     files?: FileParameter[]
     text?: string
+    comment?: string
 }
 
 export default class MarkChallenge {
@@ -54,6 +55,7 @@ export default class MarkChallenge {
 
         const completedChallenges = await this.challengeRepository.getCompletedChallenges(challenge.lane, userId);
         const completedChallengeSet = new Set(completedChallenges);
+
 
         if (currentChallengeIndex === 0) {
             return await this.mark(parameter, challenge, completedChallengeSet.has(challenge.id));
@@ -88,15 +90,22 @@ export default class MarkChallenge {
         pass: boolean,
         feedback: string
     }> {
-        let {id, userId, files, text} = parameter;
+        let {id, userId, files, text, comment} = parameter;
+        const previousFeedbacks = await this.challengeRepository.getAttempts(id, userId, {limit: 20, page: 1})
+        const recentChallenges = await this.challengeRepository.get(challenge.lane, undefined, {
+            toPosition: challenge.position - 1,
+            order: "desc",
+            limit: 10
+        })
+        const nextChallenge = await this.challengeRepository.getByPosition(challenge.lane, challenge.position + 1)
+
         let promptMessage: Message[] = [{
-            text: submissionPrompt(challenge, text)
+            text: submissionPrompt(challenge, recentChallenges, nextChallenge, previousFeedbacks, text, comment)
         }];
 
         if (files) {
             for (const {filePath, fileMimeType} of files) {
                 const {uri, mimeType} = await this.llmRepository.upload(filePath, fileMimeType);
-
                 // Wait for file to become active
                 const isActive = await this.waitForFileActive(uri);
                 if (!isActive) {
@@ -111,7 +120,7 @@ export default class MarkChallenge {
         const {pass, feedback} = this.extractChallenges(llmResult);
         await this.xpRepository.streak(userId);
         if (pass && !completed) await this.giveXP(id, userId, challenge.title, challenge.difficulty);
-        await this.challengeRepository.addAttempt({challengeId: id, userId, feedback, pass});
+        await this.challengeRepository.addAttempt({challengeId: id, userId, feedback, pass,comment,textSubmission: text});
         return {pass, feedback};
     }
 

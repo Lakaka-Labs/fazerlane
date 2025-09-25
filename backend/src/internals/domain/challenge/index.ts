@@ -1,3 +1,5 @@
+import type BaseFilter from "../../../packages/types/filter";
+
 export type Reference = {
     challenge: string;
     location: {
@@ -19,9 +21,12 @@ export type Challenge = {
     difficulty: 'easy' | 'medium' | 'hard';
     submissionFormat: SubmissionFormat[];
     references: Reference[];
+    position: number
     isCompleted?: boolean;
     attemptsCount?: number
 };
+
+export type ChallengeFilter = BaseFilter & { fromPosition?: number, toPosition?: number, order?: "asc" | "desc"  }
 
 export type Attempt = {
     id: string
@@ -29,5 +34,8 @@ export type Attempt = {
     challengeId: string
     feedback: string
     pass: boolean
+    files?: string[]
+    textSubmission?: string
+    comment?: string
     createdAt: Date
 }
