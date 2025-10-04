@@ -62,7 +62,7 @@ export default class LaneHandler extends LaneSchema {
             ...req.body,
             creator
         }
-        const laneId = await this.laneService.commands.createLane.handle(creator,req.body.youtube)
+        const laneId = await this.laneService.commands.createLane.handle(creator,req.body.youtube,req.body.startTime,req.body.endTime)
         res.statusCode = StatusCodes.ACCEPTED
         new SuccessResponse(res, {message: "Lane creation in progress", laneId}).send();
     }

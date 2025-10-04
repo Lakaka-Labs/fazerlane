@@ -78,7 +78,7 @@ export default class UserRepositoryPG implements Repository {
         };
     }
 
-    async add(user: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User> {
+    async add(user: Omit<User, "id" | "createdAt" | "updatedAt" | "streak" | "xp">): Promise<User> {
         const userData = {
             email: user.email,
             ...(user.googleId && {google_id: user.googleId}),

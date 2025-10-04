@@ -27,6 +27,11 @@ import SMTPClass from "./email/smtp.ts";
 import type {EmailRepository} from "../domain/email/repository.ts";
 import type XPRepository from "../domain/xp/repository.ts";
 import XPPG from "./xp";
+import type {S3Client} from "@aws-sdk/client-s3";
+import type {StorageRepository} from "../domain/storage/repository.ts";
+import {S3StorageClass} from "./storage/s3.ts";
+import type {ObjectRepository} from "../domain/objects/repository.ts";
+import ObjectPG from "./object";
 
 export type AdapterParameters = {
     postgresClient: SQL
@@ -34,6 +39,7 @@ export type AdapterParameters = {
     geminiClient: GoogleGenAI
     appSecrets: AppSecrets
     mem0UserClient: Memory
+    storageClient: S3Client
 }
 
 export default class Adapters {
@@ -50,6 +56,8 @@ export default class Adapters {
     userMemoriesRepository: UserMemoriesRepository
     emailRepository: EmailRepository
     xpRepository: XPRepository
+    storageRepository: StorageRepository
+    objectRepository: ObjectRepository
 
     constructor(parameters: AdapterParameters) {
         this.parameters = parameters
@@ -65,5 +73,7 @@ export default class Adapters {
         this.userMemoriesRepository = new UserMemoriesMem0(parameters.mem0UserClient)
         this.emailRepository = new SMTPClass(parameters.appSecrets.smtpCredential)
         this.xpRepository = new XPPG(parameters.postgresClient, parameters.appSecrets.xpPoints)
+        this.storageRepository = new S3StorageClass(parameters.storageClient, parameters.appSecrets.storageCredentials)
+        this.objectRepository= new ObjectPG(parameters.postgresClient)
     }
 }

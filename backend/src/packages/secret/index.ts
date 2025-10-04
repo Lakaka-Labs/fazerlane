@@ -41,6 +41,14 @@ export type Urls = {
     uiLogin: string
 }
 
+export type StorageCredentials = {
+    storageAccountId: string
+    storageAccessKeyId: string
+    storageSecretAccessKey: string
+    storageBucketName: string
+    storageBucketPublicDomain: string
+}
+
 export type XPPoints = {
     streak: number
     easy: number
@@ -78,6 +86,7 @@ export default class AppSecrets {
     smtpCredential: SMTPCredentials
     urls: Urls
     xpPoints: XPPoints
+    storageCredentials: StorageCredentials
 
     constructor() {
         this.port = this.getEnvironmentVariableAsNumber("PORT", 5000);
@@ -123,7 +132,7 @@ export default class AppSecrets {
 
         this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
 
-        this.maxYoutubeLength = this.getEnvironmentVariableAsNumber("MAX_YOUTUBE_LENGTH", 600)
+        this.maxYoutubeLength = this.getEnvironmentVariableAsNumber("MAX_YOUTUBE_LENGTH", 3000)
         this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 120)
         this.baseYoutubeApiUrl = this.getEnvironmentVariableOrFallback("BASE_YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3/videos")
         this.openaiAPIKey = this.getEnvironmentVariable("OPENAI_API_KEY")
@@ -153,6 +162,13 @@ export default class AppSecrets {
             completed50: this.getEnvironmentVariableAsNumber("XP_POINT_COMPLETED_50", 75),
             completed75: this.getEnvironmentVariableAsNumber("XP_POINT_COMPLETED_75", 100),
             completed100: this.getEnvironmentVariableAsNumber("XP_POINT_COMPLETED_100", 150),
+        }
+        this.storageCredentials = {
+            storageAccountId: this.getEnvironmentVariable("STORAGE_ACCOUNT_ID"),
+            storageAccessKeyId: this.getEnvironmentVariable("STORAGE_ACCESS_KEY_ID"),
+            storageSecretAccessKey: this.getEnvironmentVariable("STORAGE_SECRET_ACCESS_KEY"),
+            storageBucketName: this.getEnvironmentVariable("STORAGE_BUCKET_NAME"),
+            storageBucketPublicDomain: this.getEnvironmentVariable("STORAGE_BUCKET_PUBLIC_DOMAIN"),
         }
     }
 

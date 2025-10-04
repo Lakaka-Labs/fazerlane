@@ -1,7 +1,6 @@
 import type LaneRepository from "../../domain/lane/repository.ts";
 import type {Lane, LaneFilter} from "../../domain/lane";
 import {SQL} from "bun";
-import type {Youtube} from "../../domain/resource";
 
 export default class LanePG implements LaneRepository {
     sql: SQL
@@ -28,11 +27,13 @@ export default class LanePG implements LaneRepository {
                        WHERE id = ${id}`;
     };
 
-    async create(creator: string, youtube: string): Promise<string> {
-        let id = await this.sql.begin(async tx => {
+    async create(creator: string, youtube: string, startTime?: number, endTime?:number): Promise<string> {
+        return await this.sql.begin(async tx => {
             const laneRow = {
                 creator,
                 youtube,
+                ...(startTime && {start_time: startTime}),
+                ...(endTime && {end_time: endTime})
             };
             const [{id}] =
                 await tx`INSERT INTO lanes ${tx(laneRow)} RETURNING id`;
@@ -40,8 +41,7 @@ export default class LanePG implements LaneRepository {
             await tx`INSERT INTO user_lanes (user_id, lane_id)
                      VALUES (${creator}, ${id})`
             return id;
-        });
-        return id
+        })
     }
 
     async getById(id: string): Promise<Lane> {
@@ -58,6 +58,8 @@ export default class LanePG implements LaneRepository {
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
             youtube: row.youtube,
+            startTime: row.start_time,
+            endTime: row.end_time,
             challengeGenerated: row.challenge_generated
         }
     }
@@ -66,7 +68,7 @@ export default class LanePG implements LaneRepository {
         let query = this.sql`
             SELECT l.*
             FROM lanes l
-            INNER JOIN user_lanes ul ON l.id = ul.lane_id
+                     INNER JOIN user_lanes ul ON l.id = ul.lane_id
             WHERE ul.user_id = ${filter.userId}
         `;
 
@@ -75,7 +77,7 @@ export default class LanePG implements LaneRepository {
         }
 
         if (filter.page) {
-            query = this.sql`${query} OFFSET ${(filter.page - 1) * filter.limit}`;
+            query = this.sql`${query} OFFSET ${(filter.page - 1) * (filter.limit || 20)}`;
         }
 
         const rows = await query;
@@ -87,6 +89,8 @@ export default class LanePG implements LaneRepository {
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             youtube: row.youtube,
+            startTime: row.start_time,
+            endTime: row.end_time,
             challengeGenerated: row.challenge_generated
         }));
     }

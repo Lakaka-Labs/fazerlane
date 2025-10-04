@@ -49,9 +49,18 @@ export default class GenerateChallenge {
             const lane = await this.laneRepository.getById(laneId)
             const messages: Message[] = [
                 {text: challengePrompt()},
-                {data: {fileUri: `https://www.youtube.com/watch?v=${lane.youtube}`}}
+                {
+                    data: {
+                        fileUri: `https://www.youtube.com/watch?v=${lane.youtube}`,
+                        ...(lane.startTime && {startOffset: lane.startTime}),
+                        ...(lane.endTime && {endOffset: lane.endTime}),
+                    }
+                }
             ];
-            const llmResult = await this.llmRepository.getText(messages);
+            const inputToken = await this.llmRepository.getTokens(messages);
+            console.log(inputToken)
+            const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages);
+            console.log(outputToken)
             const challenge = this.extractChallenges(llmResult);
             await this.challengeRepository.add(laneId, challenge);
 

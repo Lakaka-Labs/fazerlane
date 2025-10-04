@@ -11,11 +11,9 @@ import type {Challenge} from "../../../domain/challenge";
 import type XPRepository from "../../../domain/xp/repository.ts";
 import type AppSecrets from "../../../../packages/secret";
 import {XPType, type XP} from "../../../domain/xp";
+import type {FileParameter} from "../../../domain/objects";
 
-export type FileParameter = {
-    filePath: string
-    fileMimeType: string
-}
+
 
 export type markChallengeParameters = {
     id: string
@@ -104,8 +102,8 @@ export default class MarkChallenge {
         }];
 
         if (files) {
-            for (const {filePath, fileMimeType} of files) {
-                const {uri, mimeType} = await this.llmRepository.upload(filePath, fileMimeType);
+            for (const {path, mimeType: fileMimetype} of files) {
+                const {uri, mimeType} = await this.llmRepository.upload(path, fileMimetype);
                 // Wait for file to become active
                 const isActive = await this.waitForFileActive(uri);
                 if (!isActive) {
@@ -116,7 +114,7 @@ export default class MarkChallenge {
             }
         }
 
-        const llmResult = await this.llmRepository.getText(promptMessage);
+        const {response:llmResult} = await this.llmRepository.getText(promptMessage);
         const {pass, feedback} = this.extractChallenges(llmResult);
         await this.xpRepository.streak(userId);
         if (pass && !completed) await this.giveXP(id, userId, challenge.title, challenge.difficulty);

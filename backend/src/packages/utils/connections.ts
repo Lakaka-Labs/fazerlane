@@ -1,8 +1,9 @@
 import {SQL} from "bun";
-import type {PostgresCredentials, RedisCredentials} from "../secret";
+import type {PostgresCredentials, RedisCredentials, StorageCredentials} from "../secret";
 import Redis from "ioredis";
 import {GoogleGenAI} from '@google/genai';
 import {Memory} from "mem0ai/oss";
+import {S3Client} from "@aws-sdk/client-s3";
 
 export const bunPostgresClientConnection = (credentials: PostgresCredentials) => {
     return new SQL({
@@ -58,6 +59,17 @@ export const mem0UserMemory = (openaiAPIKey: string, credentials: PostgresCreden
                 host: 'localhost',
                 port: 6333,
             },
+        },
+    });
+}
+
+export const s3Client = (credentials: StorageCredentials): S3Client => {
+    return new S3Client({
+        region: 'auto',
+        endpoint: `https://${credentials.storageAccountId}.r2.cloudflarestorage.com`,
+        credentials: {
+            accessKeyId: credentials.storageAccessKeyId,
+            secretAccessKey: credentials.storageSecretAccessKey,
         },
     });
 }

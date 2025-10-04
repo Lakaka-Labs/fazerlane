@@ -11,6 +11,8 @@ CREATE TABLE lanes
     creator             UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE SET NULL,
     state               TEXT NOT NULL CHECK (state IN ('accepted', 'completed', 'failed')) DEFAULT 'accepted',
     youtube             TEXT NOT NULL REFERENCES youtubes (id) ON UPDATE CASCADE ON DELETE SET NULL,
+    start_time          INTEGER,
+    end_time            INTEGER,
     challenge_generated BOOLEAN                                                            DEFAULT false,
     created_at          TIMESTAMPTZ                                                        DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMPTZ                                                        DEFAULT CURRENT_TIMESTAMP

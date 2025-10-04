@@ -9,7 +9,8 @@ const ValidationMiddleware = (
 ) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
-            schema.parse(req[reqData]);
+            const parsed = schema.parse(req[reqData]);
+            req[reqData] = parsed
             next();
         } catch (error) {
             throw error;

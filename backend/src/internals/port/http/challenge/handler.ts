@@ -237,8 +237,8 @@ export default class ChallengeHandler extends ChallengeSchema {
             parameters.files = []; // Initialize the array first
             for (const file of req.files as Express.Multer.File[]) {
                 parameters.files.push({
-                    filePath: file.path,
-                    fileMimeType: file.mimetype
+                    path: file.path,
+                    mimeType: file.mimetype
                 })
             }
         }

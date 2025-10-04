@@ -21,6 +21,7 @@ import ChallengeHandler from "./challenge/handler.ts";
 import ProfileHandler from "./profile/handler.ts";
 import {rateLimit} from 'express-rate-limit';
 import XPHandler from "./xp/handler.ts";
+import StorageHandler from "./storage/handler.ts";
 
 export default class ExpressHTTP {
     appSecrets: AppSecrets
@@ -78,6 +79,7 @@ export default class ExpressHTTP {
         this.lane()
         this.challenge()
         this.xp()
+        this.storage()
 
         this.server.use(`/api/v1`, this.router);
 
@@ -120,6 +122,11 @@ export default class ExpressHTTP {
     xp = () => {
         const router = new XPHandler(this.services.xpService);
         this.router.use("/xp", Authorize(this.services.authenticationService), router.router);
+    };
+
+    storage = () => {
+        const router = new StorageHandler(this.services.storageService);
+        this.router.use("/storage", Authorize(this.services.authenticationService), router.router);
     };
 
     websocketSetup = () => {

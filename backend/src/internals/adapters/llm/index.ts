@@ -14,7 +14,7 @@ export default class Gemini implements LLMRepository {
         this.appSecrets = appSecrets
     }
 
-    getText = async (messages: Message[]): Promise<string> => {
+    getText = async (messages: Message[]): Promise<{ response: string, tokenCount: number }> => {
         const chat = this.ai.chats.create({
             model: this.appSecrets.geminiConfiguration.model,
             config: {
@@ -44,13 +44,55 @@ export default class Gemini implements LLMRepository {
             message: parts
         });
         if (!response.text) throw new ApiError("could not generate response")
-        return response.text
+        console.log({
+            promptTokenCount: response.usageMetadata?.promptTokenCount,
+            thoughtsTokenCount: response.usageMetadata?.thoughtsTokenCount,
+            candidatesTokenCount: response.usageMetadata?.candidatesTokenCount,
+            totalTokenCount: response.usageMetadata?.totalTokenCount,
+            cachedContentTokenCount: response.usageMetadata?.cachedContentTokenCount
+        })
+        return {response: response.text, tokenCount: response.usageMetadata?.totalTokenCount || 0}
+    }
+
+    getTokens = async (messages: Message[]): Promise<number> => {
+        const chat = this.ai.chats.create({
+            model: this.appSecrets.geminiConfiguration.model,
+            config: {
+                thinkingConfig: {
+                    thinkingBudget: -1,
+                }
+            }
+        });
+        const parts: Part[] = messages.map(({text, data, uploadedData}) => {
+            if (uploadedData) {
+                return createPartFromUri(uploadedData.uri, uploadedData.mimeType)
+            } else {
+                return {
+                    text,
+                    fileData: data ? {fileUri: data.fileUri} : undefined,
+                    videoMetadata: data
+                        ? {
+                            ...(data.endOffset && {endOffset: `${data.endOffset}s`}),
+                            ...(data.startOffset && {startOffset: `${data.startOffset}s`}),
+                            ...(data.fps && {fps: data.fps}),
+                        }
+                        : undefined,
+                }
+            }
+        });
+        const response = await this.ai.models.countTokens({
+            model: "gemini-2.0-flash",
+            contents: parts,
+        });
+
+        return response.totalTokens || 0
     }
 
     upload = async (path: string, mimeType: string): Promise<{ uri: string; mimeType: string; name: string; }> => {
         const file = await this.ai.files.upload({
             file: path,
             config: {mimeType: mimeType},
+
         });
         if (!file.uri || !file.mimeType || !file.name) {
             throw new Error("failed to analyse content")

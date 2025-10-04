@@ -23,14 +23,18 @@ export default class CreateLane {
         this.appSecrets = appSecrets
     }
 
-    async handle(creator: string, youtube: string): Promise<string> {
+    async handle(creator: string, youtube: string, startTime?: number, endTime?: number): Promise<string> {
         let video = await this.youtubeRepository.getDetails(youtube)
-        if (video.duration > this.appSecrets.maxYoutubeLength) throw new BadRequestError(`video: ${youtube} is too long`)
+        if (endTime && endTime > video.duration) throw new BadRequestError(`end time is longer than video`);
+        if (startTime && startTime > video.duration) throw new BadRequestError(`start time is longer than video`);
+        const duration = (endTime || video.duration) - (startTime || 0);
+        if (duration > this.appSecrets.maxYoutubeLength) {
+            throw new BadRequestError(`video: ${youtube} is too long`);
+        }
         let yts = await this.resourceRepository.addYoutubes([video])
         if (!yts[0]) throw new Error("failed to add youtube video")
-        let laneId = await this.laneRepository.create(creator,yts[0])
+        let laneId = await this.laneRepository.create(creator, yts[0], startTime, endTime)
         await this.queueRepository.addJob(QueueName.challengeGeneration, {laneId})
         return laneId
-
     }
 }
