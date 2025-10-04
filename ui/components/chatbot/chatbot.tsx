@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, X } from "lucide-react";
+import { MessageCircle, X, SendHorizontal } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
@@ -88,51 +88,52 @@ const Chatbot: React.FC = () => {
   }, [isExpanded]);
 
   return (
-    <div className="h-fit w-fit">
-      <div className="fixed top-3 left-1/2 z-[999] h-fit w-full max-w-lg -translate-x-1/2">
-        <div className="border-primary/50 flex w-full gap-2 rounded-md border-2 bg-white/50 p-4 shadow-lg backdrop-blur-md">
-          <Input
-            ref={inputRef}
-            type={"text"}
-            placeholder="Type your message..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onFocus={handleInputFocus}
-            onKeyPress={handleKeyPress}
-            className="h-[40px] border-none bg-transparent text-base font-semibold text-black shadow-none outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-          <span
-            onClick={handleSendMessage}
-            className={`border-border text-primary flex w-[50px] transform cursor-pointer items-center justify-center rounded-md border border-solid bg-white px-2 transition-all duration-200 ease-linear`}
-          >
-            <Send />
-          </span>
-        </div>
+    <div className="relative">
+      <div className="flex w-md rounded-md border border-gray-300 shadow-lg backdrop-blur-md">
+        <Input
+          ref={inputRef}
+          type={"text"}
+          placeholder="Type your message..."
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onFocus={handleInputFocus}
+          onKeyPress={handleKeyPress}
+          className="h-[40px] w-full border-none bg-transparent text-base text-black shadow-none outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+        />
+        <span
+          onClick={handleSendMessage}
+          className={`border-border flex w-fit max-w-[50px] shrink-0 transform cursor-pointer items-center justify-center rounded-r-md border border-solid bg-gray-300 px-4 transition-all duration-200 ease-linear hover:bg-gray-600 hover:text-white`}
+        >
+          <SendHorizontal size={24} />
+        </span>
       </div>
 
       <div
-        className={`border-primary/50 fixed top-28 right-4 bottom-4 left-4 z-[999] mx-auto w-full max-w-2xl rounded-2xl border-2 transition-all duration-500 ease-out ${
+        className={`absolute top-[calc(100%+10px)] left-1/2 z-[999] mx-auto h-[50vh] w-2xl -translate-x-1/2 transform overflow-hidden rounded-2xl border border-gray-300 shadow-2xl transition-all duration-200 ease-linear ${
           isExpanded
-            ? "translate-y-0 transform opacity-100"
-            : "pointer-events-none -translate-y-8 transform opacity-0"
+            ? "translate-y-0 scale-x-100 opacity-100"
+            : "pointer-events-none -translate-y-[10px] scale-x-75 opacity-0"
         }`}
       >
         <div
           ref={chatContainerRef}
-          className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+          className="flex h-full flex-col overflow-y-auto bg-white shadow-2xl"
         >
           <div className="flex w-full justify-end">
-            <Button size={"icon"} onClick={handleClose} className="px-5">
+            <Button
+              size={"icon"}
+              onClick={handleClose}
+              className="rounded-none bg-gray-300 px-5 text-black"
+            >
               <X />
             </Button>
           </div>
 
-          {/* Messages Container */}
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             {messages.length === 0 ? (
-              <div className="flex flex-col gap-4 py-12 text-center">
-                <div className="bg-primary mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-                  <MessageCircle size={32} className="text-white" />
+              <div className="flex flex-col gap-4 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-300">
+                  <MessageCircle size={32} />
                 </div>
                 <h4 className="text-lg font-semibold">Welcome to Chat!</h4>
                 <p>

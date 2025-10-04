@@ -7,6 +7,8 @@
   --font-nunito: Nunito, sans-serif;
   --font-lato: Lato, sans-serif;
   --font-julius: Julius Sans One, sans-serif;
+
+  --spacing-xLayout: 32px;
 }
 
 @theme inline {
