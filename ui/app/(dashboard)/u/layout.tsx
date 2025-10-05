@@ -5,7 +5,7 @@ export default function DUserLayout({ children }: PropsWithChildren) {
   return (
     <div className="h-screen w-full overflow-hidden">
       <UserHeader />
-      <div className="px-xLayout h-[calc(100vh-70px)] w-full overflow-y-auto">
+      <div className="px-xLayout py-xLayout h-[calc(100vh-70px)] w-full overflow-y-auto">
         {children}
       </div>
     </div>
