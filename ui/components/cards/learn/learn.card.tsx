@@ -1,38 +1,48 @@
 "use client";
 
 import { CircularProgress } from "@/components/progress-09";
-import { EllipsisVertical } from "lucide-react";
+import { Dot, EllipsisVertical } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 export default function LearnCard() {
   const [progress, setProgress] = useState(13);
 
   return (
-    <div className="pb-xLayout flex cursor-pointer flex-col gap-4 rounded-md shadow-md">
-      <div className="flex items-center justify-center rounded-t-md bg-gray-300 py-2">
-        <div className="mx-auto flex w-full max-w-sm flex-col items-center">
-          <CircularProgress
-            value={progress}
-            size={120}
-            strokeWidth={10}
-            showLabel
-            labelClassName="text-xl font-bold"
-            renderLabel={(progress) => `${progress}%`}
-          />
-        </div>
-      </div>
+    <div className="flex cursor-pointer flex-col gap-3 rounded-md shadow-md">
+      <Image
+        src={"/temp/image 2.png"}
+        alt="img"
+        width={100}
+        height={100}
+        className="h-[210px] w-full rounded-t-md object-cover object-center"
+      />
 
-      <div className="px-xLayout relative flex justify-between">
-        <div>
-          <p className="text-lg font-bold">Video Title</p>
-          <div className="flex items-center gap-2">
-            <span>12 Attempts</span>
-            <span>*</span>
-            <span>5 hours ago</span>
+      <div className="flex justify-between">
+        <div className="flex items-start gap-3">
+          <div className="size-[70px] overflow-hidden">
+            <CircularProgress
+              value={(8 / 10) * 100}
+              size={70}
+              strokeWidth={6}
+              circleStrokeWidth={6}
+              progressStrokeWidth={6}
+              showLabel
+              labelClassName="text-[10px] font-extrabold"
+              renderLabel={(progress) => `8 / 10`}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p className="text-lg font-bold">Video Title</p>
+
+            <div className="flex items-center gap-px">
+              <span>12 Attempts</span>
+              <Dot />
+              <span>5 hours ago</span>
+            </div>
           </div>
         </div>
-
-        <EllipsisVertical className="absolute right-2" />
       </div>
     </div>
   );
