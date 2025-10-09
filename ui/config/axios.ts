@@ -5,9 +5,113 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
+import Cookies from "js-cookie";
 
 export const API_BARE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 export const API_BASE_URL = API_BARE_URL ? `${API_BARE_URL}/api/v1` : "";
+
+const getCookie = (name: string): string | undefined => {
+  return Cookies.get(name);
+};
+
+const setCookie = (
+  name: string,
+  value: string,
+  options: {
+    expires?: number;
+    path?: string;
+    secure?: boolean;
+    sameSite?: "strict" | "lax" | "none";
+  } = {}
+): void => {
+  const defaultOptions = {
+    expires: 7,
+    path: "/",
+    secure: true,
+    sameSite: "strict" as const,
+    ...options,
+  };
+
+  Cookies.set(name, value, defaultOptions);
+};
+
+const deleteCookie = (name: string, path: string = "/"): void => {
+  Cookies.remove(name, { path });
+};
+
+const getTokenFromCookies = (): {
+  token: string;
+  refreshToken: string;
+} | null => {
+  const token = getCookie("token");
+  const refreshToken = getCookie("refreshToken");
+
+  if (token && refreshToken) {
+    return { token, refreshToken };
+  }
+
+  return null;
+};
+
+const getTokenFromStore = () => {
+  try {
+    const { token: tkObj } = usePersistStore((store) => store);
+    return tkObj?.jwt
+      ? { token: tkObj.jwt, refreshToken: tkObj.refreshToken }
+      : null;
+  } catch (error) {
+    console.warn("Failed to access store tokens:", error);
+    return null;
+  }
+};
+
+const getCurrentToken = (): { token: string; refreshToken?: string } | null => {
+  const cookieTokens = getTokenFromCookies();
+  if (cookieTokens) {
+    return {
+      token: cookieTokens.token,
+      refreshToken: cookieTokens.refreshToken,
+    };
+  }
+
+  const storeTokens = getTokenFromStore();
+  if (storeTokens) {
+    return { token: storeTokens.token, refreshToken: storeTokens.refreshToken };
+  }
+
+  return null;
+};
+
+const updateTokens = (jwt: string, refreshToken?: string): void => {
+  const cookieTokens = getTokenFromCookies();
+
+  if (cookieTokens) {
+    setCookie("token", jwt);
+    if (refreshToken) {
+      setCookie("refreshToken", refreshToken);
+    }
+  } else {
+    try {
+      usePersistStore.getState().setToken({
+        jwt,
+        ...(refreshToken && { refreshToken }),
+      });
+    } catch (error) {
+      console.warn("Failed to update store tokens:", error);
+    }
+  }
+};
+
+const clearTokens = (): void => {
+  deleteCookie("token");
+  deleteCookie("refreshToken");
+
+  try {
+    usePersistStore.getState().setToken({ jwt: "", refreshToken: undefined });
+  } catch (error) {
+    console.warn("Failed to clear store tokens:", error);
+  }
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -31,11 +135,12 @@ const onRefreshed = (token: string): void => {
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const { token: tkObj } = usePersistStore((store) => store);
-    const token = tkObj?.jwt;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const tokenData = getCurrentToken();
+
+    if (tokenData?.token) {
+      config.headers.Authorization = `Bearer ${tokenData.token}`;
     }
+
     return config;
   },
   (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
@@ -64,9 +169,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { token } = usePersistStore((store) => store);
-
-        const refreshToken = token?.refreshToken;
+        const tokenData = getCurrentToken();
+        const refreshToken = tokenData?.refreshToken;
 
         if (!refreshToken) {
           throw new Error("No refresh token available");
@@ -83,10 +187,7 @@ api.interceptors.response.use(
 
         const { jwt, refreshToken: newRefreshToken } = response.data;
 
-        usePersistStore.getState().setToken({
-          jwt,
-          ...(newRefreshToken && { refreshToken: newRefreshToken }),
-        });
+        updateTokens(jwt, newRefreshToken);
 
         isRefreshing = false;
         onRefreshed(jwt);
@@ -96,11 +197,11 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        usePersistStore
-          .getState()
-          .setToken({ jwt: "", refreshToken: undefined });
+        clearTokens();
 
-        window.dispatchEvent(new CustomEvent("auth:logout"));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:logout"));
+        }
 
         return Promise.reject(refreshError);
       }
@@ -148,6 +249,18 @@ const apiClient = {
     config?: InternalAxiosRequestConfig
   ): Promise<T> =>
     api.patch<T>(url, data, config).then((response) => response.data),
+};
+
+export const setTokensToCookies = (
+  token: string,
+  refreshToken: string
+): void => {
+  setCookie("token", token, { expires: 7 });
+  setCookie("refreshToken", refreshToken, { expires: 30 });
+};
+
+export const clearAllTokens = (): void => {
+  clearTokens();
 };
 
 export default apiClient;
