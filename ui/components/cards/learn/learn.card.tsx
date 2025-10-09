@@ -1,7 +1,7 @@
 "use client";
 
 import { CircularProgress } from "@/components/progress-09";
-import { Dot, EllipsisVertical } from "lucide-react";
+import { Dot } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -9,7 +9,7 @@ export default function LearnCard() {
   const [progress, setProgress] = useState(13);
 
   return (
-    <div className="flex cursor-pointer flex-col gap-3 rounded-md shadow-md">
+    <div className="flex cursor-pointer flex-col gap-3 rounded-md shadow-lg">
       <Image
         src={"/temp/image 2.png"}
         alt="img"

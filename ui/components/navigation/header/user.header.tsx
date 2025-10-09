@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function UserHeader() {
   return (
     <Dialog>
-      <div className="px-xLayout flex h-[70px] w-full items-center justify-between border-b border-gray-300 shadow-md">
+      <div className="px-xLayout flex h-[70px] w-full items-center justify-between">
         <Link
           href={appRoutes.home.index}
           className="flex items-center gap-2 text-2xl font-normal uppercase"
