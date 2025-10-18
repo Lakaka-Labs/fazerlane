@@ -21,8 +21,8 @@ import type ProgressRepository from "../domain/progress/repository.ts";
 import type {Memory} from "mem0ai/oss";
 import type ChallengeRepository from "../domain/challenge/repository.ts";
 import ChallengePG from "./challenge";
-import type {UserMemoriesRepository} from "../domain/memories/repository.ts";
-import UserMemoriesMem0 from "./memories/user.ts";
+import type {MemoriesRepository} from "../domain/memories/repository.ts";
+import MemoriesMem0 from "./memories";
 import SMTPClass from "./email/smtp.ts";
 import type {EmailRepository} from "../domain/email/repository.ts";
 import type XPRepository from "../domain/xp/repository.ts";
@@ -32,13 +32,16 @@ import type {StorageRepository} from "../domain/storage/repository.ts";
 import {S3StorageClass} from "./storage/s3.ts";
 import type {ObjectRepository} from "../domain/objects/repository.ts";
 import ObjectPG from "./object";
+import type {ChatRepository} from "../domain/chat/repository.ts";
+import ChatPG from "./chat";
 
 export type AdapterParameters = {
     postgresClient: SQL
     redisClient: Redis
     geminiClient: GoogleGenAI
     appSecrets: AppSecrets
-    mem0UserClient: Memory
+    mem0ChatClient: Memory
+    mem0AttemptClient: Memory
     storageClient: S3Client
 }
 
@@ -53,11 +56,13 @@ export default class Adapters {
     progressRepository: ProgressRepository
     progressWebsocketRepository: ProgressWebsocketRepository
     challengeRepository: ChallengeRepository
-    userMemoriesRepository: UserMemoriesRepository
+    chatMemoriesRepository: MemoriesRepository
+    attemptMemoriesRepository: MemoriesRepository
     emailRepository: EmailRepository
     xpRepository: XPRepository
     storageRepository: StorageRepository
     objectRepository: ObjectRepository
+    chatRepository: ChatRepository
 
     constructor(parameters: AdapterParameters) {
         this.parameters = parameters
@@ -70,10 +75,12 @@ export default class Adapters {
         this.progressRepository = new ProgressPG(parameters.postgresClient)
         this.progressWebsocketRepository = new ProgressWebsocket()
         this.challengeRepository = new ChallengePG(parameters.postgresClient)
-        this.userMemoriesRepository = new UserMemoriesMem0(parameters.mem0UserClient)
+        this.chatMemoriesRepository = new MemoriesMem0(parameters.mem0ChatClient)
+        this.attemptMemoriesRepository = new MemoriesMem0(parameters.mem0AttemptClient)
         this.emailRepository = new SMTPClass(parameters.appSecrets.smtpCredential)
         this.xpRepository = new XPPG(parameters.postgresClient, parameters.appSecrets.xpPoints)
         this.storageRepository = new S3StorageClass(parameters.storageClient, parameters.appSecrets.storageCredentials)
-        this.objectRepository= new ObjectPG(parameters.postgresClient)
+        this.objectRepository = new ObjectPG(parameters.postgresClient)
+        this.chatRepository = new ChatPG(parameters.postgresClient)
     }
 }

@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE challenges
 (
     id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -8,7 +10,8 @@ CREATE TABLE challenges
     instruction       TEXT    NOT NULL,
     assignment        TEXT    NOT NULL,
     submission_format TEXT[]  NOT NULL,
-    difficulty        TEXT    NOT NULL
+    difficulty        TEXT    NOT NULL,
+    embedding         vector(768)
 );
 
 CREATE TABLE challenge_references
@@ -19,3 +22,7 @@ CREATE TABLE challenge_references
     end_time   TEXT NOT NULL,
     purpose    TEXT NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS challenges_embedding_idx
+    ON challenges USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100)

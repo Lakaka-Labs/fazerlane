@@ -27,7 +27,7 @@ export default class LanePG implements LaneRepository {
                        WHERE id = ${id}`;
     };
 
-    async create(creator: string, youtube: string, startTime?: number, endTime?:number): Promise<string> {
+    async create(creator: string, youtube: string, startTime?: number, endTime?: number): Promise<string> {
         return await this.sql.begin(async tx => {
             const laneRow = {
                 creator,
@@ -44,32 +44,89 @@ export default class LanePG implements LaneRepository {
         })
     }
 
-    async getById(id: string): Promise<Lane> {
-        let rows = await this.sql`SELECT *
-                                  FROM lanes
-                                  WHERE id = ${id}
-                                  LIMIT 1`
+    async getById(id: string, userId?: string): Promise<Lane> {
+        let rows = await this.sql`
+            SELECT l.*,
+                   y.id        as youtube_id,
+                   y.title     as youtube_title,
+                   y.duration  as youtube_duration,
+                   y.thumbnail as youtube_thumbnail
+                ${userId ? this.sql`,
+               (SELECT COUNT(*) FROM challenges WHERE lane = l.id) as total_challenges,
+               (SELECT COUNT(DISTINCT cu.challenge_id) 
+                FROM challenge_users cu 
+                INNER JOIN challenges c ON cu.challenge_id = c.id 
+                WHERE c.lane = l.id AND cu.user_id = ${userId}) as challenges_passed,
+               (SELECT COALESCE(SUM(attempts_count), 0)
+                FROM (
+                    SELECT COUNT(*) as attempts_count
+                    FROM challenge_attempts ca
+                    INNER JOIN challenges c ON ca.challenge_id = c.id
+                    WHERE c.lane = l.id AND ca.user_id = ${userId}
+                    GROUP BY ca.challenge_id
+                ) subquery) as total_attempts
+               ` : this.sql``}
+            FROM lanes l
+                     LEFT JOIN youtubes y ON l.youtube = y.id
+            WHERE l.id = ${id}
+            LIMIT 1
+        `;
 
         const row = rows[0];
-        return {
+        const lane: Lane = {
             id: row.id,
             creator: row.creator,
             state: row.state,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
             youtube: row.youtube,
             startTime: row.start_time,
             endTime: row.end_time,
-            challengeGenerated: row.challenge_generated
+            challengeGenerated: row.challenge_generated,
+            youtubeDetails: row.youtube_id ? {
+                id: row.youtube_id,
+                title: row.youtube_title,
+                duration: row.youtube_duration,
+                thumbnail: row.youtube_thumbnail
+            } : undefined
+        };
+
+        // Add user-specific statistics when userId is provided
+        if (userId) {
+            lane.totalChallenges = row.total_challenges;
+            lane.challengesPassed = row.challenges_passed;
+            lane.totalAttempts = row.total_attempts;
         }
+
+        return lane;
     }
 
     async getLanes(filter: LaneFilter): Promise<Lane[]> {
+        const userId = filter.userId;
+
         let query = this.sql`
-            SELECT l.*
+            SELECT l.*,
+                   y.id                                                as youtube_id,
+                   y.title                                             as youtube_title,
+                   y.duration                                          as youtube_duration,
+                   y.thumbnail                                         as youtube_thumbnail,
+                   (SELECT COUNT(*) FROM challenges WHERE lane = l.id) as total_challenges,
+                   (SELECT COUNT(DISTINCT cu.challenge_id)
+                    FROM challenge_users cu
+                             INNER JOIN challenges c ON cu.challenge_id = c.id
+                    WHERE c.lane = l.id
+                      AND cu.user_id = ${userId})                      as challenges_passed,
+                   (SELECT COALESCE(SUM(attempts_count), 0)
+                    FROM (SELECT COUNT(*) as attempts_count
+                          FROM challenge_attempts ca
+                                   INNER JOIN challenges c ON ca.challenge_id = c.id
+                          WHERE c.lane = l.id
+                            AND ca.user_id = ${userId}
+                          GROUP BY ca.challenge_id) subquery)          as total_attempts
             FROM lanes l
                      INNER JOIN user_lanes ul ON l.id = ul.lane_id
-            WHERE ul.user_id = ${filter.userId}
+                     LEFT JOIN youtubes y ON l.youtube = y.id
+            WHERE ul.user_id = ${userId}
         `;
 
         if (filter.limit) {
@@ -91,7 +148,16 @@ export default class LanePG implements LaneRepository {
             youtube: row.youtube,
             startTime: row.start_time,
             endTime: row.end_time,
-            challengeGenerated: row.challenge_generated
+            challengeGenerated: row.challenge_generated,
+            youtubeDetails: row.youtube_id ? {
+                id: row.youtube_id,
+                title: row.youtube_title,
+                duration: row.youtube_duration,
+                thumbnail: row.youtube_thumbnail
+            } : undefined,
+            totalChallenges: row.total_challenges,
+            challengesPassed: row.challenges_passed,
+            totalAttempts: row.total_attempts
         }));
     }
 

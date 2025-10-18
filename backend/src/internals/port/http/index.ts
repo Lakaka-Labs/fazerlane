@@ -22,6 +22,7 @@ import ProfileHandler from "./profile/handler.ts";
 import {rateLimit} from 'express-rate-limit';
 import XPHandler from "./xp/handler.ts";
 import StorageHandler from "./storage/handler.ts";
+import ChatHandler from "./chat/handler.ts";
 
 export default class ExpressHTTP {
     appSecrets: AppSecrets
@@ -80,6 +81,7 @@ export default class ExpressHTTP {
         this.challenge()
         this.xp()
         this.storage()
+        this.chat()
 
         this.server.use(`/api/v1`, this.router);
 
@@ -127,6 +129,11 @@ export default class ExpressHTTP {
     storage = () => {
         const router = new StorageHandler(this.services.storageService);
         this.router.use("/storage", Authorize(this.services.authenticationService), router.router);
+    };
+
+    chat = () => {
+        const router = new ChatHandler(this.services.chatService);
+        this.router.use("/chat", Authorize(this.services.authenticationService), router.router);
     };
 
     websocketSetup = () => {

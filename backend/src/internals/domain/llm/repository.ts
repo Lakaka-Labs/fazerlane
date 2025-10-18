@@ -1,8 +1,12 @@
-import type {Message} from "./index.ts";
+import type {Message, MessagesWithRole, ModelResponse} from "./index.ts";
 
 export default interface LLMRepository {
-    getText: (messages: Message[]) => Promise<{ response: string, tokenCount: number }>
-    getTokens: (messages: Message[]) => Promise<number>
+    generateEmbedding: (text: string[]) => Promise<{ embedding: number[] }[]>
+    getText: (messages: Message[]) => Promise<ModelResponse>
+
+    getTextStream(messages: MessagesWithRole[], signal?: AbortSignal): AsyncGenerator<ModelResponse>;
+
+    getTokens: (messages: MessagesWithRole[] | Message[]) => Promise<number>
     getFile: (name: string) => Promise<{ state: string }>
     upload: (path: string, mimeType: string) => Promise<{ uri: string, mimeType: string }>
 }

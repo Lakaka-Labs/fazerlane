@@ -26,7 +26,8 @@ export default class ChallengePG implements ChallengeRepository {
                 assignment: c.assignment,
                 submission_format: `{${c.submissionFormat.map((item) => `${item}`).join(',')}}`,
                 difficulty: c.difficulty,
-                position: index
+                position: index,
+                embedding: `${JSON.stringify(c.embedding)}`
             }));
 
             const insertedChallenges = await tx`
@@ -132,6 +133,112 @@ export default class ChallengePG implements ChallengeRepository {
         ORDER BY ${filter?.order === 'desc' ? this.sql`c.position DESC` : this.sql`c.position ASC`}
         ${limit !== undefined ? this.sql`LIMIT ${limit}` : this.sql``}
         ${offset > 0 ? this.sql`OFFSET ${offset}` : this.sql``}
+    `;
+
+        // Transform the result to match the Challenge type structure
+        return result.map((row: any) => {
+            const challenge: Challenge = {
+                id: row.id,
+                lane: row.lane,
+                title: row.title,
+                objective: row.objective,
+                instruction: row.instruction,
+                assignment: row.assignment,
+                submissionFormat: Array.isArray(row.submission_format) ? row.submission_format : [],
+                references: Array.isArray(row.references) ? row.references : [],
+                difficulty: row.difficulty,
+                position: row.position,
+            };
+
+            // Add optional fields only when userId is provided
+            if (userId) {
+                challenge.isCompleted = row.isCompleted;
+                challenge.attemptsCount = row.attemptsCount;
+            }
+
+            return challenge;
+        });
+    };
+
+    getSimilar = async (
+        embedding: number[],
+        lane: string,
+        userId?: string,
+        threshold?: number,
+        limit?: number
+    ): Promise<Challenge[]> => {
+        // Validate embedding dimension
+        if (embedding.length !== 768) {
+            throw new Error('Embedding must be 768-dimensional');
+        }
+
+        // Get challenges with similarity above threshold
+        const result = await this.sql`
+        SELECT c.id,
+               c.lane,
+               c.title,
+               c.objective,
+               c.instruction,
+               c.assignment,
+               c.submission_format,
+               c.difficulty,
+               c.position,
+               
+               -- Calculate cosine similarity (1 - cosine distance)
+               1 - (c.embedding <=> ${JSON.stringify(embedding)}::vector) as similarity,
+
+               -- References as JSON aggregation
+               COALESCE(
+                   JSON_AGG(
+                       CASE
+                           WHEN cr.id IS NOT NULL THEN
+                               JSON_BUILD_OBJECT(
+                                   'challenge', c.title,
+                                   'location', JSON_BUILD_OBJECT(
+                                       'startTime', cr.start_time,
+                                       'endTime', cr.end_time
+                                   ),
+                                   'purpose', cr.purpose
+                               )
+                       END
+                   ) FILTER (WHERE cr.id IS NOT NULL),
+                   '[]'::json
+               ) as "references",
+
+               -- User completion status (only when userId is provided)
+               ${userId ? this.sql`
+                   CASE 
+                       WHEN cu.user_id IS NOT NULL THEN true 
+                       ELSE false 
+                   END as "isCompleted",
+                   
+                   -- Count of attempts for this user and challenge
+                   COALESCE(ca.attempts_count, 0) as "attemptsCount"
+               ` : this.sql`
+                   NULL as "isCompleted",
+                   NULL as "attemptsCount"
+               `}
+
+        FROM challenges c
+        LEFT JOIN challenge_references cr ON c.id = cr.challenge
+        ${userId ? this.sql`
+            LEFT JOIN challenge_users cu ON c.id = cu.challenge_id AND cu.user_id = ${userId}
+            LEFT JOIN (
+                SELECT 
+                    challenge_id, 
+                    COUNT(*) as attempts_count
+                FROM challenge_attempts 
+                WHERE user_id = ${userId}
+                GROUP BY challenge_id
+            ) ca ON c.id = ca.challenge_id
+        ` : this.sql``}
+        WHERE c.embedding IS NOT NULL
+            AND (1 - (c.embedding <=> ${JSON.stringify(embedding)}::vector)) >= ${threshold || 0.7} AND c.lane = ${lane}
+        GROUP BY c.id, c.lane, c.title, c.objective, c.instruction, c.assignment, 
+                 c.submission_format, c.difficulty, c.position, c.embedding
+                 ${userId ? this.sql`, cu.user_id, ca.attempts_count` : this.sql``}
+        ORDER BY similarity DESC
+        LIMIT ${limit || 10}
     `;
 
         // Transform the result to match the Challenge type structure

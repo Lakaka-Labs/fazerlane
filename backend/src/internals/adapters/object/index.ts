@@ -38,7 +38,7 @@ export default class ObjectPG implements ObjectRepository {
         const rows = await this.sql`
             SELECT id, public_url, llm_url, mime_type, created_at, last_accessed
             FROM storage_objects
-            WHERE id = ANY (${ids})
+            WHERE id = ANY(${`{${ids.map((item) => `${item}`).join(',')}}`})
         `;
 
         return rows.map((row: any) => ({

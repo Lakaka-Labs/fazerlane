@@ -8,7 +8,7 @@ import type {ProgressWebsocketRepository} from "../../../domain/websocket/reposi
 import type {BaseProgress} from "../../../domain/progress";
 import type LLMRepository from "../../../domain/llm/repository.ts";
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
-import type {Challenge} from "../../../domain/challenge";
+import {type Challenge, convertChallengeToString} from "../../../domain/challenge";
 import {challengePrompt} from "../../../../packages/prompts/challenge.ts";
 
 export default class GenerateChallenge {
@@ -61,8 +61,13 @@ export default class GenerateChallenge {
             console.log(inputToken)
             const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages);
             console.log(outputToken)
-            const challenge = this.extractChallenges(llmResult);
-            await this.challengeRepository.add(laneId, challenge);
+            const challenges = this.extractChallenges(llmResult);
+            const embeddings = await this.llmRepository.generateEmbedding(challenges.map((c)=>{
+                return convertChallengeToString(c)
+            }))
+            await this.challengeRepository.add(laneId, challenges.map((c,i)=>{
+                return {...c, embedding: embeddings[i]?.embedding || []}
+            }));
 
             await this.sendProgress({
                 lane: laneId,

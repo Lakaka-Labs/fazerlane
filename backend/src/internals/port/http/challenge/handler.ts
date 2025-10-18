@@ -1,17 +1,13 @@
 import type ChallengeService from "../../../services/challenge";
-import {type NextFunction, type Request, type Response, Router} from "express";
+import {type Request, type Response, Router} from "express";
 import {SuccessResponse} from "../../../../packages/responses/success.ts";
 import ChallengeSchema from "./schema.ts";
 import ValidationMiddleware from "../middlewares/validation.ts";
 import {BadRequestError} from "../../../../packages/errors";
 import {z} from "zod";
 import type {User} from "../../../domain/user";
-import {CreateUploadMiddleware} from "../middlewares/upload.ts";
 import type AppSecrets from "../../../../packages/secret";
-import {GetVideoDuration} from "../../../../packages/utils/video.ts";
-import * as fs from "node:fs/promises";
-import type {markChallengeParameters} from "../../../services/challenge/commands/markChallenge.ts";
-import multer from "multer";
+import type {MarkChallengeParameters} from "../../../services/challenge/commands/markChallenge.ts";
 
 export default class ChallengeHandler extends ChallengeSchema {
     appSecrets: AppSecrets
@@ -25,73 +21,6 @@ export default class ChallengeHandler extends ChallengeSchema {
 
         this.configureRoutes()
     }
-
-    // Cleanup middleware to delete files after response
-    private cleanupFilesMiddleware = (req: Request, res: Response, next: NextFunction) => {
-        const cleanup = async () => {
-            try {
-                if (req.files && Array.isArray(req.files)) {
-                    for (const file of req.files as Express.Multer.File[]) {
-                        try {
-                            await fs.unlink(file.path);
-                        } catch (error) {
-                            console.error(`Error deleting file ${file.path}:`, error);
-                        }
-                    }
-                }
-
-                if (req.file) {
-                    try {
-                        await fs.unlink(req.file.path);
-                    } catch (error) {
-                        console.error(`Error deleting file ${req.file.path}:`, error);
-                    }
-                }
-            } catch (error) {
-                console.error('Error during file cleanup:', error);
-            }
-        };
-
-        res.on('finish', () => {
-            cleanup();
-        });
-
-        res.on('close', () => {
-            cleanup();
-        });
-
-        next();
-    };
-
-    // Error handler middleware for cleanup on errors
-    private errorCleanupMiddleware = async (err: any, req: Request, res: Response, next: NextFunction) => {
-        // Clean up files if there's an error
-        try {
-            if (req.files && Array.isArray(req.files)) {
-                for (const file of req.files as Express.Multer.File[]) {
-                    try {
-                        await fs.unlink(file.path);
-                        console.log(`Cleaned up file after error: ${file.path}`);
-                    } catch (cleanupError) {
-                        console.error(`Error cleaning up file ${file.path}:`, cleanupError);
-                    }
-                }
-            }
-
-            if (req.file) {
-                try {
-                    await fs.unlink(req.file.path);
-                    console.log(`Cleaned up file after error: ${req.file.path}`);
-                } catch (cleanupError) {
-                    console.error(`Error cleaning up file ${req.file.path}:`, cleanupError);
-                }
-            }
-        } catch (error) {
-            console.error('Error during error cleanup:', error);
-        }
-
-        next(err);
-    };
 
     private configureRoutes() {
         this.router.get(
@@ -115,11 +44,13 @@ export default class ChallengeHandler extends ChallengeSchema {
                 ValidationMiddleware(z.object({
                     challengeId: z.uuid(),
                 }), "params"),
-                this.uploadMiddleware,
-                this.validateFileSubmission,
-                this.cleanupFilesMiddleware, // Add cleanup middleware here
+                ValidationMiddleware(z.object({
+                    text: z.string().optional(),
+                    comment: z.string().optional(),
+                    files: z.array(z.uuid()).optional(),
+                    useMemory: z.boolean().default(false),
+                }), "body"),
                 this.markChallenge,
-                this.errorCleanupMiddleware // Error cleanup as last middleware
             )
             .get(
                 ValidationMiddleware(z.object({
@@ -172,76 +103,14 @@ export default class ChallengeHandler extends ChallengeSchema {
         new SuccessResponse(res).send();
     }
 
-    uploadMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-        if (!req.params.challengeId) throw new BadRequestError("provide challenge id")
-        const challengeId = req.params.challengeId;
-
-        let challenge = await this.challengeService.queries.getChallenge.handle(challengeId)
-        if (
-            !challenge.submissionFormat.includes("image") &&
-            !challenge.submissionFormat.includes("video") &&
-            !challenge.submissionFormat.includes("audio")
-        ) {
-            const textUpload = multer().none();
-            return textUpload(req, res, (err: any) => {
-                if (err) return next(err);
-                next();
-            });
-        }
-
-        (req as any).challenge = challenge;
-
-        const uploadHandler = CreateUploadMiddleware(challenge.submissionFormat);
-        uploadHandler(req, res, (err: any) => {
-            if (err) {
-                return next(err);
-            }
-            next();
-        });
-    }
-
-    validateFileSubmission = async (req: Request, res: Response, next: NextFunction) => {
-        const challenge = (req as any).challenge;
-
-        if (!challenge) {
-            return next();
-        }
-
-        if ((challenge.submissionFormat.includes("image") ||
-            challenge.submissionFormat.includes("audio")) && (!req.files || (req.files as Express.Multer.File[]).length < 1)) {
-            throw new BadRequestError(`provide ${challenge.submissionFormat} submission`)
-        }
-
-        if (challenge.submissionFormat == "video") {
-            let duration = 0
-            if (!req.files || (req.files as Express.Multer.File[]).length < 1) throw new BadRequestError("provide at least one file")
-            for (const file of (req.files as Express.Multer.File[])) {
-                duration += await GetVideoDuration(file.path);
-            }
-            if (duration > this.appSecrets.maxVideoLength) {
-                throw new BadRequestError("video submission too long")
-            }
-        }
-
-        next();
-    }
-
     markChallenge = async (req: Request, res: Response) => {
         const creator = (req.user as User).id;
         if (!req.params.challengeId) throw new BadRequestError("provide challenge id")
         const challengeId = req.params.challengeId;
-        const parameters: markChallengeParameters = {id: challengeId, userId: creator}
+        const parameters: MarkChallengeParameters = {id: challengeId, userId: creator, useMemory: req.body.useMemory}
         if (req.body.text) parameters.text = req.body.text
         if (req.body.comment) parameters.comment = req.body.comment
-        if (req.files) {
-            parameters.files = []; // Initialize the array first
-            for (const file of req.files as Express.Multer.File[]) {
-                parameters.files.push({
-                    path: file.path,
-                    mimeType: file.mimetype
-                })
-            }
-        }
+        if (req.body.files) parameters.files = req.body.files
         const {pass, feedback} = await this.challengeService.commands.markChallenge.handle(parameters)
         new SuccessResponse(res, {pass, feedback}).send();
     }

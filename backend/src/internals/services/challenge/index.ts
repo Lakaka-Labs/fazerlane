@@ -13,6 +13,8 @@ import UnmarkAllChallenge from "./commands/unmarkAllChallenge.ts";
 import GetAttempts from "./queries/getAttempts.ts";
 import GetChallenges from "./queries/getChallenges.ts";
 import type XPRepository from "../../domain/xp/repository.ts";
+import type {ObjectRepository} from "../../domain/objects/repository.ts";
+import type {MemoriesRepository} from "../../domain/memories/repository.ts";
 
 export class Commands {
     generateChallenge: GenerateChallenges
@@ -28,7 +30,9 @@ export class Commands {
         progressWebsocketRepository: ProgressWebsocketRepository,
         llmRepository: LLMRepository,
         challengeRepository: ChallengeRepository,
-        xpRepository: XPRepository
+        xpRepository: XPRepository,
+        objectRepository: ObjectRepository,
+        attemptMemoriesRepository: MemoriesRepository
     ) {
         this.generateChallenge = new GenerateChallenges(
             laneRepository,
@@ -40,7 +44,7 @@ export class Commands {
             challengeRepository,
         )
         this.markChallenge = new MarkChallenge(
-            challengeRepository, llmRepository, xpRepository, appSecrets
+            challengeRepository, llmRepository, xpRepository, appSecrets, objectRepository, attemptMemoriesRepository
         )
         this.unmarkChallenge = new UnmarkChallenge(
             challengeRepository
@@ -76,7 +80,9 @@ export default class ChallengeService {
         progressWebsocketRepository: ProgressWebsocketRepository,
         llmRepository: LLMRepository,
         challengeRepository: ChallengeRepository,
-        xpRepository: XPRepository
+        xpRepository: XPRepository,
+        objectRepository: ObjectRepository,
+        attemptMemoriesRepository: MemoriesRepository
     ) {
         this.commands = new Commands(
             laneRepository,
@@ -87,6 +93,7 @@ export default class ChallengeService {
             llmRepository,
             challengeRepository,
             xpRepository,
+            objectRepository, attemptMemoriesRepository
         )
         this.queries = new Queries(challengeRepository)
     }

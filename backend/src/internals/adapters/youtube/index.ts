@@ -28,13 +28,12 @@ export default class Youtube implements YoutubeRepository {
         const v = data.items[0];
         const s = v.snippet;
         const c = v.contentDetails;
-        const st = v.statistics;
-        const status = v.status;
 
         return {
             id: v.id,
             title: s.title,
             duration: this.iso8601ToSeconds(c.duration),
+            thumbnail: s.thumbnails.maxres.url
         };
     };
 

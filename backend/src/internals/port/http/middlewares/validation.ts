@@ -1,5 +1,5 @@
 import type {NextFunction, Request, Response} from "express";
-import type {z, ZodTypeAny} from "zod";
+import type {ZodTypeAny} from "zod";
 
 type RequestData = "body" | "query" | "params" | "headers" | "url";
 
@@ -10,10 +10,15 @@ const ValidationMiddleware = (
     return (req: Request, res: Response, next: NextFunction) => {
         try {
             const parsed = schema.parse(req[reqData]);
-            req[reqData] = parsed
+            Object.defineProperty(req, reqData, {
+                value: parsed,
+                writable: true,
+                enumerable: true,
+                configurable: true
+            });
             next();
         } catch (error) {
-            throw error;
+            next(error);
         }
     };
 };

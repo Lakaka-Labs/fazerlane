@@ -4,6 +4,7 @@ import Redis from "ioredis";
 import {GoogleGenAI} from '@google/genai';
 import {Memory} from "mem0ai/oss";
 import {S3Client} from "@aws-sdk/client-s3";
+import FeedbackFactPrompt from "../prompts/feedbackFact.ts";
 
 export const bunPostgresClientConnection = (credentials: PostgresCredentials) => {
     return new SQL({
@@ -35,7 +36,36 @@ export const googleGeminiClient = (geminiAPIKey: string) => {
     return new GoogleGenAI({apiKey: geminiAPIKey});
 }
 
-export const mem0UserMemory = (openaiAPIKey: string, credentials: PostgresCredentials) => {
+export const mem0AttemptMemory = (openaiAPIKey: string) => {
+    return new Memory({
+        llm: {
+            provider: 'openai',
+            config: {
+                apiKey: openaiAPIKey,
+                model: 'gpt-5-nano',
+            },
+        },
+        embedder: {
+            provider: 'openai',
+            config: {
+                apiKey: openaiAPIKey,
+                model: 'text-embedding-3-large',
+            },
+        },
+        vectorStore: {
+            provider: "qdrant",
+            config: {
+                collectionName: 'attempt_memories',
+                dimension: 3072,
+                host: 'localhost',
+                port: 6333,
+            },
+        },
+        customPrompt: FeedbackFactPrompt
+    });
+}
+
+export const mem0ChatMemory = (openaiAPIKey: string) => {
     return new Memory({
         llm: {
             provider: 'openai',

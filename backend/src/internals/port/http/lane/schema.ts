@@ -33,7 +33,7 @@ export default class LaneSchema {
             }).optional()
     })
     getLanesSchema = z.object({
-        page: z.number().optional().default(1),
-        limit: z.number().optional().default(20)
+        page: z.string().optional(),
+        limit: z.string().optional(),
     })
 }

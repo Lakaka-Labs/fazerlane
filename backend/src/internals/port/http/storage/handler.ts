@@ -1,14 +1,11 @@
 import type StorageService from "../../../services/storage";
 import {type NextFunction, type Request, type Response, Router} from "express";
 import {SuccessResponse} from "../../../../packages/responses/success.ts";
-import ValidationMiddleware from "../middlewares/validation.ts";
-import {BadRequestError} from "../../../../packages/errors";
-import {z} from "zod";
 import type {User} from "../../../domain/user";
-import {CreateUploadMiddleware} from "../middlewares/upload.ts";
-import type AppSecrets from "../../../../packages/secret";
 import * as fs from "node:fs/promises";
 import type {FileParameter} from "../../../domain/objects";
+import multer from "multer";
+import path from 'path';
 
 export default class StorageHandler {
     storageService: StorageService
@@ -82,22 +79,22 @@ export default class StorageHandler {
     private configureRoutes() {
         this.router.route('/')
             .post(
-                this.uploadMiddleware,
-                this.cleanupFilesMiddleware, // Add cleanup middleware here
+                multer({
+                    storage: multer.diskStorage({
+                        destination: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+                            cb(null, `uploads`);
+                        },
+                        filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+                            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                            cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+                        }
+                    }),
+                    limits: {fileSize: 1024 * 1024 * 1024},
+                }).array('files', 5),
+                this.cleanupFilesMiddleware,
                 this.upload,
-                this.errorCleanupMiddleware // Error cleanup as last middleware
+                this.errorCleanupMiddleware
             )
-    }
-
-
-    uploadMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-        const uploadHandler = CreateUploadMiddleware(["image", "audio", "video", "text", "code"]);
-        uploadHandler(req, res, (err: any) => {
-            if (err) {
-                return next(err);
-            }
-            next();
-        });
     }
 
     upload = async (req: Request, res: Response) => {

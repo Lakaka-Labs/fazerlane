@@ -25,7 +25,8 @@ export default class SegmentPG implements ResourceRepository {
         return this.sql<Youtube[]>`
             SELECT id,
                    title,
-                   duration
+                   duration,
+                   thumbnail
             FROM youtubes
             WHERE id IN ${this.sql(ids)}
         `;

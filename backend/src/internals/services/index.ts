@@ -4,6 +4,7 @@ import LaneService from "./lane";
 import ChallengeService from "./challenge";
 import XPService from "./xp";
 import StorageService from "./storage";
+import ChatService from "./chat";
 
 export default class Services {
     authenticationService: AuthenticationService
@@ -11,6 +12,7 @@ export default class Services {
     challengeService: ChallengeService
     xpService: XPService
     storageService: StorageService
+    chatService: ChatService
 
     constructor(adapters: Adapters) {
         this.authenticationService = new AuthenticationService(adapters.userRepository, adapters.parameters.appSecrets, adapters.emailRepository)
@@ -30,11 +32,14 @@ export default class Services {
             adapters.progressWebsocketRepository,
             adapters.llmRepository,
             adapters.challengeRepository,
-            adapters.xpRepository
+            adapters.xpRepository,
+            adapters.objectRepository,
+            adapters.attemptMemoriesRepository
         )
         this.xpService = new XPService(
             adapters.xpRepository,
         )
         this.storageService = new StorageService(adapters.storageRepository, adapters.llmRepository, adapters.objectRepository)
+        this.chatService = new ChatService(adapters.chatRepository, adapters.llmRepository, adapters.chatMemoriesRepository, adapters.challengeRepository)
     }
 }

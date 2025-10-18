@@ -1,8 +1,9 @@
 CREATE TABLE youtubes
 (
-    id       TEXT PRIMARY KEY,
-    title    TEXT NOT NULL,
-    duration INT  NOT NULL
+    id        TEXT PRIMARY KEY,
+    title     TEXT NOT NULL,
+    duration  INT  NOT NULL,
+    thumbnail TEXT NOT NULL
 );
 
 CREATE TABLE lanes

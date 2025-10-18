@@ -4,6 +4,14 @@ import type BaseFilter from "../../../packages/types/filter";
 export default interface ChallengeRepository {
     add: (laneId: string, challenges: Omit<Challenge, "id" | "lane">[]) => Promise<void>
     get: (laneId: string, userId?: string, filter?: ChallengeFilter) => Promise<Challenge[]>
+    getSimilar: (
+        embedding: number[],
+        lane: string,
+        userId?: string,
+        threshold?: number,
+        limit?: number,
+    ) => Promise<Challenge[]>
+
     getById: (id: string) => Promise<Challenge>
     getByPosition: (laneId: string, position: number) => Promise<Challenge | null>
     getChallengeOrder: (laneId: string) => Promise<{ id: string, position: number, title: string }[]>

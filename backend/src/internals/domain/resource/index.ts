@@ -14,4 +14,5 @@ export type Youtube = {
     id: string;
     title: string;
     duration: number;
+    thumbnail: string
 };
