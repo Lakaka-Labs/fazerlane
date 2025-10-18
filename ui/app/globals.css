@@ -7,6 +7,13 @@
   --font-nunito: Nunito, sans-serif;
   --font-lato: Lato, sans-serif;
   --font-julius: Julius Sans One, sans-serif;
+
+  --spacing-xLayout: 32px;
+
+  --color-brand-white: #fbf9fa;
+  --color-brand-red: #fd0054;
+  --color-brand-red-50: #a80038;
+  --color-brand-black: #2b2024;
 }
 
 @theme inline {
