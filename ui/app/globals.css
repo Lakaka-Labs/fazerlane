@@ -7,13 +7,32 @@
   --font-nunito: Nunito, sans-serif;
   --font-lato: Lato, sans-serif;
   --font-julius: Julius Sans One, sans-serif;
+  --font-sf-pro-display: "SF Pro Display", sans-serif;
 
   --spacing-xLayout: 32px;
 
+  --container-dashmw: 1344px;
+  --breakpoint-dashmw: 1344px;
+
+  --container-sidebarmw: 368px;
+  --breakpoint-sidebarmw: 368px;
+
+  --color-brand-divider: #4444401a;
+  --color-brand-text: #444440;
+
+  --color-brand-deep-black: #1c1c1c;
+
+  --shadow-brand-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.25);
+
+  --color-brand-background-dashboard: #f8f8f8;
   --color-brand-white: #fbf9fa;
   --color-brand-red: #fd0054;
   --color-brand-red-50: #a80038;
-  --color-brand-black: #2b2024;
+  --color-brand-black: #444440;
+  --color-brand-border: #80808033;
+  --color-brand-grey: #808080;
+  --color-brand-green: #2e7d32;
+  --color-brand-lite-green: #e8f5e9;
 }
 
 @theme inline {
@@ -139,4 +158,21 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradientMove 3s ease infinite;
+  background-size: 200% 200%;
 }

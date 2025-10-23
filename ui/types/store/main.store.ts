@@ -1,8 +1,11 @@
+import { Challenges } from "@/lib/temp";
+
 export type MainStoreState = {
-  count: number;
+  currentChallenge: Challenges | null;
+  currentChallengeId: string | null;
 };
 
 export type MainStoreActions = {
-  decrementCount: () => void;
-  incrementCount: () => void;
+  setCurrentChellenge: (lane: Challenges) => void;
+  setCurrentChellengeId: (id: string) => void;
 };

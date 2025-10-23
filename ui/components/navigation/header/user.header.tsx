@@ -9,7 +9,7 @@ export default function UserHeader() {
     <Dialog>
       <div className="px-xLayout flex h-[70px] w-full items-center justify-between">
         <Link
-          href={appRoutes.home.index}
+          href={appRoutes.dashboard.user.home}
           className="flex items-center gap-2 text-2xl font-normal uppercase"
         >
           <Image
@@ -18,8 +18,10 @@ export default function UserHeader() {
             width={34}
             height={34}
           />
-          <span>Fazerlane</span>
         </Link>
+        <span className="text-brand-black font-sf-pro-display text-lg font-normal tracking-widest uppercase">
+          Fazerlane
+        </span>
 
         <Avatar className="cursor-pointer">
           <AvatarImage src="https://github.com/shadcn.png" />

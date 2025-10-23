@@ -12,6 +12,7 @@ const appRoutes = {
   dashboard: {
     user: {
       home: "/u/home",
+      lane: (id: string) => `/u/lane/${id}`,
     },
   },
 };

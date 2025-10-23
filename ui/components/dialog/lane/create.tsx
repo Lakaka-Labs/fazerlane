@@ -36,17 +36,21 @@ export default function CreateLaneDialog() {
   // const embedUrl = getYouTubeEmbedUrl(youtubeLink || "");
 
   return (
-    <div className="flex h-[250px] w-full flex-col items-center justify-center gap-4 rounded-[12px] border-2 border-solid border-[#80808033] shadow-lg lg:h-full">
+    <div className="flex h-[250px] w-full flex-col items-center justify-center gap-4 rounded-xl lg:h-full">
       <Form {...createLaneForm}>
         <form onSubmit={createLaneForm.handleSubmit(handleCreateLane)}>
-          <DialogTrigger className="flex h-full w-full flex-col items-center justify-center gap-4">
+          <DialogTrigger className="flex h-full w-full max-w-[270px] cursor-pointer flex-col items-center justify-center gap-7">
             <span className="flex items-center justify-center rounded-full bg-black p-7">
               <Plus size={16} color="white" />
             </span>
             <p className="text-2xl font-normal text-black">Create New Lane</p>
+            <p className="text-brand-black/60 text-sm font-normal">
+              Turn any YouTube video into a learning path, and let AI guide your
+              progress.
+            </p>
           </DialogTrigger>
 
-          <DialogContent className="max-w-md border-2 border-solid border-[#80808033]">
+          <DialogContent className="border-brand-border max-w-md border-2 border-solid">
             <DialogHeader>
               <DialogTitle className="text-2xl font-semibold">
                 Create Lane
