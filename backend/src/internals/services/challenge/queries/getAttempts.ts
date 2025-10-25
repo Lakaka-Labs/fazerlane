@@ -12,6 +12,6 @@ export default class GetAttempts {
     }
 
     async handle(id: string, userId: string, filter?: BaseFilter): Promise<Attempt[]> {
-        return await this.challengeRepository.getAttempts(id, userId, filter);
+        return await this.challengeRepository.getFullAttempts(id, userId, filter);
     }
 }

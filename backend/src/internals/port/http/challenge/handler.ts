@@ -8,6 +8,8 @@ import {z} from "zod";
 import type {User} from "../../../domain/user";
 import type AppSecrets from "../../../../packages/secret";
 import type {MarkChallengeParameters} from "../../../services/challenge/commands/markChallenge.ts";
+import type {LaneFilter} from "../../../domain/lane";
+import type BaseFilter from "../../../../packages/types/filter";
 
 export default class ChallengeHandler extends ChallengeSchema {
     appSecrets: AppSecrets
@@ -66,6 +68,13 @@ export default class ChallengeHandler extends ChallengeSchema {
             }), "params"),
             this.unmarkChallenge
         );
+        this.router.get(
+            '/:challengeId/attempts',
+            ValidationMiddleware(z.object({
+                challengeId: z.uuid(),
+            }), "params"),
+            this.getAttempts
+        );
     }
 
     getChallenges = async (req: Request, res: Response) => {
@@ -75,6 +84,20 @@ export default class ChallengeHandler extends ChallengeSchema {
 
         const challenges = await this.challengeService.queries.getChallenges.handle(laneId, creator)
         new SuccessResponse(res, {challenges}).send();
+    }
+
+    getAttempts = async (req: Request, res: Response) => {
+        const creator = (req.user as User).id;
+        const challengeId = req.params.challengeId;
+        if (!challengeId) throw new BadRequestError("provide challenge id")
+        const filter : BaseFilter = {
+            page: Number(req.query.page),
+            limit: Number(req.query.limit)
+        }
+
+
+        const attempts = await this.challengeService.queries.getAttempts.handle(challengeId, creator,filter)
+        new SuccessResponse(res, {attempts}).send();
     }
 
     getChallenge = async (req: Request, res: Response) => {

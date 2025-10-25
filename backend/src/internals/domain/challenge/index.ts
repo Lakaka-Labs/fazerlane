@@ -39,6 +39,7 @@ export type Attempt = {
     files?: string[]
     textSubmission?: string
     comment?: string
+    filesUrl?: string[]
     createdAt: Date
 }
 
