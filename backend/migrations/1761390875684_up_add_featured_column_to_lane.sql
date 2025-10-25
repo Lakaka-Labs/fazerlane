@@ -1,0 +1,1 @@
+ALTER TABLE lanes ADD COLUMN featured BOOLEAN DEFAULT false;

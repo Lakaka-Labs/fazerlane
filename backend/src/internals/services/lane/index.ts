@@ -11,27 +11,33 @@ import GetLaneProgress from "./queries/getLaneProgress.ts";
 import GetLanes from "./queries/getLanes.ts";
 import AddLane from "./commands/addLane.ts";
 import GetLaneByID from "./queries/getLaneByID.ts";
+import RemoveLane from "./commands/removeLane.ts";
+import GetFeaturedLanes from "./queries/getFeaturedLanes.ts";
 
 export class Commands {
     createLane: CreateLane
     redoLane: RedoLane
     addLane: AddLane
+    removeLane: RemoveLane
 
     constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, progressRepository: ProgressRepository, appSecrets: AppSecrets) {
         this.createLane = new CreateLane(laneRepository, queueRepository, youtubeRepository, resourceRepository, appSecrets)
         this.redoLane = new RedoLane(laneRepository, queueRepository, youtubeRepository, resourceRepository, progressRepository, appSecrets)
         this.addLane = new AddLane(laneRepository)
+        this.removeLane = new RemoveLane(laneRepository)
     }
 }
 
 export class Queries {
     getLaneProgress: GetLaneProgress
     getLanes: GetLanes
+    getFeaturedLanes: GetFeaturedLanes
     getLaneByID: GetLaneByID
 
     constructor(progressRepository: ProgressRepository,laneRepository: LaneRepository) {
         this.getLaneProgress = new GetLaneProgress(progressRepository)
         this.getLanes = new GetLanes(laneRepository)
+        this.getFeaturedLanes = new GetFeaturedLanes(laneRepository)
         this.getLaneByID = new GetLaneByID(laneRepository)
 
     }
