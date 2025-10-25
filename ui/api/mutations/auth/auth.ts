@@ -1,4 +1,4 @@
-import { API_BARE_URL } from "@/config/axios";
+import { API_BARE_URL } from "@/config/routes";
 import { ApiResponse } from "@/types/api";
 import axios, { AxiosResponse } from "axios";
 

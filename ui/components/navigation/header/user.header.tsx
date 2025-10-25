@@ -2,14 +2,14 @@ import appRoutes from "@/config/routes";
 import Image from "next/image";
 import Link from "next/link";
 import { Dialog } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import HeaderAvatar from "./avatar.client";
 
 export default function UserHeader() {
   return (
     <Dialog>
       <div className="px-xLayout flex h-[70px] w-full items-center justify-between">
         <Link
-          href={appRoutes.dashboard.user.home}
+          href={appRoutes.dashboard.user.lanes}
           className="flex items-center gap-2 text-2xl font-normal uppercase"
         >
           <Image
@@ -23,12 +23,7 @@ export default function UserHeader() {
           Fazerlane
         </span>
 
-        <Avatar className="cursor-pointer">
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback className="bg-brand-black text-brand-white size-8">
-            CN
-          </AvatarFallback>
-        </Avatar>
+        <HeaderAvatar />
       </div>
     </Dialog>
   );

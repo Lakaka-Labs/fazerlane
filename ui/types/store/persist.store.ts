@@ -1,4 +1,4 @@
-import { Challenges } from "@/lib/temp";
+import { Challenge } from "../api/challenges";
 
 interface Token {
   jwt: string;
@@ -21,16 +21,17 @@ export type PersistMainStoreState = {
   user: User;
   token: Token;
   session: Session;
-  currentChallenge: Challenges | null;
+  currentChallenge: Challenge | null;
   currentChallengeId: string | null;
   currentChallengeTab: string;
 };
 
 export type PersistMainStoreActions = {
+  setClear: () => void;
   setUser: (user: User) => void;
   setToken: (token: Token) => void;
   setSession: (session: Session) => void;
-  setCurrentChellenge: (lane: Challenges) => void;
+  setCurrentChellenge: (lane: Challenge) => void;
   setCurrentChellengeId: (id: string) => void;
   setCurrentChallengeTab: (tab: string) => void;
 };

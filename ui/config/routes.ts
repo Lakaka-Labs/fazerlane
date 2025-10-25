@@ -11,10 +11,13 @@ const appRoutes = {
   },
   dashboard: {
     user: {
-      home: "/u/home",
-      lane: (id: string) => `/u/lane/${id}`,
+      lanes: "/u/lanes",
+      challanges: (laneId: string) => `/u/challanges/${laneId}`,
     },
   },
 };
 
 export default appRoutes;
+
+export const API_BARE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+export const API_BASE_URL = API_BARE_URL ? `${API_BARE_URL}/api/v1` : "";

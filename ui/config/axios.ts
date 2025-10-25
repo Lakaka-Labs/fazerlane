@@ -1,4 +1,4 @@
-import { usePersistStore } from "@/store/persist.store";
+import { persistStore } from "@/store/persist.store";
 import { ApiError, RefreshResponse } from "@/types/api";
 import axios, {
   AxiosResponse,
@@ -6,9 +6,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import Cookies from "js-cookie";
-
-export const API_BARE_URL = process.env.NEXT_PUBLIC_API_URL || "";
-export const API_BASE_URL = API_BARE_URL ? `${API_BARE_URL}/api/v1` : "";
+import { API_BASE_URL } from "./routes";
 
 const getCookie = (name: string): string | undefined => {
   return Cookies.get(name);
@@ -55,7 +53,9 @@ const getTokenFromCookies = (): {
 
 const getTokenFromStore = () => {
   try {
-    const { token: tkObj } = usePersistStore((store) => store);
+    const tkObj = persistStore.getState().token;
+    console.log("token from store", tkObj);
+
     return tkObj?.jwt
       ? { token: tkObj.jwt, refreshToken: tkObj.refreshToken }
       : null;
@@ -92,9 +92,11 @@ const updateTokens = (jwt: string, refreshToken?: string): void => {
     }
   } else {
     try {
-      usePersistStore.getState().setToken({
-        jwt,
-        ...(refreshToken && { refreshToken }),
+      persistStore.setState({
+        token: {
+          jwt,
+          ...(refreshToken && { refreshToken }),
+        },
       });
     } catch (error) {
       console.warn("Failed to update store tokens:", error);
@@ -107,7 +109,7 @@ const clearTokens = (): void => {
   deleteCookie("refreshToken");
 
   try {
-    usePersistStore.getState().setToken({ jwt: "", refreshToken: undefined });
+    persistStore.setState({ token: { jwt: "", refreshToken: undefined } });
   } catch (error) {
     console.warn("Failed to clear store tokens:", error);
   }

@@ -1,6 +1,7 @@
 import { DetailsTab } from "./details";
 import { SubmissionsTab } from "./submissions";
 import { TasksTab } from "./tasks";
+import ReactMarkdown from "react-markdown";
 
 export const SectionContainer = ({
   children,
@@ -24,7 +25,9 @@ export const SectionContent = ({
   return (
     <SectionContainer>
       <h2 className="text-base font-semibold">{title}</h2>
-      <p className="text-sm font-normal">{content}</p>
+      <div className="text-sm font-normal">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
     </SectionContainer>
   );
 };

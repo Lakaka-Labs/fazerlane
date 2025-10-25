@@ -1,50 +1,59 @@
-"use client";
-
 import { CircularProgress } from "@/components/progress-09";
 import appRoutes from "@/config/routes";
+import { Lane } from "@/types/api/lane";
+import { dateToNow } from "@/utils/date-to-now";
 import { Dot } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
-export default function LearnCard() {
-  const [progress, setProgress] = useState(13);
+interface LearnCardProps {
+  lane: Lane;
+}
 
+export default function LearnCard({ lane }: LearnCardProps) {
   return (
     <Link
-      href={appRoutes.dashboard.user.lane("randomLane1")}
+      href={appRoutes.dashboard.user.challanges(lane.id)}
       className="border-brand-border flex cursor-pointer flex-col gap-3 rounded-md border border-solid"
     >
       <Image
-        src={"/temp/image 2.png"}
+        src={lane.youtubeDetails.thumbnail}
         alt="img"
         width={100}
         height={100}
         className="h-[210px] w-full rounded-t-md object-cover object-center"
       />
 
-      <div className="flex w-full justify-between">
-        <div className="flex w-full items-start justify-between gap-3 px-4">
+      <div className="flex w-full justify-between pb-3">
+        <div className="flex w-full items-center justify-between gap-3 pl-4">
           <div className="flex flex-col gap-1">
-            <p className="text-lg font-bold">Video Title</p>
+            <p className="line-clamp-1 text-xl font-black">
+              {lane.youtubeDetails.title}
+            </p>
 
-            <div className="flex items-center gap-px">
-              <span>12 Attempts</span>
+            <div className="flex items-center gap-px text-sm">
+              <span>{lane.totalAttempts} Attempts</span>
               <Dot />
-              <span>5 hours ago</span>
+              <span className="capitalize">{dateToNow(lane.updatedAt)}</span>
             </div>
           </div>
 
-          <div className="size-[70px] overflow-hidden">
+          <div>
             <CircularProgress
-              value={(8 / 10) * 100}
+              value={
+                Number(lane.totalChallenges) > 0
+                  ? (Number(lane.challengesPassed) /
+                      Number(lane.totalChallenges)) *
+                    100
+                  : 0
+              }
               size={70}
               strokeWidth={6}
               circleStrokeWidth={6}
               progressStrokeWidth={6}
               showLabel
               labelClassName="text-[10px] font-extrabold"
-              renderLabel={(progress) => `8 / 10`}
+              renderLabel={(progress) => `${progress}/${lane.totalChallenges}`}
             />
           </div>
         </div>

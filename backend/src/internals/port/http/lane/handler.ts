@@ -38,6 +38,12 @@ export default class LaneHandler extends LaneSchema {
                 laneId: z.uuid(),
             }), "params"),
             this.redoLane
+        ).get(
+            '/:laneId',
+            ValidationMiddleware(z.object({
+                laneId: z.uuid(),
+            }), "params"),
+            this.getLanesByID
         );
 
         this.router.get(
@@ -96,6 +102,17 @@ export default class LaneHandler extends LaneSchema {
 
         const lanes = await this.laneService.queries.getLanes.handle(filter)
         new SuccessResponse(res, {lanes}).send();
+    }
+
+    getLanesByID = async (req: Request, res: Response) => {
+        const userId = (req.user as User).id;
+        const laneId = req.params.laneId;
+
+        if (!laneId) throw new BadRequestError("provide lane id")
+
+
+        const lane = await this.laneService.queries.getLaneByID.handle(laneId, userId)
+        new SuccessResponse(res, {lane}).send();
     }
 
     addLane = async (req: Request, res: Response) => {
