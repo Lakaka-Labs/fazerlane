@@ -6,6 +6,7 @@ import {
   Julius_Sans_One,
   Nunito,
 } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 import { Toaster } from "react-hot-toast";
@@ -31,6 +32,43 @@ const geistJulius = Julius_Sans_One({
   variable: "--font-julius",
   subsets: ["latin"],
   weight: "400",
+});
+
+const sfProDisplay = localFont({
+  src: [
+    {
+      path: "../public/fonts/sf-pro-display/SFPRODISPLAYREGULAR.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/sf-pro-display/SFPRODISPLAYLIGHTITALIC.otf",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/sf-pro-display/SFPRODISPLAYMEDIUM.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/sf-pro-display/SFPRODISPLAYSEMIBOLDITALIC.otf",
+      weight: "600",
+      style: "italic",
+    },
+    {
+      path: "../public/fonts/sf-pro-display/SFPRODISPLAYBOLD.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/sf-pro-display/SFPRODISPLAYBLACKITALIC.otf",
+      weight: "700",
+      style: "italic",
+    },
+  ],
+  display: "swap",
+  variable: "--font-sf-pro-display",
 });
 
 const geistLato = Lato({
@@ -87,7 +125,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${geistJulius.variable} ${geistLato.variable} ${geistNunito.variable} font-lato antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${geistJulius.variable} ${geistLato.variable} ${geistNunito.variable} ${sfProDisplay.variable} font-lato antialiased`}
       >
         <AppProvider>{children}</AppProvider>
         <Toaster position="top-center" reverseOrder={false} gutter={8} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { resendVerifyEmailM, verifyEmailM } from "@/api/mutations/profile";
+import { resendVerifyEmailM, verifyEmailM } from "@/api/mutations/auth/profile";
 import AuthTitle from "@/components/title/auth.title";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ export default function Verification() {
   const searchParams = useSearchParams();
   const [isVerified, setIsVerified] = useState(false);
   const [showResend, setShowResend] = useState(false);
-  const userEmail = usePersistStore((state) => state.user.email);
+  const storeData = usePersistStore((state) => state);
   const [manualEmail, setManualEmail] = useState(false);
   const [promptedUserEmail, setPromptedUserEmail] = useState("");
 
@@ -73,15 +73,15 @@ export default function Verification() {
   }
 
   async function resendVerificationEmail() {
-    if (userEmail) {
-      await resendVerify.mutateAsync({ email: userEmail });
+    if (storeData.user.email) {
+      await resendVerify.mutateAsync({ email: storeData.user.email });
     }
 
     if (manualEmail && promptedUserEmail) {
       await resendVerify.mutateAsync({ email: promptedUserEmail });
     }
 
-    if (!userEmail && !manualEmail) {
+    if (!storeData.user.email && !manualEmail) {
       toast.error("Please enter your email to resend verification.");
       setManualEmail(true);
     }

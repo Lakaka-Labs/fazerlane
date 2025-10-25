@@ -22,12 +22,13 @@ import Link from "next/link";
 import AuthTitle from "@/components/title/auth.title";
 import toast from "react-hot-toast";
 import { usePersistStore } from "@/store/persist.store";
-import { signInM } from "@/api/mutations/auth";
+import { signInM } from "@/api/mutations/auth/auth";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { googleLoginQ } from "@/api/queries/auth";
+import { googleLoginQ } from "@/api/queries/auth/auth";
 import { parseAsString, useQueryState } from "nuqs";
+import { setTokensToCookies } from "@/config/axios";
 
 export default function Signin() {
   const router = useRouter();
@@ -54,6 +55,7 @@ export default function Signin() {
             jwt: data.data.jwt,
             refreshToken: data.data.refreshToken,
           });
+          setTokensToCookies(data.data.jwt, data.data.refreshToken);
           setSession({
             jwt: data.data.jwt,
             refreshToken: data.data.refreshToken,
@@ -61,7 +63,7 @@ export default function Signin() {
           });
         }
         toast.success("Redirecting to dashboard...");
-        router.push(appRoutes.dashboard.user.home);
+        router.push(appRoutes.dashboard.user.lanes);
       }
     },
     onError: (error) => {

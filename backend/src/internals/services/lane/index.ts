@@ -10,6 +10,7 @@ import type ProgressRepository from "../../domain/progress/repository.ts";
 import GetLaneProgress from "./queries/getLaneProgress.ts";
 import GetLanes from "./queries/getLanes.ts";
 import AddLane from "./commands/addLane.ts";
+import GetLaneByID from "./queries/getLaneByID.ts";
 
 export class Commands {
     createLane: CreateLane
@@ -26,10 +27,12 @@ export class Commands {
 export class Queries {
     getLaneProgress: GetLaneProgress
     getLanes: GetLanes
+    getLaneByID: GetLaneByID
 
     constructor(progressRepository: ProgressRepository,laneRepository: LaneRepository) {
         this.getLaneProgress = new GetLaneProgress(progressRepository)
         this.getLanes = new GetLanes(laneRepository)
+        this.getLaneByID = new GetLaneByID(laneRepository)
 
     }
 }

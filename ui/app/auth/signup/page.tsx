@@ -24,11 +24,12 @@ import AuthTitle from "@/components/title/auth.title";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
-import { signUpM } from "@/api/mutations/auth";
+import { signUpM } from "@/api/mutations/auth/auth";
 import { usePersistStore } from "@/store/persist.store";
 import { useRouter } from "next/navigation";
-import { googleLoginQ } from "@/api/queries/auth";
+import { googleLoginQ } from "@/api/queries/auth/auth";
 import { parseAsString, useQueryState } from "nuqs";
+import { setTokensToCookies } from "@/config/axios";
 
 export default function Signup() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function Signup() {
     resolver: zodResolver(signUpSchema),
     defaultValues: { email: "", username: "", password: "", confirm: "" },
   });
+
   const { setSession, setToken, setUser } = usePersistStore((state) => state);
 
   const { isPending, mutateAsync } = useMutation({
@@ -53,6 +55,7 @@ export default function Signup() {
             jwt: data.data.jwt,
             refreshToken: data.data.refreshToken,
           });
+          setTokensToCookies(data.data.jwt, data.data.refreshToken);
           setSession({
             jwt: data.data.jwt,
             refreshToken: data.data.refreshToken,
@@ -61,7 +64,7 @@ export default function Signup() {
         }
         setTimeout(() => {
           toast.success("Redirecting to dashboard...");
-          router.push(appRoutes.dashboard.user.home);
+          router.push(appRoutes.dashboard.user.lanes);
         }, 1000);
       }
     },

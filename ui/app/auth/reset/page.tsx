@@ -21,7 +21,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { resetPasswordM } from "@/api/mutations/profile";
+import { resetPasswordM } from "@/api/mutations/auth/profile";
 import appRoutes from "@/config/routes";
 
 export default function PasswordReset() {
