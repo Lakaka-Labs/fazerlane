@@ -19,9 +19,11 @@ export default function LearnCard({ lane }: LearnCardProps) {
       <Image
         src={lane.youtubeDetails.thumbnail}
         alt="img"
-        width={100}
-        height={100}
+        width={1280}
+        height={720}
         className="h-[210px] w-full rounded-t-md object-cover object-center"
+        quality={100}
+        priority
       />
 
       <div className="flex w-full justify-between pb-3">
@@ -53,7 +55,14 @@ export default function LearnCard({ lane }: LearnCardProps) {
               progressStrokeWidth={6}
               showLabel
               labelClassName="text-[10px] font-extrabold"
-              renderLabel={(progress) => `${progress}/${lane.totalChallenges}`}
+              renderLabel={(_progress) =>
+                `${
+                  Number(lane.totalChallenges) > 0
+                    ? `${Number(lane.challengesPassed)} /
+                      ${Number(lane.totalChallenges)}`
+                    : `0 / 0`
+                }`
+              }
             />
           </div>
         </div>

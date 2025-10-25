@@ -8,6 +8,7 @@ import { Challenge } from "@/types/api/challenges";
 import { useQuery } from "@tanstack/react-query";
 import { Youtube } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 
 interface LaneSideBarProps {
   challenges: Challenge[];
@@ -38,6 +39,12 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
     queryKey: ["get-lane-by-id", id],
     queryFn: () => getLaneByID({ id: id as string }),
   });
+
+  useEffect(() => {
+    if (challenges.length > 0 && !currentChallengeId) {
+      handleChallengeClick(challenges[0]);
+    }
+  }, [challenges, currentChallengeId]);
 
   return (
     <div className="max-w-sidebarmw shadow-brand-shadow sticky m-1 flex w-full flex-col gap-6 overflow-y-auto rounded-[12px] p-6">

@@ -54,6 +54,7 @@ export const DetailsTab = () => {
                 location={ref.location}
                 purpose={ref.purpose}
                 videoLink={getYouTubeUrl(laneData.youtube)}
+                // isDefaultOpen={index === 0}
               />
             ))}
           </div>
@@ -71,14 +72,16 @@ interface ReferenceDropDownProps {
   location: ReferenceLocation;
   purpose: string;
   videoLink: string;
+  isDefaultOpen?: boolean;
 }
 
 const ReferencesDropdown = ({
   location,
   purpose,
   videoLink,
+  isDefaultOpen = false,
 }: ReferenceDropDownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(isDefaultOpen);
 
   function handleToggleReferencesDropdown() {
     setIsOpen((prev) => !prev);
