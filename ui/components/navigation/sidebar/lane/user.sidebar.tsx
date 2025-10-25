@@ -47,7 +47,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
   }, [challenges, currentChallengeId]);
 
   return (
-    <div className="max-w-sidebarmw shadow-brand-shadow sticky m-1 flex w-full flex-col gap-6 overflow-y-auto rounded-[12px] p-6">
+    <div className="max-w-sidebarmw shadow-brand-shadow sticky m-1 flex w-full flex-col gap-6 overflow-y-auto rounded-[12px] p-6 bg-white ">
       {laneData && (
         <h1 className="flex gap-2 text-base font-extrabold">
           <div className="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">

@@ -461,6 +461,50 @@ export default class ChallengePG implements ChallengeRepository {
         }));
     };
 
+    getFullAttempts = async (id: string, userId: string, filter?: BaseFilter): Promise<Attempt[]> => {
+        const page = filter?.page || 1;
+        const limit = filter?.limit || 10;
+        const offset = (page - 1) * limit;
+
+        const result = await this.sql`
+        SELECT ca.id,
+               ca.user_id      as "userId",
+               ca.challenge_id as "challengeId",
+               ca.feedback,
+               ca.pass,
+               ca.files,
+               ca.text_submission as "textSubmission",
+               ca.comment,
+               ca.created_at   as "createdAt",
+               COALESCE(
+                   array_agg(so.public_url ORDER BY array_position(ca.files, so.id::text)) 
+                   FILTER (WHERE so.public_url IS NOT NULL),
+                   '{}'
+               ) as "filesUrl"
+        FROM challenge_attempts ca
+        LEFT JOIN storage_objects so ON so.id::text = ANY(ca.files)
+        WHERE ca.challenge_id = ${id}
+          AND ca.user_id = ${userId}
+        GROUP BY ca.id, ca.user_id, ca.challenge_id, ca.feedback, ca.pass, 
+                 ca.files, ca.text_submission, ca.comment, ca.created_at
+        ORDER BY ca.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+    `;
+
+        return result.map((row: any) => ({
+            id: row.id,
+            userId: row.userId,
+            challengeId: row.challengeId,
+            feedback: row.feedback,
+            pass: row.pass,
+            files: row.files,
+            textSubmission: row.textSubmission,
+            comment: row.comment,
+            filesUrl: row.filesUrl,
+            createdAt: row.createdAt
+        }));
+    };
+
     getTotalAttemptCount = async (id: string, userId: string): Promise<number> => {
         const result = await this.sql`
             SELECT COUNT(*) as count

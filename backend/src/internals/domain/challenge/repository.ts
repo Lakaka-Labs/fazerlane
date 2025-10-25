@@ -19,5 +19,6 @@ export default interface ChallengeRepository {
     getCompletedChallenges: (laneId: string, user_id: string) => Promise<string[]>
     addAttempt: (feedback: Omit<Attempt, 'id' | 'createdAt'>) => Promise<void>
     getAttempts: (id: string, userId: string, filter?: BaseFilter) => Promise<Attempt[]>
+    getFullAttempts: (id: string, userId: string, filter?: BaseFilter) => Promise<Attempt[]>
     getTotalAttemptCount: (id: string, userId: string) => Promise<number>
 }
