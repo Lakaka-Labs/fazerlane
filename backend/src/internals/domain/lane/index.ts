@@ -9,6 +9,7 @@ export type Lane = {
     startTime?: number
     endTime?: number
     challengeGenerated: boolean
+    featured: boolean
     createdAt: Date;
     updatedAt: Date;
     youtubeDetails?: Youtube
