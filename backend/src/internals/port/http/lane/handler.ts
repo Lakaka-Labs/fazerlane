@@ -39,7 +39,7 @@ export default class LaneHandler extends LaneSchema {
             }), "params"),
             this.redoLane
         ).get(
-            '/:laneId',
+                '/:laneId',
             ValidationMiddleware(z.object({
                 laneId: z.uuid(),
             }), "params"),

@@ -1,16 +1,15 @@
 "use client";
 
+import { FileData } from "@/types/api/challenges/tasks";
 import { X } from "lucide-react";
 import { useRef, useState } from "react";
 
-interface FileData {
-  id: string;
-  name: string;
-  size: string;
-  file: File;
+interface FileUploadProps {
+  fileLink: FileData[];
+  setFileLink: React.Dispatch<React.SetStateAction<FileData[]>>;
 }
 
-export default function FileUpload() {
+export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [files, setFiles] = useState<FileData[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);

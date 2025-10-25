@@ -1,27 +1,61 @@
 "use client";
 
 import AskAIButton from "@/components/button/ask-ai";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { SectionContainer } from "./components";
+import { useQuery } from "@tanstack/react-query";
+import { getSubmissions } from "@/api/queries/challenge/submissions/get";
+import { InlineLoader } from "@/components/loader";
+import { dateToNow } from "@/utils/date-to-now";
+import Image from "next/image";
+import { usePersistStore } from "@/store/persist.store";
 
 export const SubmissionsTab = () => {
+  const { currentChallenge } = usePersistStore((store) => store);
+
+  if (!currentChallenge?.id) {
+    return <div>No challenge ID provided</div>;
+  }
+
+  const { data: submissions, isLoading } = useQuery({
+    queryKey: ["get-challenge-submissions"],
+    queryFn: () =>
+      getSubmissions({ challenge_id: currentChallenge.id as string }),
+  });
+
+  console.log("submissions", submissions);
+
   return (
     <div className="flex flex-col gap-6">
       <SectionContainer>
         <div className="flex flex-col gap-6">
-          {submissions.map((submission, index) => (
-            <SubmissionsDropdown
-              key={index}
-              time={submission.time}
-              status={submission.status}
-              feedback={submission.feedback}
-              files={submission.files}
-              text={submission.text}
-              comments={submission.comments}
-            />
-          ))}
+          {isLoading && (
+            <div className="flex h-full w-full items-center justify-center py-10">
+              <InlineLoader />
+            </div>
+          )}
+
+          {submissions && submissions.length < 1 && (
+            <p className="bg-brand-background-dashboard text-brand-black flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
+              No tasks submitted.
+            </p>
+          )}
+
+          {submissions &&
+            submissions.length > 0 &&
+            submissions.map((submission) => (
+              <SubmissionsDropdown
+                key={submission.id}
+                time={dateToNow(submission.createdAt)}
+                status={submission.pass ? "Passed" : "Failed"}
+                feedback={submission.feedback}
+                files={submission.files}
+                text={submission.textSubmission}
+                comments={submission.comment}
+              />
+            ))}
         </div>
       </SectionContainer>
 
@@ -36,9 +70,9 @@ interface SubmissionDropdownProps {
   time: string;
   status: "Passed" | "Failed";
   feedback: string;
-  files: { type: "video" | "image" | "audio" | "document"; link: string }[];
-  text: string;
-  comments: string;
+  files: string[];
+  text: string | null;
+  comments: string | null;
 }
 
 const SubmissionsDropdown = ({
@@ -108,34 +142,10 @@ const SubmissionsDropdown = ({
                       key={index}
                       className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-lg"
                     >
-                      {file.type === "image" ? (
-                        <img
-                          src={file.link}
-                          alt={`File ${index + 1}`}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <>
-                          <video
-                            src={file.link}
-                            className="h-full w-full object-cover"
-                            muted
-                            playsInline
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
-                              <Play
-                                className="ml-0.5 h-4 w-4 text-gray-800"
-                                fill="currentColor"
-                              />
-                            </div>
-                          </div>
-                        </>
-                      )}
-
+                      <FileDisplay url={file} />
                       <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
                     </div>
-                  ))}
+                  ))}{" "}
                 </div>
               ) : (
                 <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
@@ -178,49 +188,132 @@ const SubmissionsDropdown = ({
   );
 };
 
-const submissions = [
-  {
-    time: "October 17, 2025 at 11:02 PM",
-    status: "Passed",
-    feedback:
-      "Excellent work! Your foot positioning is spot on, with your front foot correctly over the front bolts and your back foot perfectly on the tail. You demonstrated good initial balance and executed the tail pop motion clearly, lifting the nose effectively. Keep practicing holding that stance and refining your tail pop for consistency. You’re ready for the next step!",
-    files: [
-      { type: "video", link: "https://www.youtube.com/watch?v=6pGz57bdzuw" },
-      { type: "video", link: "https://www.youtube.com/watch?v=6pGz57bdzuw" },
-      { type: "image", link: "/doom.jpg" },
-      { type: "image", link: "/doom.jpg" },
-    ],
-    text: "",
-    comments:
-      "Thank you for the detailed feedback! I practiced this move about 30 times before recording this submission. I focused specifically on keeping my shoulders aligned during the initial rotation, which I struggled with in my previous attempts. I'm excited to move on to the next challenge and learn the one-motion technique!",
-  },
-  {
-    time: "October 10, 2025 at 9:15 PM",
-    status: "Failed",
-    feedback:
-      "Good effort! You’re getting close — your pop timing is solid, but your front foot needs to drag higher to level out the board mid-air. Try focusing on keeping your shoulders square to your target to help maintain balance during the motion.",
-    files: [
-      { type: "video", link: "https://www.youtube.com/watch?v=6pGz57bdzuw" },
-      { type: "video", link: "https://www.youtube.com/watch?v=6pGz57bdzuw" },
-      { type: "image", link: "/doom.jpg" },
-    ],
-    text: "",
-    comments:
-      "Appreciate the pointers. I’ll focus more on that front-foot drag and shoulder alignment in my next practice. Thanks for the detailed breakdown!",
-  },
-  {
-    time: "October 3, 2025 at 8:42 PM",
-    status: "Passed",
-    feedback:
-      "Nice improvement! Your consistency is much better and your balance control through the landing phase has noticeably improved. Continue practicing to make your form second nature.",
-    files: [
-      { type: "video", link: "https://www.youtube.com/watch?v=6pGz57bdzuw" },
-      { type: "image", link: "/doom.jpg" },
-      { type: "audio", link: "https://example.com/coach_notes.mp3" },
-      { type: "document", link: "https://example.com/session_notes.pdf" },
-    ],
-    text: "",
-    comments:
-      "I felt a big difference this time after focusing on the timing of the pop. Thanks again for the feedback — it’s really helping me refine each attempt!",
-  },
-] satisfies SubmissionDropdownProps[];
+// {files.length > 0 ? (
+//   <div className="bg-brand-background-dashboard flex flex-wrap gap-4 rounded-xl p-4">
+//     {files.map((file, index) => (
+//       <div
+//         key={index}
+//         className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-lg"
+//       >
+//         {file.type === "image" ? (
+//           <img
+//             src={file.link}
+//             alt={`File ${index + 1}`}
+//             className="h-full w-full object-cover"
+//           />
+//         ) : (
+//           <>
+//             <video
+//               src={file.link}
+//               className="h-full w-full object-cover"
+//               muted
+//               playsInline
+//             />
+//             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+//               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
+//                 <Play
+//                   className="ml-0.5 h-4 w-4 text-gray-800"
+//                   fill="currentColor"
+//                 />
+//               </div>
+//             </div>
+//           </>
+//         )}
+
+//         <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
+//       </div>
+//     ))}
+//   </div>
+// ) : (
+//   <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
+//     No submitted files.
+//   </p>
+// )}
+
+interface FileDisplayProps {
+  url: string;
+  className?: string;
+}
+
+function FileDisplay({ url, className }: FileDisplayProps) {
+  const [fileType, setFileType] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function detectFileType() {
+      try {
+        const response = await fetch(url, { method: "HEAD" });
+        const contentType = response.headers.get("content-type");
+        setFileType(contentType);
+      } catch (error) {
+        console.error("Error detecting file type:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    detectFileType();
+  }, [url]);
+
+  if (loading) {
+    return <InlineLoader />;
+  }
+
+  if (!fileType) {
+    return <div>Unable to load file</div>;
+  }
+
+  // Image files
+  if (fileType.startsWith("image/")) {
+    return (
+      <Image
+        src={url}
+        alt="Submission"
+        width={800}
+        height={600}
+        className={`h-full w-full object-cover`}
+      />
+    );
+  }
+
+  // Video files
+  if (fileType.startsWith("video/")) {
+    return (
+      <>
+        <video src={url} controls className={`h-full w-full object-cover`}>
+          Your browser does not support video playback.
+        </video>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
+            <Play
+              className="ml-0.5 h-4 w-4 text-gray-800"
+              fill="currentColor"
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // PDF files
+  if (fileType === "application/pdf") {
+    return <iframe src={url} className={className} title="PDF Viewer" />;
+  }
+
+  // Audio files
+  if (fileType.startsWith("audio/")) {
+    return <audio src={url} controls className={className} />;
+  }
+
+  // Fallback: Download link
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-600 hover:underline"
+    >
+      Download File ({fileType})
+    </a>
+  );
+}
