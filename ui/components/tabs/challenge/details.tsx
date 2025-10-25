@@ -48,9 +48,9 @@ export const DetailsTab = () => {
 
         {laneData && (
           <div>
-            {currentChallenge?.references.map((ref, index) => (
+            {currentChallenge?.references.map((ref) => (
               <ReferencesDropdown
-                key={index}
+                key={ref.purpose}
                 location={ref.location}
                 purpose={ref.purpose}
                 videoLink={getYouTubeUrl(laneData.youtube)}
@@ -72,16 +72,16 @@ interface ReferenceDropDownProps {
   location: ReferenceLocation;
   purpose: string;
   videoLink: string;
-  isDefaultOpen?: boolean;
+  // isDefaultOpen?: boolean;
 }
 
 const ReferencesDropdown = ({
   location,
   purpose,
   videoLink,
-  isDefaultOpen = false,
+  // isDefaultOpen = false,
 }: ReferenceDropDownProps) => {
-  const [isOpen, setIsOpen] = useState(isDefaultOpen);
+  const [isOpen, setIsOpen] = useState(false);
 
   function handleToggleReferencesDropdown() {
     setIsOpen((prev) => !prev);
@@ -104,7 +104,7 @@ const ReferencesDropdown = ({
       <AnimatePresence mode="wait">
         {isOpen && videoLink && (
           <motion.div
-            key="video-wrapper"
+            // key="video-wrapper"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
