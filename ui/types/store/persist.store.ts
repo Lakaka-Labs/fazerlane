@@ -22,8 +22,7 @@ export type PersistMainStoreState = {
   token: Token;
   session: Session;
   currentChallenge: Challenge | null;
-  currentChallengeId: string | null;
-  currentChallengeTab: string;
+  showChatbot: boolean;
 };
 
 export type PersistMainStoreActions = {
@@ -32,6 +31,5 @@ export type PersistMainStoreActions = {
   setToken: (token: Token) => void;
   setSession: (session: Session) => void;
   setCurrentChellenge: (lane: Challenge) => void;
-  setCurrentChellengeId: (id: string) => void;
-  setCurrentChallengeTab: (tab: string) => void;
+  setShowChatbot: (show: boolean) => void;
 };

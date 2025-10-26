@@ -39,13 +39,14 @@ const deleteCookie = (name: string, path: string = "/"): void => {
 
 const getTokenFromCookies = (): {
   token: string;
-  refreshToken: string;
+  refreshToken?: string;
 } | null => {
   const token = getCookie("token");
   const refreshToken = getCookie("refreshToken");
 
-  if (token && refreshToken) {
-    return { token, refreshToken };
+  // if (token && refreshToken) {
+  if (token) {
+    return { token, ...(refreshToken && { refreshToken: refreshToken }) };
   }
 
   return null;
@@ -65,7 +66,10 @@ const getTokenFromStore = () => {
   }
 };
 
-const getCurrentToken = (): { token: string; refreshToken?: string } | null => {
+export const getCurrentToken = (): {
+  token: string;
+  refreshToken?: string;
+} | null => {
   const cookieTokens = getTokenFromCookies();
   if (cookieTokens) {
     return {
@@ -83,25 +87,27 @@ const getCurrentToken = (): { token: string; refreshToken?: string } | null => {
 };
 
 const updateTokens = (jwt: string, refreshToken?: string): void => {
-  const cookieTokens = getTokenFromCookies();
+  // const cookieTokens = getTokenFromCookies();
 
-  if (cookieTokens) {
-    setCookie("token", jwt);
-    if (refreshToken) {
-      setCookie("refreshToken", refreshToken);
-    }
-  } else {
-    try {
-      persistStore.setState({
-        token: {
-          jwt,
-          ...(refreshToken && { refreshToken }),
-        },
-      });
-    } catch (error) {
-      console.warn("Failed to update store tokens:", error);
-    }
+  console.log("update tokens from cookies", { jwt, refreshToken });
+
+  // if (cookieTokens) {
+  setCookie("token", jwt);
+  if (refreshToken) {
+    setCookie("refreshToken", refreshToken);
   }
+  // } else {
+  try {
+    persistStore.setState({
+      token: {
+        jwt,
+        ...(refreshToken && { refreshToken }),
+      },
+    });
+  } catch (error) {
+    console.warn("Failed to update store tokens:", error);
+  }
+  // }
 };
 
 const clearTokens = (): void => {
@@ -117,7 +123,7 @@ const clearTokens = (): void => {
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 50000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -157,7 +163,10 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 ||
+      (error.response?.status === 403 && !originalRequest._retry)
+    ) {
       if (isRefreshing) {
         return new Promise<AxiosResponse>((resolve) => {
           subscribeTokenRefresh((token: string) => {
@@ -174,6 +183,8 @@ api.interceptors.response.use(
         const tokenData = getCurrentToken();
         const refreshToken = tokenData?.refreshToken;
 
+        console.log("token and refresh from retry/refreshing", tokenData);
+
         if (!refreshToken) {
           throw new Error("No refresh token available");
         }
@@ -188,6 +199,10 @@ api.interceptors.response.use(
         );
 
         const { jwt, refreshToken: newRefreshToken } = response.data;
+
+        console.log("token and refresh after refreshing", {
+          tokenData: response.data,
+        });
 
         updateTokens(jwt, newRefreshToken);
 

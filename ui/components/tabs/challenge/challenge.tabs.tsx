@@ -1,36 +1,39 @@
 "use client";
 
-import { usePersistStore } from "@/store/persist.store";
+// import { usePersistStore } from "@/store/persist.store";
 import { motion } from "motion/react";
-import { useMemo } from "react";
 import { challegeTabs } from "./components";
+import { useQueryState } from "nuqs";
+import { queryStateParams } from "@/config/routes";
 
 export default function ChallengeTabs() {
-  const { currentChallengeId, currentChallengeTab, setCurrentChallengeTab } =
-    usePersistStore((store) => store);
+  const [tab, setTab] = useQueryState(queryStateParams.tab, {
+    defaultValue: challegeTabs[0].value,
+  });
+
+  // const {
+  //   // currentChallengeTab,
+  //   //  setCurrentChallengeTab
+  // } = usePersistStore((store) => store);
 
   function handleTabClick(value: string) {
-    setCurrentChallengeTab(value);
+    // setCurrentChallengeTab(value);
+    setTab(value);
   }
-
-  const tabs = useMemo(
-    () => challegeTabs,
-    [currentChallengeTab, currentChallengeId]
-  );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex gap-6">
-          {tabs.map((tab) => {
-            const isActive = currentChallengeTab === tab.value;
+          {challegeTabs.map((cTab) => {
+            const isActive = tab === cTab.value;
             return (
-              <div key={tab.value} onClick={() => handleTabClick(tab.value)}>
+              <div key={cTab.value} onClick={() => handleTabClick(cTab.value)}>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   className={`transform px-3 py-2 text-base font-normal transition-all duration-200 ease-linear ${isActive ? "text-brand-text" : "text-brand-text/40"}`}
                 >
-                  {tab.label}
+                  {cTab.label}
                 </motion.button>
                 {isActive && (
                   <motion.div
@@ -46,10 +49,9 @@ export default function ChallengeTabs() {
       </div>
 
       <div>
-        {tabs.map((tab) => {
-          if (tab.value === currentChallengeTab) {
-            const TabComponent = tab.component;
-            return <TabComponent key={tab.value} />;
+        {challegeTabs.map((cTab) => {
+          if (cTab.value === tab) {
+            return <cTab.component key={cTab.value} />;
           }
           return null;
         })}
