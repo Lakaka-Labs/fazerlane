@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { SignUpFields, signUpSchema } from "@/schemas/auth";
 import Link from "next/link";
-import appRoutes from "@/config/routes";
+import appRoutes, { queryStateParams } from "@/config/routes";
 import Image from "next/image";
 import TextSeperator from "@/components/seperator/seperator-with-text";
 import { Eye, EyeOff } from "lucide-react";
@@ -33,7 +33,10 @@ import { setTokensToCookies } from "@/config/axios";
 
 export default function Signup() {
   const router = useRouter();
-  const [googleError, setGoogleError] = useQueryState("error", parseAsString);
+  const [googleError, setGoogleError] = useQueryState(
+    queryStateParams.error,
+    parseAsString
+  );
 
   const [showPassword, setShowPassword] = useState(false);
   const signUpForm = useForm<SignUpFields>({

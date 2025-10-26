@@ -1,6 +1,5 @@
 import { Challenge } from "@/types/api/challenges";
 import { PersistMainStoreActions, PersistMainStoreState } from "@/types/store";
-// import { create } from "zustand";
 import { createStore } from "zustand/vanilla";
 import { persist } from "zustand/middleware";
 import { useStore } from "zustand";
@@ -36,8 +35,7 @@ export const defaultInitState: PersistMainStoreState = {
   },
 
   currentChallenge: null,
-  currentChallengeId: null,
-  currentChallengeTab: "details",
+  showChatbot: false,
 };
 
 export const persistStore = createStore<PersistMainStore>()(
@@ -48,10 +46,8 @@ export const persistStore = createStore<PersistMainStore>()(
       setUser: (user) => set(() => ({ user })),
       setToken: (token) => set(() => ({ token })),
       setCurrentChellenge: (lane: Challenge) => set({ currentChallenge: lane }),
-      setCurrentChellengeId: (id: string) => set({ currentChallengeId: id }),
-      setCurrentChallengeTab: (tab: string) =>
-        set({ currentChallengeTab: tab }),
       setClear: () => set(() => ({ ...defaultInitState })),
+      setShowChatbot: (show: boolean) => set({ showChatbot: show }),
     }),
     {
       name: "fazerlane_persisted_store",

@@ -1,8 +1,7 @@
 "use client";
 
-import AskAIButton from "@/components/button/ask-ai";
 import { useEffect, useState } from "react";
-import { ChevronDown, Play } from "lucide-react";
+import { ArrowDownToLine, ChevronDown, Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { SectionContainer } from "./components";
 import { useQuery } from "@tanstack/react-query";
@@ -24,8 +23,6 @@ export const SubmissionsTab = () => {
     queryFn: () =>
       getSubmissions({ challenge_id: currentChallenge.id as string }),
   });
-
-  console.log("submissions", submissions);
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,17 +48,13 @@ export const SubmissionsTab = () => {
                 time={dateToNow(submission.createdAt)}
                 status={submission.pass ? "Passed" : "Failed"}
                 feedback={submission.feedback}
-                files={submission.files}
+                files={submission.filesUrl}
                 text={submission.textSubmission}
                 comments={submission.comment}
               />
             ))}
         </div>
       </SectionContainer>
-
-      <div className="flex justify-end">
-        <AskAIButton />
-      </div>
     </div>
   );
 };
@@ -95,7 +88,9 @@ const SubmissionsDropdown = ({
         onClick={handleToggleResourcesDropdown}
         className="border-brand-black/20 flex h-20 items-center justify-between rounded-t-xl border-b px-4"
       >
-        <p className="text-brand-grey text-base font-medium">{time}</p>
+        <p className="text-brand-grey text-base font-medium capitalize">
+          {time}
+        </p>
 
         <div className="flex items-center gap-4">
           <span
@@ -112,7 +107,7 @@ const SubmissionsDropdown = ({
       </div>
 
       <AnimatePresence mode="wait">
-        {isOpen && files.length > 0 && (
+        {isOpen && (
           <motion.div
             key="submission-wrapper"
             initial={{ height: 0, opacity: 0 }}
@@ -123,8 +118,15 @@ const SubmissionsDropdown = ({
           >
             <div
               className={`border-brand-green bg-brand-lite-green flex transform cursor-pointer flex-col gap-3 rounded-md border-l-4 border-solid p-4 transition-all duration-200 ease-linear`}
+              style={{
+                background: status === "Passed" ? "#e8f5e9" : "#fd005433",
+                borderColor: status === "Passed" ? "#2e7d32" : "#fd0054",
+              }}
             >
-              <h4 className="text-brand-green text-base font-semibold">
+              <h4
+                style={{ color: status === "Passed" ? "#2e7d32" : "#fd0054" }}
+                className="text-base font-semibold"
+              >
                 Feedback
               </h4>
               <p className="text-brand-black text-base font-normal">
@@ -188,48 +190,6 @@ const SubmissionsDropdown = ({
   );
 };
 
-// {files.length > 0 ? (
-//   <div className="bg-brand-background-dashboard flex flex-wrap gap-4 rounded-xl p-4">
-//     {files.map((file, index) => (
-//       <div
-//         key={index}
-//         className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-lg"
-//       >
-//         {file.type === "image" ? (
-//           <img
-//             src={file.link}
-//             alt={`File ${index + 1}`}
-//             className="h-full w-full object-cover"
-//           />
-//         ) : (
-//           <>
-//             <video
-//               src={file.link}
-//               className="h-full w-full object-cover"
-//               muted
-//               playsInline
-//             />
-//             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-//               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
-//                 <Play
-//                   className="ml-0.5 h-4 w-4 text-gray-800"
-//                   fill="currentColor"
-//                 />
-//               </div>
-//             </div>
-//           </>
-//         )}
-
-//         <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-//       </div>
-//     ))}
-//   </div>
-// ) : (
-//   <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-//     No submitted files.
-//   </p>
-// )}
-
 interface FileDisplayProps {
   url: string;
   className?: string;
@@ -266,13 +226,21 @@ function FileDisplay({ url, className }: FileDisplayProps) {
   // Image files
   if (fileType.startsWith("image/")) {
     return (
-      <Image
-        src={url}
-        alt="Submission"
-        width={800}
-        height={600}
-        className={`h-full w-full object-cover`}
-      />
+      <>
+        <Image
+          src={url}
+          alt="Submission"
+          width={800}
+          height={600}
+          className={`h-full w-full object-cover`}
+        />
+        <a
+          href={url}
+          className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90"></div>
+        </a>
+      </>
     );
   }
 
@@ -283,37 +251,69 @@ function FileDisplay({ url, className }: FileDisplayProps) {
         <video src={url} controls className={`h-full w-full object-cover`}>
           Your browser does not support video playback.
         </video>
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+
+        <a
+          href={url}
+          className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
+        >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
             <Play
               className="ml-0.5 h-4 w-4 text-gray-800"
               fill="currentColor"
             />
           </div>
-        </div>
+        </a>
       </>
     );
   }
 
   // PDF files
   if (fileType === "application/pdf") {
-    return <iframe src={url} className={className} title="PDF Viewer" />;
+    return (
+      <>
+        <iframe src={url} className={className} title="PDF Viewer" />
+        <a
+          href={url}
+          className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90"></div>
+        </a>
+      </>
+    );
   }
 
   // Audio files
   if (fileType.startsWith("audio/")) {
-    return <audio src={url} controls className={className} />;
+    return (
+      <>
+        <audio src={url} controls className={className} />
+        <a
+          href={url}
+          className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
+            <Play
+              className="ml-0.5 h-4 w-4 text-gray-800"
+              fill="currentColor"
+            />
+          </div>
+        </a>
+      </>
+    );
   }
 
   // Fallback: Download link
   return (
     <a
       href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-blue-600 hover:underline"
+      className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
     >
-      Download File ({fileType})
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
+        <ArrowDownToLine
+          className="ml-0.5 h-4 w-4 text-gray-800"
+          fill="currentColor"
+        />
+      </div>
     </a>
   );
 }

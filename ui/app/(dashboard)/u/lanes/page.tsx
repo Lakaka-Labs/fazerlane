@@ -5,8 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateLaneDialog } from "@/components/dialog/lane";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { getLanes } from "@/api/queries/lane";
+import { getFeaturedLanes, getLanes } from "@/api/queries/lane";
 import { useQuery } from "@tanstack/react-query";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function DUserHome() {
   const [activeTab, setActiveTab] = useState(tabsTriggerArr[0].value);
@@ -14,9 +19,18 @@ export default function DUserHome() {
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
 
+  const [limitFL, setLimitFL] = useState(10);
+  const [pageFL, setPageFL] = useState(1);
+
   const { data: lanesData } = useQuery({
     queryKey: ["get-lanes", limit, page],
     queryFn: async () => await getLanes({ limit, page }),
+  });
+
+  const { data: featuredLanesData } = useQuery({
+    queryKey: ["get-featured-lanes", limit, page],
+    queryFn: async () =>
+      await getFeaturedLanes({ limit: limitFL, page: pageFL }),
   });
 
   return (
@@ -54,8 +68,8 @@ export default function DUserHome() {
           </TabsList>
         </div>
 
-        {lanesData && (
-          <>
+        <>
+          {lanesData && (
             <TabsContent value={tabsTriggerArr[0].value}>
               {lanesData.length < 1 && (
                 <div className="flex items-center justify-center py-28">
@@ -69,12 +83,40 @@ export default function DUserHome() {
                     <LearnCard key={index} lane={lane} />
                   ))}
               </div>
+
+              {lanesData.length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="fixed right-10 bottom-10 z-10 flex w-fit items-center justify-center">
+                      <CreateLaneDialog customTrigger={true} />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Create New Lane</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </TabsContent>
+          )}
+
+          {featuredLanesData && (
             <TabsContent value="featured">
-              Content for Featured Lane
+              {featuredLanesData.length < 1 && (
+                <div className="flex w-full justify-center py-10 text-center text-base font-medium">
+                  No available featured lane
+                </div>
+              )}
+
+              {featuredLanesData.length > 0 && (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+                  {featuredLanesData.map((lane, index) => (
+                    <LearnCard key={index} lane={lane} />
+                  ))}
+                </div>
+              )}
             </TabsContent>
-          </>
-        )}
+          )}
+        </>
       </Tabs>
     </div>
   );

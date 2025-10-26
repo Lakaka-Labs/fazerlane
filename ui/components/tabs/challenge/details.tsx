@@ -1,6 +1,5 @@
 "use client";
 
-import AskAIButton from "@/components/button/ask-ai";
 import { usePersistStore } from "@/store/persist.store";
 import { useState } from "react";
 import YoutubeVideo from "@/components/video/youtube";
@@ -13,6 +12,7 @@ import { getLaneByID } from "@/api/queries/lane/get.lane-by-id";
 import { useParams } from "next/navigation";
 import { getYouTubeUrl } from "@/utils/format-url";
 import { InlineLoader } from "@/components/loader";
+import { cn } from "@/lib/utils";
 
 export const DetailsTab = () => {
   const params = useParams();
@@ -48,22 +48,18 @@ export const DetailsTab = () => {
 
         {laneData && (
           <div>
-            {currentChallenge?.references.map((ref) => (
+            {currentChallenge?.references.map((ref, i) => (
               <ReferencesDropdown
                 key={ref.purpose}
                 location={ref.location}
                 purpose={ref.purpose}
                 videoLink={getYouTubeUrl(laneData.youtube)}
-                // isDefaultOpen={index === 0}
+                className={`${i === currentChallenge?.references.length - 1 ? "border-none" : ""}`}
               />
             ))}
           </div>
         )}
       </SectionContainer>
-
-      <div className="flex justify-end">
-        <AskAIButton />
-      </div>
     </div>
   );
 };
@@ -72,14 +68,14 @@ interface ReferenceDropDownProps {
   location: ReferenceLocation;
   purpose: string;
   videoLink: string;
-  // isDefaultOpen?: boolean;
+  className?: string;
 }
 
 const ReferencesDropdown = ({
   location,
   purpose,
   videoLink,
-  // isDefaultOpen = false,
+  className,
 }: ReferenceDropDownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -91,7 +87,10 @@ const ReferencesDropdown = ({
     <div>
       <div
         onClick={handleToggleReferencesDropdown}
-        className="border-brand-black/20 flex items-center justify-between border-b"
+        className={cn(
+          `border-brand-black/20 flex items-center justify-between border-b`,
+          className
+        )}
       >
         <div className="flex w-full cursor-pointer items-center gap-2 px-4 py-6">
           <Youtube size={20} className="text-primary" />

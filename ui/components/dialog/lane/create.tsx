@@ -28,7 +28,13 @@ import { createLane, type LanesData } from "@/api/queries/lane";
 import toast from "react-hot-toast";
 import { useState } from "react";
 
-export default function CreateLaneDialog() {
+interface CreateLaneDialogProps {
+  customTrigger?: React.ReactNode;
+}
+
+export default function CreateLaneDialog({
+  customTrigger = false,
+}: CreateLaneDialogProps) {
   const [open, setOpen] = useState(false);
 
   const queryClient = useQueryClient();
@@ -69,16 +75,22 @@ export default function CreateLaneDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <div className="flex h-[250px] w-full flex-col items-center justify-center gap-4 rounded-xl lg:h-full">
-        <DialogTrigger className="flex h-full w-full max-w-[270px] cursor-pointer flex-col items-center justify-center gap-7">
-          <span className="flex items-center justify-center rounded-full bg-black p-7">
-            <Plus size={16} color="white" />
-          </span>
-          <p className="text-2xl font-normal text-black">Create New Lane</p>
-          <p className="text-brand-black/60 text-sm font-normal">
-            Turn any YouTube video into a learning path, and let AI guide your
-            progress.
-          </p>
-        </DialogTrigger>
+        {customTrigger ? (
+          <DialogTrigger className="bg-brand-red flex h-[75px] w-[75px] cursor-pointer flex-col items-center justify-center rounded-full">
+            <Plus size={28} color="white" />
+          </DialogTrigger>
+        ) : (
+          <DialogTrigger className="flex h-full w-full max-w-[270px] cursor-pointer flex-col items-center justify-center gap-7">
+            <span className="flex items-center justify-center rounded-full bg-black p-7">
+              <Plus size={16} color="white" />
+            </span>
+            <p className="text-2xl font-normal text-black">Create New Lane</p>
+            <p className="text-brand-black/60 text-sm font-normal">
+              Turn any YouTube video into a learning path, and let AI guide your
+              progress.
+            </p>
+          </DialogTrigger>
+        )}
 
         <DialogContent className="border-brand-border max-w-md border-2 border-solid">
           <Form {...createLaneForm}>

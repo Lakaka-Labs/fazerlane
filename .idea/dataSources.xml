@@ -15,11 +15,11 @@
       <jdbc-url>jdbc:sqlite:C:\Users\owopr\Documents\fazerlane\backend\memory.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="fazerlane@localhost" uuid="120a5845-3327-429e-8483-6fb7bcae2abc">
+    <data-source source="LOCAL" name="fazerlane@localhost" uuid="61e55f81-c075-4006-b176-90b0b46268d7">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/fazerlane</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5433/fazerlane</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

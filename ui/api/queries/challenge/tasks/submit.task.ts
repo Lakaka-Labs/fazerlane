@@ -9,11 +9,13 @@ export interface SubmitTaskQuery {
 export interface SubmitTaskData {
   text: string;
   comments: string;
+  files: string[];
+  useMemory: boolean;
 }
 
-export async function createLane(data: SubmitTaskQuery & SubmitTaskData) {
+export async function submitTask(data: SubmitTaskQuery & SubmitTaskData) {
   try {
-    const query = buildQuery(`challenge/${data.challenge_id}`);
+    const query = buildQuery(`/challenge/${data.challenge_id}`);
 
     const res = await apiClient.post<LaneCreationResponse>(query, data);
 
@@ -22,10 +24,10 @@ export async function createLane(data: SubmitTaskQuery & SubmitTaskData) {
     if (error instanceof AxiosError) {
       console.error(
         "error nibba",
-        error.response?.data?.message || "Failed to create lane"
+        error.response?.data?.message || "Failed to submit task"
       );
 
-      throw new Error(error.response?.data?.message || "Failed to create lane");
+      throw new Error(error.response?.data?.message || "Failed to submit task");
     }
 
     console.error("error nibba", error);

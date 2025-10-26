@@ -14,7 +14,7 @@ export default function LearnCard({ lane }: LearnCardProps) {
   return (
     <Link
       href={appRoutes.dashboard.user.challanges(lane.id)}
-      className="border-brand-border flex cursor-pointer flex-col gap-3 rounded-md border border-solid"
+      className="border-brand-border shadow-brand-shadow flex cursor-pointer flex-col gap-3 rounded-md border border-solid"
     >
       <Image
         src={lane.youtubeDetails.thumbnail}

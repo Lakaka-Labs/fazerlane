@@ -1,18 +1,29 @@
 "use client";
 
+import { uploadFile } from "@/api/mutations/storage/upload";
 import { FileData } from "@/types/api/challenges/tasks";
+import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useRef, useState } from "react";
+import { Button } from "../ui/button";
 
 interface FileUploadProps {
-  fileLink: FileData[];
-  setFileLink: React.Dispatch<React.SetStateAction<FileData[]>>;
+  fileLink: string[];
+  setFileLink: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
+export default function FileUpload({ setFileLink }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [files, setFiles] = useState<FileData[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const formData = new FormData();
+
+  const mutate = useMutation({
+    mutationFn: (files: FormData) => uploadFile(files),
+  });
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
@@ -55,13 +66,26 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
-  const removeFile = (id: string): void => {
-    setFiles((prev) => prev.filter((file) => file.id !== id));
+  const removeFile = (fileData: FileData): void => {
+    setFiles((prev) => prev.filter((file) => file.id !== fileData.id));
   };
 
   const handleBrowseClick = (): void => {
     fileInputRef.current?.click();
   };
+
+  async function handleUploadFiles() {
+    setIsLoading(true);
+
+    files.forEach((file) => formData.append("files", file.file));
+
+    const res = await mutate.mutateAsync(formData).finally(() => {
+      setIsLoading(false);
+    });
+    console.log("res", res);
+
+    setFileLink((prev) => [...prev, ...res]);
+  }
 
   return (
     <div>
@@ -96,30 +120,42 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
       </div>
 
       {files.length > 0 && (
-        <div className="mt-6 rounded-lg border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-200 p-4">
-            <h3 className="font-medium text-gray-900">All Files</h3>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {files.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {file.name}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">{file.size}</p>
-                </div>
-                <button
-                  onClick={() => removeFile(file.id)}
-                  className="ml-4 rounded p-1 transition-colors hover:bg-gray-200"
+        <div className="flex flex-col gap-4">
+          <div className="mt-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-200 p-4">
+              <h3 className="font-medium text-gray-900">All Files</h3>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {files.map((file) => (
+                <div
+                  key={file.id}
+                  className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50"
                 >
-                  <X className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
-            ))}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {file.name}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">{file.size}</p>
+                  </div>
+                  <button
+                    onClick={() => removeFile(file)}
+                    className="ml-4 rounded p-1 transition-colors hover:bg-gray-200"
+                  >
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex w-full justify-end">
+            <Button
+              disabled={isLoading}
+              onClick={handleUploadFiles}
+              className="rounded-md"
+            >
+              {isLoading ? `Uploading` : `Upload`}
+            </Button>
           </div>
         </div>
       )}

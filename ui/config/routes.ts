@@ -21,3 +21,10 @@ export default appRoutes;
 
 export const API_BARE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 export const API_BASE_URL = API_BARE_URL ? `${API_BARE_URL}/api/v1` : "";
+
+export const queryStateParams = {
+  empty: "",
+  error: "error",
+  challengeId: "challenge-id",
+  tab: "tab",
+};
