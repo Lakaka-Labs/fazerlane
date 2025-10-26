@@ -7,10 +7,11 @@ import { queryStateParams } from "@/config/routes";
 import { usePersistStore } from "@/store/persist.store";
 import { Challenge } from "@/types/api/challenges";
 import { useQuery } from "@tanstack/react-query";
-import { CircleCheck, Youtube } from "lucide-react";
+import {CircleCheck, Play} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 
 interface LaneSideBarProps {
   challenges: Challenge[];
@@ -67,7 +68,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
       {laneData && (
         <h1 className="flex gap-2 text-base font-extrabold">
           <div className="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-            <Youtube size={16} color="white" />
+            <Image src={"/icons/yt-white.png"} alt={"youtube icon"} height={20} width={20} className="text-primary my-0.5"/>
           </div>
 
           <span>{laneData.youtubeDetails.title}</span>
@@ -88,7 +89,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
               challengeRefs.current[challenge.id] = el;
             }}
             onClick={() => handleChallengeClick(challenge)}
-            className={`relative flex transform cursor-pointer flex-col gap-3 px-2.5 py-3 transition-all duration-200 ease-linear ${challengeID === challenge.id ? "border-l-4 border-solid border-[#444440] bg-[#4444401A]" : "hover:bg-[#4444401A]"}`}
+            className={`relative flex transform cursor-pointer border-0 flex-col gap-3 px-2.5 py-3 transition-all duration-200 ease-linear ${challengeID === challenge.id ? "border-l-4 border-solid border-[#444440] bg-[#4444401A]" : "hover:bg-[#4444401A]"}`}
           >
             <h3 className="max-w-[90%] text-base font-semibold">
               {challenge.title}

@@ -137,8 +137,9 @@ export const TasksTab = () => {
           />
         </SectionContainer>
         <Button
+            size={"lg"}
           disabled={mutation.isPending}
-          className="bg-primary rounded-[6px]"
+          // className="bg-primary rounded-[6px]"
         >
           {mutation.isPending ? "Submitting" : "Submit"}
         </Button>

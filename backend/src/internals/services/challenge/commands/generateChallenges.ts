@@ -42,7 +42,7 @@ export default class GenerateChallenge {
         try {
             await this.sendProgress({
                 lane: laneId,
-                message: `generating challenges ${attempts > 1 ? "again" : ""}...`,
+                message: `generating`,
                 type: "success",
             });
 
@@ -71,19 +71,19 @@ export default class GenerateChallenge {
 
             await this.sendProgress({
                 lane: laneId,
-                message: `challenge generation complete`,
+                message: `completed`,
                 type: "success",
             });
             await this.laneRepository.update(laneId, {state: "completed"});
         } catch (e) {
             console.log(e)
             if (attempts >= maxAttempt) {
-                const message = `Failed to generate challenge for lane, retry`;
+                const message = `failed`;
                 await this.updateLaneAsFailed(laneId, message);
             } else {
                 await this.sendProgress({
                     lane: laneId,
-                    message: `failed to generate challenge, retry scheduled`,
+                    message: `regenerating`,
                     type: "info",
                 });
                 throw e

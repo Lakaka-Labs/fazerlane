@@ -23,6 +23,7 @@ export default class ProgressPG implements ProgressRepository {
                    created_at as "createdAt"
             FROM progresses
             WHERE lane = ${laneId}
+            ORDER BY "createdAt" DESC 
         `;
 
     }

@@ -159,6 +159,8 @@ export default class ExpressHTTP {
                     (ws as any).type = 'chat';
 
                     this.adapters.progressWebsocketRepository.Register(ws, laneId);
+                    let lane = await this.adapters.laneRepository.getById(laneId)
+                    let progress = await this.adapters.progressRepository.get(laneId)
 
                     ws.on('error', () => {
                         this.adapters.progressWebsocketRepository.Unregister(ws, laneId);
@@ -171,7 +173,7 @@ export default class ExpressHTTP {
                     ws.on('message', (data) => {
                     });
 
-                    ws.send('connected');
+                    ws.send(JSON.stringify(progress[0]));
 
                 } catch (err) {
                     console.log(err)

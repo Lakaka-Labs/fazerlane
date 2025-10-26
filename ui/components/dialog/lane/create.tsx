@@ -76,7 +76,7 @@ export default function CreateLaneDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <div className="flex h-[250px] w-full flex-col items-center justify-center gap-4 rounded-xl lg:h-full">
         {customTrigger ? (
-          <DialogTrigger className="bg-brand-red flex h-[75px] w-[75px] cursor-pointer flex-col items-center justify-center rounded-full">
+          <DialogTrigger className="bg-primary flex h-[75px] w-[75px] cursor-pointer flex-col items-center justify-center rounded-full">
             <Plus size={28} color="white" />
           </DialogTrigger>
         ) : (
@@ -184,7 +184,7 @@ export default function CreateLaneDialog({
                 <Button
                   disabled={mutate.isPending}
                   type="submit"
-                  className="h-9 rounded-[6px] bg-black px-4 hover:bg-black/50"
+                  // className="h-9 rounded-[6px] bg-black px-4 hover:bg-black/50"
                 >
                   {mutate.isPending ? "Creating..." : "Create Lane"}
                 </Button>

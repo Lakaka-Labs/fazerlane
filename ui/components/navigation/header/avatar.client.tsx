@@ -33,7 +33,7 @@ export default function HeaderAvatar() {
       <DropdownMenuTrigger asChild>
         <Avatar className="cursor-pointer">
           <AvatarImage src={undefined} />
-          <AvatarFallback className="bg-brand-black hover:bg-brand-red text-brand-white size-8 uppercase">
+          <AvatarFallback className="bg-brand-black hover:bg-primary text-brand-white size-8 uppercase">
             {session?.user?.username?.charAt(0)}
           </AvatarFallback>
         </Avatar>
@@ -52,7 +52,7 @@ export default function HeaderAvatar() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleLogout}
-          className="hover:!bg-brand-red dark:hover:!bg-brand-red [variant=destructive]:focus:!bg-brand-red [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+          className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-primary [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
         >
           Log out
         </DropdownMenuItem>

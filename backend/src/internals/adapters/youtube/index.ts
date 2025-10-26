@@ -33,7 +33,7 @@ export default class Youtube implements YoutubeRepository {
             id: v.id,
             title: s.title,
             duration: this.iso8601ToSeconds(c.duration),
-            thumbnail: s.thumbnails.maxres.url
+            thumbnail: s.thumbnails?.maxres?.url || s.thumbnails?.standard?.url || s.thumbnails?.high?.url ||s.thumbnails?.medium?.url || s.thumbnails?.default?.url || ""
         };
     };
 

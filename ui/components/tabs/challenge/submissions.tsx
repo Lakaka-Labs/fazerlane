@@ -117,14 +117,14 @@ const SubmissionsDropdown = ({
             className="flex flex-col gap-6 px-4 py-6"
           >
             <div
-              className={`border-brand-green bg-brand-lite-green flex transform cursor-pointer flex-col gap-3 rounded-md border-l-4 border-solid p-4 transition-all duration-200 ease-linear`}
+              className={`border-brand-green bg-brand-lite-green flex transform cursor-pointer flex-col gap-3 border-l-4 border-solid p-4 transition-all duration-200 ease-linear`}
               style={{
-                background: status === "Passed" ? "#e8f5e9" : "#fd005433",
-                borderColor: status === "Passed" ? "#2e7d32" : "#fd0054",
+                background: status === "Passed" ? "#e8f5e9" : "#fd005415",
+                borderColor: status === "Passed" ? "#2e7d32" : "#ff112a",
               }}
             >
               <h4
-                style={{ color: status === "Passed" ? "#2e7d32" : "#fd0054" }}
+                style={{ color: status === "Passed" ? "#2e7d32" : "#ff112a" }}
                 className="text-base font-semibold"
               >
                 Feedback
