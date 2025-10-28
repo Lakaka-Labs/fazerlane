@@ -1,8 +1,7 @@
 "use client";
 
 import { WebSocketManager } from "@/config/socket";
-import { ChallengeEvent } from "@/types/events/lane";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { hyperSpeedEffectOptions, HyperSpeedEffectOptions } from "@/lib/effect";
 import TextSeperator from "@/components/seperator/seperator-with-text";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import appRoutes, { WS_BASE_URL } from "@/config/routes";
+import appRoutes, { queryStateParams, WS_BASE_URL } from "@/config/routes";
 import { useQueryState } from "nuqs";
 import { useMutation } from "@tanstack/react-query";
 import { redoLane } from "@/api/mutations/lane/redo";
@@ -20,11 +19,12 @@ import { removeLane } from "@/api/mutations/lane/delete";
 
 export default function ChallengeProgress() {
   const router = useRouter();
-  const [laneId] = useQueryState("laneId");
-  const [progress, setProgress] = useState<ChallengeEvent | null>(null);
-  const [wsManager, setWsManager] = useState<WebSocketManager | null>(null);
-
+  const [laneId] = useQueryState(queryStateParams.laneId);
+  const [progress, setProgress] = useState<string>("");
   const [showRetry, setShowRetry] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const wsManagerRef = useRef<WebSocketManager | null>(null);
+  const isNavigatingRef = useRef(false);
 
   const redoLaneM = useMutation({
     mutationFn: (laneId: string) => redoLane({ laneId }),
@@ -45,10 +45,13 @@ export default function ChallengeProgress() {
 
       if (res.message === "success") {
         toast.success("Lane retry initiated!");
-        wsManager?.disconnect();
-        router.push(
-          `${appRoutes.dashboard.user.progress}?laneId=${res.data.laneId}`
-        );
+
+        if (wsManagerRef.current) {
+          wsManagerRef.current.disconnect();
+          wsManagerRef.current = null;
+        }
+
+        window.location.href = `${appRoutes.dashboard.user.progress}?laneId=${res.data.laneId}`;
       }
     } catch (error) {
       toast.error((error as string) || "Failed to retry lane");
@@ -66,7 +69,12 @@ export default function ChallengeProgress() {
 
       if (res === "success") {
         toast.success("Lane removed successfully!");
-        wsManager?.disconnect();
+
+        if (wsManagerRef.current) {
+          wsManagerRef.current.disconnect();
+          wsManagerRef.current = null;
+        }
+
         router.push(appRoutes.dashboard.user.lanes);
       }
     } catch (error) {
@@ -74,48 +82,102 @@ export default function ChallengeProgress() {
     }
   }
 
+  const handleMessage = useCallback(
+    (response: any) => {
+      console.log(`Progress update (raw): `, response);
+
+      // Handle both message formats from backend:
+      // Format 1 (initial): { id, lane, message, type, createdAt }
+      // Format 2 (updates): { data: { lane, message, type } }
+      let message: string;
+
+      if (response.data && typeof response.data === "object") {
+        message = response.data.message;
+        console.log("Using nested data format, message:", message);
+      } else if (response.message) {
+        message = response.message;
+        console.log("Using direct format, message:", message);
+      } else {
+        console.error("Unknown message format:", response);
+        return;
+      }
+
+      setProgress(message);
+
+      if (message === "completed") {
+        if (!isNavigatingRef.current) {
+          isNavigatingRef.current = true;
+          toast.success("Lane created successfully!");
+
+          if (wsManagerRef.current) {
+            wsManagerRef.current.disconnect();
+            wsManagerRef.current = null;
+          }
+
+          setTimeout(() => {
+            router.push(appRoutes.dashboard.user.challanges(laneId!));
+          }, 100);
+        }
+      } else if (message === "failed") {
+        setShowRetry(true);
+      }
+    },
+    [router, laneId]
+  );
+
   useEffect(() => {
+    if (!laneId) {
+      toast.error("Missing lane ID");
+      router.push(appRoutes.dashboard.user.lanes);
+      return;
+    }
+
+    if (wsManagerRef.current) {
+      console.warn("WebSocket already exists, skipping creation");
+      return;
+    }
+
     const manager = new WebSocketManager({
       url: `${WS_BASE_URL}/progress/${laneId}`,
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
       onOpen: (event) => {
         console.log("Connected to progress WebSocket", event);
+        setIsInitializing(false);
       },
-      onMessage: (data: ChallengeEvent) => {
-        console.log(`Progress update: `, data);
-
-        if (!laneId) {
-          toast.error("Missing lane ID");
-          router.push(appRoutes.dashboard.user.lanes);
-          return;
-        }
-
-        setProgress(data);
-
-        console.log("socket data", data);
-
-        if (data.message === "completed") {
-          toast.success("Lane created successfully!");
-          // manager.disconnect();
-          router.push(appRoutes.dashboard.user.challanges(laneId));
-        }
-      },
+      onMessage: handleMessage,
       onClose: (event) => {
         console.log("WebSocket connection closed", event);
+
+        // If closed unexpectedly and not navigating, show error
+        if (
+          !isInitializing &&
+          !isNavigatingRef.current &&
+          event.code !== 1000
+        ) {
+          toast.error("Connection lost. Please refresh the page.");
+        }
       },
       onReconnect: (attempt) => {
         console.log(`Reconnecting... Attempt ${attempt}`);
+        toast.loading(`Reconnecting... (${attempt}/5)`);
+      },
+      onError: (error) => {
+        console.error("WebSocket error:", error);
+        setIsInitializing(false);
       },
     });
 
     manager.connect();
-    setWsManager(manager);
+    wsManagerRef.current = manager;
 
     return () => {
-      manager.disconnect();
+      if (wsManagerRef.current) {
+        wsManagerRef.current.disconnect();
+        wsManagerRef.current = null;
+      }
     };
-  }, [laneId, router]);
+  }, [laneId]);
 
   return (
     <div className="relative flex h-full items-center justify-center">
@@ -127,7 +189,20 @@ export default function ChallengeProgress() {
         />
       </div>
 
-      {progress && (
+      {isInitializing && !progress && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 flex w-full max-w-md flex-col gap-5 rounded-md border border-solid border-gray-500/20 bg-white/5 px-8 pt-10 pb-8 text-center shadow-2xl backdrop-blur-md"
+        >
+          <AuthTitle title="Connecting..." />
+          <div className="flex justify-center">
+            <Loader2 className="h-10 w-10 animate-spin text-red-500" />
+          </div>
+        </motion.div>
+      )}
+
+      {(!isInitializing || progress) && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -135,18 +210,15 @@ export default function ChallengeProgress() {
         >
           <AuthTitle title="Creating Your Lane!" />
 
-          {(progress.message === "generating" ||
-            progress.message === "regenerating") && (
+          {(progress === "generating" || progress === "regenerating") && (
             <div className="flex justify-center">
               <Loader2 className="h-10 w-10 animate-spin text-red-500" />
             </div>
           )}
 
-          <p className="text-base font-semibold uppercase">
-            [ {progress.message} ]
-          </p>
+          <p className="text-base font-semibold uppercase">[ {progress} ]</p>
 
-          {progress.message === "failed" && (
+          {progress === "failed" && (
             <p className="text-center font-medium">
               Failed to create lane.{" "}
               <button

@@ -31,4 +31,5 @@ export const queryStateParams = {
   error: "error",
   challengeId: "challenge-id",
   tab: "tab",
+  laneId: "laneId",
 };

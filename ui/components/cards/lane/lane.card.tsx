@@ -12,6 +12,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface LearnCardProps {
   lane: Lane;
@@ -77,31 +82,45 @@ export default function LearnCard({ lane }: LearnCardProps) {
   return (
     <Link
       href={appRoutes.dashboard.user.challanges(lane.id)}
-      className="border-brand-border shadow-brand-shadow group relative flex cursor-pointer flex-col gap-3 rounded-md border border-solid"
+      className="border-brand-border shadow-brand-shadow group relative flex cursor-pointer flex-col gap-2 rounded-md border border-solid md:gap-3"
     >
-      <div
-        aria-disabled={redoLaneM.isPending}
-        onClick={handleRetry}
-        className="bg-brand-white text-brand-red border-brand-black absolute top-3 left-3 z-10 flex h-fit w-fit cursor-pointer items-center justify-center rounded-md border border-solid p-2 opacity-0 backdrop-blur-md transition-all duration-200 ease-linear group-hover:opacity-100"
-      >
-        {redoLaneM.isPending ? (
-          <LoaderCircle className="animate-spin" />
-        ) : (
-          <RotateCcw />
-        )}
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            aria-disabled={redoLaneM.isPending}
+            onClick={handleRetry}
+            className="bg-brand-white text-brand-red border-brand-black absolute top-3 left-3 z-10 flex h-fit w-fit cursor-pointer items-center justify-center rounded-md border border-solid p-2 opacity-0 backdrop-blur-md transition-all duration-200 ease-linear group-hover:opacity-100"
+          >
+            {redoLaneM.isPending ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <RotateCcw />
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Redo Lane</p>
+        </TooltipContent>
+      </Tooltip>
 
-      <div
-        aria-disabled={removeLaneM.isPending}
-        onClick={handleRemove}
-        className="bg-brand-white text-brand-red border-brand-black absolute top-3 right-3 z-10 flex h-fit w-fit cursor-pointer items-center justify-center rounded-md border border-solid p-2 opacity-0 backdrop-blur-md transition-all duration-200 ease-linear group-hover:opacity-100"
-      >
-        {removeLaneM.isPending ? (
-          <LoaderCircle className="animate-spin" />
-        ) : (
-          <Trash2 />
-        )}
-      </div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            aria-disabled={removeLaneM.isPending}
+            onClick={handleRemove}
+            className="bg-brand-white text-brand-red border-brand-black absolute top-3 right-3 z-10 flex h-fit w-fit cursor-pointer items-center justify-center rounded-md border border-solid p-2 opacity-0 backdrop-blur-md transition-all duration-200 ease-linear group-hover:opacity-100"
+          >
+            {removeLaneM.isPending ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <Trash2 />
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Delete Lane</p>
+        </TooltipContent>
+      </Tooltip>
 
       <Image
         src={lane.youtubeDetails.thumbnail}
@@ -113,14 +132,14 @@ export default function LearnCard({ lane }: LearnCardProps) {
         priority
       />
 
-      <div className="flex w-full justify-between pb-3">
+      <div className="flex w-full justify-between pb-2 md:pb-3">
         <div className="flex w-full items-center justify-between gap-3 pl-4">
           <div className="flex flex-col gap-1">
-            <p className="line-clamp-1 text-xl font-black">
+            <p className="line-clamp-1 text-lg font-black md:text-xl">
               {lane.youtubeDetails.title}
             </p>
 
-            <div className="flex items-center gap-px text-sm">
+            <div className="flex items-center gap-px text-xs md:text-sm">
               <span>{lane.totalAttempts} Attempts</span>
               <Dot />
               <span className="capitalize">{dateToNow(lane.updatedAt)}</span>

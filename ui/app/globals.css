@@ -3,6 +3,39 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+} */
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #ff112a;
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #a80038;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ff112a #f1f1f1;
+}
+
 @theme {
   --font-nunito: Nunito, sans-serif;
   --font-lato: Lato, sans-serif;
