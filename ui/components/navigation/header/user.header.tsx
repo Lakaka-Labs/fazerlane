@@ -7,7 +7,7 @@ import HeaderAvatar from "./avatar.client";
 export default function UserHeader() {
   return (
     <Dialog>
-      <div className="px-xLayout flex h-[70px] w-full items-center justify-between">
+      <div className="px-xLayout relative z-10 flex h-[70px] w-full items-center justify-between">
         <Link
           href={appRoutes.dashboard.user.lanes}
           className="flex items-center gap-2 text-2xl font-normal uppercase"
