@@ -38,13 +38,8 @@ export async function uploadFile(files: FormData) {
         "error nibba",
         error.response?.data?.message || "Failed to upload files"
       );
-
-      throw new Error(
-        error.response?.data?.message || "Failed to upload files"
-      );
     }
 
     console.error("error nibba", error);
-    throw error;
   }
 }

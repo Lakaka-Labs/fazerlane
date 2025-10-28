@@ -28,6 +28,9 @@ export default function LearnCard({ lane }: LearnCardProps) {
 
   const removeLaneM = useMutation({
     mutationFn: (laneId: string) => removeLane({ laneId }),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to remove lane");
+    },
   });
 
   async function handleRemove(e: React.MouseEvent) {
@@ -53,6 +56,9 @@ export default function LearnCard({ lane }: LearnCardProps) {
 
   const redoLaneM = useMutation({
     mutationFn: (laneId: string) => redoLane({ laneId }),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to retry lane");
+    },
   });
 
   async function handleRetry(e: React.MouseEvent) {

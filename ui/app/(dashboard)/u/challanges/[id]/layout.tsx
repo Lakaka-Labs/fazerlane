@@ -20,9 +20,8 @@ interface ChallengeLayoutProps {
 export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
   const { id } = use(params);
 
-  const { setCurrentChellenge, showChatbot } = usePersistStore(
-    (store) => store
-  );
+  const { currentChallenge, setCurrentChellenge, showChatbot } =
+    usePersistStore((store) => store);
 
   function handleChallengeClick(challenge: Challenge) {
     setCurrentChellenge(challenge);
@@ -34,7 +33,7 @@ export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
   });
 
   useEffect(() => {
-    if (challenge && challenge.length > 0) {
+    if (!currentChallenge && challenge && challenge.length > 0) {
       handleChallengeClick(challenge[0]);
     }
   }, [challenge]);

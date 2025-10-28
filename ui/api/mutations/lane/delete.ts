@@ -18,10 +18,10 @@ export async function removeLane(data: LanesData) {
     if (error instanceof AxiosError) {
       console.error(
         "error nibba",
-        error.response?.data?.message || "Failed to retry lane"
+        error.response?.data?.message || "Failed to delete lane"
       );
 
-      throw new Error(error.response?.data?.message || "Failed to retry lane");
+      throw new Error(error.response?.data?.message || "Failed to delete lane");
     }
 
     console.error("error nibba", error);

@@ -30,6 +30,6 @@ export type PersistMainStoreActions = {
   setUser: (user: User) => void;
   setToken: (token: Token) => void;
   setSession: (session: Session) => void;
-  setCurrentChellenge: (lane: Challenge) => void;
+  setCurrentChellenge: (lane: Challenge | null) => void;
   setShowChatbot: (show: boolean) => void;
 };

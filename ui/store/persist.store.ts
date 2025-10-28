@@ -45,7 +45,8 @@ export const persistStore = createStore<PersistMainStore>()(
       setSession: (session) => set(() => ({ session })),
       setUser: (user) => set(() => ({ user })),
       setToken: (token) => set(() => ({ token })),
-      setCurrentChellenge: (lane: Challenge) => set({ currentChallenge: lane }),
+      setCurrentChellenge: (lane: Challenge | null) =>
+        set({ currentChallenge: lane }),
       setClear: () => set(() => ({ ...defaultInitState })),
       setShowChatbot: (show: boolean) => set({ showChatbot: show }),
     }),

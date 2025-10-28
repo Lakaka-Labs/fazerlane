@@ -32,7 +32,7 @@ export default function HeaderAvatar() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="cursor-pointer">
-          <AvatarImage src={undefined} />
+          <AvatarImage />
           <AvatarFallback className="bg-brand-black hover:bg-primary text-brand-white size-8 uppercase">
             {session?.user?.username?.charAt(0)}
           </AvatarFallback>

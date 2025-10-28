@@ -8,7 +8,7 @@ import {
   submitTask,
   SubmitTaskData,
   SubmitTaskQuery,
-} from "@/api/queries/challenge/tasks/submit.task";
+} from "@/api/mutations/tasks/submit.task";
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
@@ -41,6 +41,9 @@ export const TasksTab = () => {
   const mutation = useMutation({
     mutationFn: (submissionData: SubmitTaskData & SubmitTaskQuery) =>
       submitTask(submissionData),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to submit task");
+    },
   });
 
   function handleInputChange(
@@ -137,7 +140,7 @@ export const TasksTab = () => {
           />
         </SectionContainer>
         <Button
-            size={"lg"}
+          size={"lg"}
           disabled={mutation.isPending}
           // className="bg-primary rounded-[6px]"
         >

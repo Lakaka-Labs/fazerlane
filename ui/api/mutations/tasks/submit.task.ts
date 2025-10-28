@@ -3,15 +3,19 @@ import { LaneCreationResponse } from "@/types/api/lane";
 import { buildQuery } from "@/utils/api";
 import { AxiosError } from "axios";
 
-export interface LanesData {
-  youtube: string;
-  startTime?: string;
-  endTime?: string;
+export interface SubmitTaskQuery {
+  challenge_id: string;
+}
+export interface SubmitTaskData {
+  text: string;
+  comments: string;
+  files: string[];
+  useMemory: boolean;
 }
 
-export async function createLane(data: LanesData) {
+export async function submitTask(data: SubmitTaskQuery & SubmitTaskData) {
   try {
-    const query = buildQuery("/lane");
+    const query = buildQuery(`/challenge/${data.challenge_id}`);
 
     const res = await apiClient.post<LaneCreationResponse>(query, data);
 
@@ -20,10 +24,9 @@ export async function createLane(data: LanesData) {
     if (error instanceof AxiosError) {
       console.error(
         "error nibba",
-        error.response?.data?.message || "Failed to create lane"
+        error.response?.data?.message || "Failed to submit task"
       );
-
-      throw new Error(error.response?.data?.message || "Failed to create lane");
+      throw new Error(error.response?.data?.message || "Failed to submit task");
     }
 
     console.error("error nibba", error);

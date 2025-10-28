@@ -16,6 +16,7 @@ import { useQueryState } from "nuqs";
 import { useMutation } from "@tanstack/react-query";
 import { redoLane } from "@/api/mutations/lane/redo";
 import { removeLane } from "@/api/mutations/lane/delete";
+import { usePersistStore } from "@/store/persist.store";
 
 export default function ChallengeProgress() {
   const router = useRouter();
@@ -26,12 +27,20 @@ export default function ChallengeProgress() {
   const wsManagerRef = useRef<WebSocketManager | null>(null);
   const isNavigatingRef = useRef(false);
 
+  const { setCurrentChellenge } = usePersistStore((store) => store);
+
   const redoLaneM = useMutation({
     mutationFn: (laneId: string) => redoLane({ laneId }),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to retry lane");
+    },
   });
 
   const removeLaneM = useMutation({
     mutationFn: (laneId: string) => removeLane({ laneId }),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to remove lane");
+    },
   });
 
   async function handleRetry() {
@@ -113,6 +122,8 @@ export default function ChallengeProgress() {
             wsManagerRef.current.disconnect();
             wsManagerRef.current = null;
           }
+
+          setCurrentChellenge(null);
 
           setTimeout(() => {
             router.push(appRoutes.dashboard.user.challanges(laneId!));

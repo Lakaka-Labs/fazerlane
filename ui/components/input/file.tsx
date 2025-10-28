@@ -6,6 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "../ui/button";
+import toast from "react-hot-toast";
 
 interface FileUploadProps {
   fileLink: string[];
@@ -23,6 +24,9 @@ export default function FileUpload({ setFileLink }: FileUploadProps) {
 
   const mutate = useMutation({
     mutationFn: (files: FormData) => uploadFile(files),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to upload files");
+    },
   });
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
@@ -84,7 +88,9 @@ export default function FileUpload({ setFileLink }: FileUploadProps) {
     });
     console.log("res", res);
 
-    setFileLink((prev) => [...prev, ...res]);
+    if (res) {
+      setFileLink((prev) => [...prev, ...res]);
+    }
   }
 
   return (

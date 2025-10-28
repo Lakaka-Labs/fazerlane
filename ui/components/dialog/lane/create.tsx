@@ -24,11 +24,11 @@ import {
 import z from "zod";
 import YoutubeVideo from "@/components/video/youtube";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createLane, type LanesData } from "@/api/queries/lane";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import appRoutes from "@/config/routes";
+import { createLane, LanesData } from "@/api/mutations/lane/create";
 
 interface CreateLaneDialogProps {
   customTrigger?: React.ReactNode;
@@ -44,6 +44,9 @@ export default function CreateLaneDialog({
 
   const mutate = useMutation({
     mutationFn: async (data: LanesData) => await createLane(data),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to create lane");
+    },
   });
 
   const createLaneForm = useForm<CreateLaneFields>({
