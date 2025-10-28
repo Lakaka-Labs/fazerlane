@@ -27,6 +27,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createLane, type LanesData } from "@/api/queries/lane";
 import toast from "react-hot-toast";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import appRoutes from "@/config/routes";
 
 interface CreateLaneDialogProps {
   customTrigger?: React.ReactNode;
@@ -35,6 +37,7 @@ interface CreateLaneDialogProps {
 export default function CreateLaneDialog({
   customTrigger = false,
 }: CreateLaneDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const queryClient = useQueryClient();
@@ -66,6 +69,9 @@ export default function CreateLaneDialog({
           createLaneForm.reset();
           await queryClient.invalidateQueries({ queryKey: ["get-lanes"] });
           setOpen(false);
+          router.push(
+            `${appRoutes.dashboard.user.progress}?laneId=${res.laneId}`
+          );
         }
       });
   }
