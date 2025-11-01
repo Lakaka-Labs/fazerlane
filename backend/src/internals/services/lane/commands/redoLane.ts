@@ -30,6 +30,7 @@ export default class RedoLane {
         const original = await this.laneRepository.getById(id)
         if (original.state != "failed" && original.state != "completed") throw new BadRequestError("you can only redo a completed or failed lane")
         await this.progressRepository.delete(id)
+        await this.laneRepository.update(id, {state: "accepted"})
         await this.queueRepository.addJob(QueueName.challengeGeneration, {laneId: id})
     }
 }
