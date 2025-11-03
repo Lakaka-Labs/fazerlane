@@ -7,11 +7,26 @@ import appRoutes from "@/config/routes";
 import { Lane } from "@/types/api/lane";
 import { dateToNow } from "@/utils/date-to-now";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dot, LoaderCircle, RotateCcw, Trash2 } from "lucide-react";
+import {
+  Dot,
+  EllipsisVertical,
+  LoaderCircle,
+  OctagonAlert,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import {
   Tooltip,
   TooltipContent,
@@ -87,58 +102,52 @@ export default function LearnCard({ lane }: LearnCardProps) {
 
   return (
     <Link
-      href={appRoutes.dashboard.user.challanges(lane.id)}
-      className="border-brand-border shadow-brand-shadow group relative flex cursor-pointer flex-col gap-2 rounded-md border border-solid md:gap-3"
+      href={
+        lane.state !== "completed"
+          ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
+          : appRoutes.dashboard.user.challanges(lane.id)
+      }
+      className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col gap-2 rounded-md transition-all duration-200 ease-in-out md:gap-3"
     >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            aria-disabled={redoLaneM.isPending}
-            onClick={handleRetry}
-            className="bg-brand-white text-brand-red border-brand-black absolute top-3 left-3 z-10 flex h-fit w-fit cursor-pointer items-center justify-center rounded-md border border-solid p-2 opacity-0 backdrop-blur-md transition-all duration-200 ease-linear group-hover:opacity-100"
-          >
-            {redoLaneM.isPending ? (
-              <LoaderCircle className="animate-spin" />
-            ) : (
-              <RotateCcw />
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Redo Lane</p>
-        </TooltipContent>
-      </Tooltip>
+      {lane.state === "completed" && (
+        <Image
+          src={lane.youtubeDetails.thumbnail}
+          alt="img"
+          width={1280}
+          height={720}
+          className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+          quality={100}
+          priority
+        />
+      )}
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            aria-disabled={removeLaneM.isPending}
-            onClick={handleRemove}
-            className="bg-brand-white text-brand-red border-brand-black absolute top-3 right-3 z-10 flex h-fit w-fit cursor-pointer items-center justify-center rounded-md border border-solid p-2 opacity-0 backdrop-blur-md transition-all duration-200 ease-linear group-hover:opacity-100"
-          >
-            {removeLaneM.isPending ? (
-              <LoaderCircle className="animate-spin" />
-            ) : (
-              <Trash2 />
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Delete Lane</p>
-        </TooltipContent>
-      </Tooltip>
+      {lane.state === "accepted" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex h-[250px] w-full items-center justify-center rounded-md">
+              <LoaderCircle size={64} className="text-primary animate-spin" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Recreating Lane</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
-      <Image
-        src={lane.youtubeDetails.thumbnail}
-        alt="img"
-        width={1280}
-        height={720}
-        className="h-[210px] w-full rounded-t-md object-cover object-center"
-        quality={100}
-        priority
-      />
+      {lane.state === "failed" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex h-[250px] w-full items-center justify-center rounded-md">
+              <OctagonAlert size={64} className="text-primary animate-pulse" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Failed to recreate lane, please retry</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
 
-      <div className="flex w-full justify-between pb-2 md:pb-3">
+      <div className="flex w-full pb-2 md:pb-3">
         <div className="flex w-full items-center justify-between gap-3 pl-4">
           <div className="flex flex-col gap-1">
             <p className="line-clamp-1 text-lg font-black md:text-xl">
@@ -178,6 +187,29 @@ export default function LearnCard({ lane }: LearnCardProps) {
             />
           </div>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="my-1 mr-2">
+            <EllipsisVertical className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-32" align="center">
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={handleRetry}
+                className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+              >
+                Retry Lane
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleRemove}
+                className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+              >
+                Remove Lane
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </Link>
   );

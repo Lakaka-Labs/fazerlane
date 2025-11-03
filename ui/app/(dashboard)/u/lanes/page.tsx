@@ -4,37 +4,121 @@ import LearnCard from "@/components/cards/lane/lane.card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateLaneDialog } from "@/components/dialog/lane";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getFeaturedLanes, getLanes } from "@/api/queries/lane";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { InlineLoader } from "@/components/loader";
 
 export default function DUserHome() {
+  const lanesLoaderRef = useRef(null);
+  const featuredLoaderRef = useRef(null);
   const [activeTab, setActiveTab] = useState(tabsTriggerArr[0].value);
 
-  const [limit, setLimit] = useState(10);
-  const [page, setPage] = useState(1);
+  const limit = 10;
+  const limitFL = 10;
 
-  const [limitFL, setLimitFL] = useState(10);
-  const [pageFL, setPageFL] = useState(1);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useInfiniteQuery({
+      queryKey: ["get-lanes"],
+      queryFn: async ({ pageParam = 1 }) =>
+        await getLanes({ limit, page: pageParam }),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.length < limit ? undefined : allPages.length + 1;
+      },
+    });
 
-  const { data: lanesData } = useQuery({
-    queryKey: ["get-lanes", limit, page],
-    queryFn: async () => await getLanes({ limit, page }),
+  const lanesData = data?.pages.flat() ?? [];
+
+  console.log({ lanesData });
+
+  useEffect(() => {
+    if (!lanesData || lanesData.length < limit) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { root: null, rootMargin: "300px", threshold: 0 }
+    );
+
+    const el = lanesLoaderRef.current;
+    if (el) {
+      observer.observe(el);
+    }
+
+    return () => {
+      if (el) observer.unobserve(el);
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    if (!data?.pages) return;
+
+    const hasProcessing = data.pages
+      .flat()
+      .some((lane) => lane.state === "accepted" || lane.state === "processing");
+
+    if (!hasProcessing) return;
+
+    const interval = setInterval(() => {
+      refetch();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [data, lanesData, refetch]);
+
+  // featured lanes
+  const {
+    data: featureddata,
+    fetchNextPage: featuredfetchNextPage,
+    hasNextPage: featuredhasNextPage,
+    isFetchingNextPage: featuredisFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["get-featured-lanes"],
+    queryFn: async ({ pageParam = 1 }) =>
+      await getFeaturedLanes({ limit: limitFL, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length < limitFL ? undefined : allPages.length + 1;
+    },
   });
 
-  const { data: featuredLanesData } = useQuery({
-    queryKey: ["get-featured-lanes", limit, page],
-    queryFn: async () =>
-      await getFeaturedLanes({ limit: limitFL, page: pageFL }),
-  });
+  const featuredLanesData = featureddata?.pages.flat() ?? [];
+
+  useEffect(() => {
+    if (!featuredLanesData || featuredLanesData.length < limitFL) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          featuredhasNextPage &&
+          !featuredisFetchingNextPage
+        ) {
+          featuredfetchNextPage();
+        }
+      },
+      { root: null, rootMargin: "300px", threshold: 0 }
+    );
+
+    const el = featuredLoaderRef.current;
+    if (el) observer.observe(el);
+
+    return () => {
+      if (el) observer.unobserve(el);
+    };
+  }, [featuredLanesData]);
 
   return (
-    <div>
+    <div className="px-xLayout">
       <Tabs
         defaultValue={tabsTriggerArr[0].value}
         value={activeTab}
@@ -96,6 +180,15 @@ export default function DUserHome() {
                   </TooltipContent>
                 </Tooltip>
               )}
+
+              {lanesData.length > 0 && (
+                <div
+                  ref={lanesLoaderRef}
+                  className="flex h-14 w-full items-center justify-center"
+                >
+                  {isFetchingNextPage && <InlineLoader fill />}
+                </div>
+              )}
             </TabsContent>
           )}
 
@@ -112,6 +205,15 @@ export default function DUserHome() {
                   {featuredLanesData.map((lane, index) => (
                     <LearnCard key={index} lane={lane} />
                   ))}
+                </div>
+              )}
+
+              {featuredLanesData.length > 0 && (
+                <div
+                  ref={featuredLoaderRef}
+                  className="flex h-14 w-full items-center justify-center"
+                >
+                  {featuredisFetchingNextPage && <InlineLoader fill />}
                 </div>
               )}
             </TabsContent>

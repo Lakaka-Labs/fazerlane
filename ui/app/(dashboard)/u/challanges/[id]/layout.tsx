@@ -51,10 +51,12 @@ export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
   }
 
   return (
-    <div className="mx-auto flex h-full w-full flex-col gap-12 md:flex-row md:overflow-hidden">
+    <div className="pl-xLayout mx-auto flex h-full w-full flex-col gap-12 md:flex-row md:overflow-hidden">
       <LaneSideBar challenges={challenge} />
 
-      <div className="h-full w-full md:overflow-y-auto md:pr-4">{children}</div>
+      <div className="md:pr-xLayout h-full w-full md:overflow-y-auto">
+        {children}
+      </div>
 
       {showChatbot && <Chatbot />}
     </div>

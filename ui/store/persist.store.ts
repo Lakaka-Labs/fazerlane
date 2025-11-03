@@ -36,6 +36,7 @@ export const defaultInitState: PersistMainStoreState = {
 
   currentChallenge: null,
   showChatbot: false,
+  socketLaneId: null,
 };
 
 export const persistStore = createStore<PersistMainStore>()(
@@ -49,6 +50,20 @@ export const persistStore = createStore<PersistMainStore>()(
         set({ currentChallenge: lane }),
       setClear: () => set(() => ({ ...defaultInitState })),
       setShowChatbot: (show: boolean) => set({ showChatbot: show }),
+
+      setSocketLaneId: (laneIds: string[] | null) =>
+        set((state) => ({
+          socketLaneId: state.socketLaneId
+            ? [...state.socketLaneId!, ...laneIds!]
+            : laneIds,
+        })),
+
+      removeSocketLaneId: (laneId: string) =>
+        set((state) => ({
+          socketLaneId: state.socketLaneId
+            ? state.socketLaneId.filter((id) => id !== laneId)
+            : null,
+        })),
     }),
     {
       name: "fazerlane_persisted_store",
