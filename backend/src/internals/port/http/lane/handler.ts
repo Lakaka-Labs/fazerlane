@@ -38,7 +38,7 @@ export default class LaneHandler extends LaneSchema {
             this.getFeaturedLanes
         );
 
-        this.router.patch(
+        this.router.put(
             '/:laneId',
             ValidationMiddleware(z.object({
                 laneId: z.uuid(),
