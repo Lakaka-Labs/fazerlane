@@ -72,9 +72,9 @@ export default function CreateLaneDialog({
           createLaneForm.reset();
           await queryClient.invalidateQueries({ queryKey: ["get-lanes"] });
           setOpen(false);
-          router.push(
-            `${appRoutes.dashboard.user.progress}?laneId=${res.laneId}`
-          );
+          // router.push(
+          //   `${appRoutes.dashboard.user.progress}?laneId=${res.laneId}`
+          // );
         }
       });
   }
@@ -101,7 +101,7 @@ export default function CreateLaneDialog({
           </DialogTrigger>
         )}
 
-        <DialogContent className="border-brand-border max-w-sm border-2 border-solid md:max-w-md">
+        <DialogContent className="border-brand-border max-w-sm border-2 border-solid md:max-w-2xl">
           <Form {...createLaneForm}>
             <form
               onSubmit={createLaneForm.handleSubmit(handleCreateLane)}
@@ -172,7 +172,7 @@ export default function CreateLaneDialog({
                   />
                 </div>
 
-                <div className="text-sm font-normal md:text-base">
+                <div className="text-sm font-light md:text-base">
                   <h3 className="flex items-center gap-1">
                     <Asterisk size={12} />
                     Notes

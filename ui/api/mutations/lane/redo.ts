@@ -11,7 +11,7 @@ export async function redoLane(data: LanesData) {
   try {
     const query = buildQuery(`/lane/${data.laneId}`);
 
-    const res = await apiClient.patch<RedoLaneResponse>(query, {});
+    const res = await apiClient.put<RedoLaneResponse>(query, {});
 
     return res;
   } catch (error) {
