@@ -4,7 +4,7 @@ import LearnCard from "@/components/cards/lane/lane.card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateLaneDialog } from "@/components/dialog/lane";
 import { motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { getFeaturedLanes, getLanes } from "@/api/queries/lane";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
@@ -13,11 +13,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { InlineLoader } from "@/components/loader";
+import { useQueryState } from "nuqs";
 
 export default function DUserHome() {
   const lanesLoaderRef = useRef(null);
   const featuredLoaderRef = useRef(null);
-  const [activeTab, setActiveTab] = useState(tabsTriggerArr[0].value);
+  const [activeTab, setActiveTab] = useQueryState("tab", {
+    defaultValue: tabsTriggerArr[0].value,
+  });
 
   const limit = 10;
   const limitFL = 10;

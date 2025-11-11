@@ -1,6 +1,6 @@
 "use client";
 
-import AskAIButton from "@/components/button/ask-ai";
+// import AskAIButton from "@/components/button/ask-ai";
 import ChallengeTabs from "@/components/tabs/challenge/challenge.tabs";
 import { usePersistStore } from "@/store/persist.store";
 
@@ -25,10 +25,9 @@ export default function Lane() {
       </div>
 
       <ChallengeTabs />
-
-      <div className="flex justify-end">
+      {/* <div className="flex justify-end">
         <AskAIButton />
-      </div>
+      </div> */}
     </div>
   );
 }

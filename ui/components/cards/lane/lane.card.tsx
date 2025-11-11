@@ -1,240 +1,282 @@
 "use client";
 
-import {removeLane} from "@/api/mutations/lane/delete";
-import {redoLane} from "@/api/mutations/lane/redo";
-import {CircularProgress} from "@/components/progress-09";
+import { removeLane } from "@/api/mutations/lane/delete";
+import { redoLane } from "@/api/mutations/lane/redo";
+import { CircularProgress } from "@/components/progress-09";
 import appRoutes from "@/config/routes";
-import {Lane} from "@/types/api/lane";
-import {dateToNow} from "@/utils/date-to-now";
-import {useMutation, useQueryClient} from "@tanstack/react-query";
+import { Lane } from "@/types/api/lane";
+import { dateToNow } from "@/utils/date-to-now";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-    Dot,
-    EllipsisVertical,
-    LoaderCircle,
-    OctagonAlert,
+  Dot,
+  EllipsisVertical,
+  LoaderCircle,
+  OctagonAlert,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {useRouter} from "next/navigation";
+// import {useRouter} from "next/navigation";
 import toast from "react-hot-toast";
 
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useQueryState } from "nuqs";
+import { addFeaturedLane } from "@/api/mutations/lane/add.featured";
 
 interface LearnCardProps {
-    lane: Lane;
+  lane: Lane;
 }
 
-export default function LearnCard({lane}: LearnCardProps) {
-    const router = useRouter();
-    const queryClient = useQueryClient();
+export default function LearnCard({ lane }: LearnCardProps) {
+  // const router = useRouter();
+  const [activeTab] = useQueryState("tab");
 
-    const removeLaneM = useMutation({
-        mutationFn: (laneId: string) => removeLane({laneId}),
-        onError: (error) => {
-            toast.error((error.message as string) || "Failed to remove lane");
-        },
-    });
+  const queryClient = useQueryClient();
 
-    async function handleRemove(e: React.MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
+  const removeLaneM = useMutation({
+    mutationFn: (laneId: string) => removeLane({ laneId }),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to remove lane");
+    },
+  });
 
-        if (!lane.id) {
-            toast.error("Missing lane ID");
-            return;
-        }
+  async function handleRemove(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
 
-        try {
-            const res = await removeLaneM.mutateAsync(lane.id);
-
-            if (res === "success") {
-                toast.success("Lane removed successfully!");
-                await queryClient.invalidateQueries({queryKey: ["get-lanes"]});
-            }
-        } catch (error) {
-            toast.error((error as string) || "Failed to remove lane");
-        }
+    if (!lane.id) {
+      toast.error("Missing lane ID");
+      return;
     }
 
-    const redoLaneM = useMutation({
-        mutationFn: (laneId: string) => redoLane({laneId}),
-        onError: (error) => {
-            toast.error((error.message as string) || "Failed to retry lane");
-        },
-    });
+    try {
+      const res = await removeLaneM.mutateAsync(lane.id);
 
-    async function handleRetry(e: React.MouseEvent) {
-        e.preventDefault();
-        e.stopPropagation();
+      if (res === "success") {
+        toast.success("Lane removed successfully!");
+        await queryClient.invalidateQueries({ queryKey: ["get-lanes"] });
+      }
+    } catch (error) {
+      toast.error((error as string) || "Failed to remove lane");
+    }
+  }
 
-        if (!lane.id) {
-            toast.error("Missing lane ID");
-            return;
-        }
+  const redoLaneM = useMutation({
+    mutationFn: (laneId: string) => redoLane({ laneId }),
+    onError: (error) => {
+      toast.error((error.message as string) || "Failed to retry lane");
+    },
+  });
 
-        try {
-            const res = await redoLaneM.mutateAsync(lane.id);
+  async function handleRetry(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
 
-            if (res.message === "success") {
-                toast.success("Lane retry initiated!");
-                await queryClient.invalidateQueries({queryKey: ["get-lanes"]});
-                // router.push(
-                //     `${appRoutes.dashboard.user.progress}?laneId=${res.data.laneId}`
-                // );
-            }
-        } catch (error) {
-            toast.error((error as string) || "Failed to retry lane");
-        }
+    if (!lane.id) {
+      toast.error("Missing lane ID");
+      return;
     }
 
-    return (
-        <Link
-            href={
-                lane.state !== "completed"
-                    ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
-                    : appRoutes.dashboard.user.challanges(lane.id)
-            }
-            className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col gap-2 rounded-md transition-all duration-200 ease-in-out md:gap-3"
-        >
-            {lane.state === "completed" && (
-                <Image
-                    src={lane.youtubeDetails.thumbnail}
-                    alt="img"
-                    width={1280}
-                    height={720}
-                    className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
-                    quality={100}
-                    priority
-                />
-            )}
+    try {
+      const res = await redoLaneM.mutateAsync(lane.id);
 
-            {lane.state === "accepted" && (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
-                            <Image
-                                src={lane.youtubeDetails.thumbnail}
-                                alt="img"
-                                width={1280}
-                                height={720}
-                                className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none brightness-50 blur-xs
-                  "
-                                quality={100}
-                                priority
-                            />
-                            <LoaderCircle size={64}
-                                          className="text-white animate-spin absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"/>
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>creating Lane</p>
-                    </TooltipContent>
-                </Tooltip>
-            )}
+      if (res.message === "success") {
+        toast.success("Lane retry initiated!");
+        await queryClient.invalidateQueries({ queryKey: ["get-lanes"] });
+        // router.push(
+        //     `${appRoutes.dashboard.user.progress}?laneId=${res.data.laneId}`
+        // );
+      }
+    } catch (error) {
+      toast.error((error as string) || "Failed to retry lane");
+    }
+  }
 
-            {lane.state === "failed" && (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="flex h-[250px] w-full items-center justify-center rounded-md relative">
-                            <Image
-                                src={lane.youtubeDetails.thumbnail}
-                                alt="img"
-                                width={1280}
-                                height={720}
-                                className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none brightness-30 blur-xs
-                  "
-                                quality={100}
-                                priority
-                            />
-                            <OctagonAlert size={64} className="text-primary animate-pulse absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2"/>
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Failed to recreate lane, please retry</p>
-                    </TooltipContent>
-                </Tooltip>
-            )}
+  async function handleAddToFeatured(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
 
-            <div className="flex w-full pb-2 md:pb-3">
-                <div>
-                    <CircularProgress
-                        value={
-                            Number(lane.totalChallenges) > 0
-                                ? (Number(lane.challengesPassed) /
-                                    Number(lane.totalChallenges)) *
-                                100
-                                : 0
-                        }
-                        size={70}
-                        strokeWidth={6}
-                        circleStrokeWidth={6}
-                        progressStrokeWidth={6}
-                        showLabel
-                        labelClassName="text-[10px] font-extrabold"
-                        renderLabel={(_progress) =>
-                            `${
-                                Number(lane.totalChallenges) > 0
-                                    ? `${Number(lane.challengesPassed)} /
-                      ${Number(lane.totalChallenges)}`
-                                    : `0 / 0`
-                            }`
-                        }
-                    />
-                </div>
+    if (!lane.id) {
+      toast.error("Missing lane ID");
+      return;
+    }
 
-                <div className="flex w-full items-center justify-between gap-3">
-                    <div className="flex flex-col gap-1">
-                        <p className="line-clamp-1 text-lg font-black md:text-xl">
-                            {lane.youtubeDetails.title}
-                        </p>
+    try {
+      const res = await addFeaturedLane({ laneId: lane.id });
 
-                        <div className="flex items-center gap-px text-xs md:text-sm">
-                            <span>{lane.totalAttempts} Attempts</span>
-                            <Dot/>
-                            <span className="capitalize">{dateToNow(lane.updatedAt)}</span>
-                        </div>
-                    </div>
-                </div>
+      if (res === "success") {
+        toast.success("Lane added to featured successfully!");
+        await queryClient.invalidateQueries({
+          queryKey: ["get-featured-lanes"],
+        });
+      }
+    } catch (error) {
+      toast.error((error as string) || "Failed to add lane to featured");
+    }
+  }
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild className="my-1 mr-2">
-                        <EllipsisVertical
-                            className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5"/>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-32" align="center">
-                        <DropdownMenuGroup>
-                            {lane.state != "accepted" && <>
-                                <DropdownMenuItem
-                                    onClick={handleRetry}
-                                    className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
-                                >
-                                    Retry Lane
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator/>
-                            </>}
-                            <DropdownMenuItem
-                                onClick={handleRemove}
-                                className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
-                            >
-                                Remove Lane
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+  return (
+    <Link
+      href={
+        lane.state !== "completed"
+          ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
+          : appRoutes.dashboard.user.challanges(lane.id)
+      }
+      className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col gap-2 rounded-md transition-all duration-200 ease-in-out md:gap-3"
+    >
+      {lane.state === "completed" && (
+        <Image
+          src={lane.youtubeDetails.thumbnail}
+          alt="img"
+          width={1280}
+          height={720}
+          className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+          quality={100}
+          priority
+        />
+      )}
+
+      {lane.state === "accepted" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
+              <Image
+                src={lane.youtubeDetails.thumbnail}
+                alt="img"
+                width={1280}
+                height={720}
+                className="h-[250px] w-full transform rounded-md object-cover object-center blur-xs brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                quality={100}
+                priority
+              />
+              <LoaderCircle
+                size={64}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin text-white"
+              />
             </div>
-        </Link>
-    );
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Creating Lane</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {lane.state === "failed" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
+              <Image
+                src={lane.youtubeDetails.thumbnail}
+                alt="img"
+                width={1280}
+                height={720}
+                className="h-[250px] w-full transform rounded-md object-cover object-center blur-xs brightness-30 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                quality={100}
+                priority
+              />
+              <OctagonAlert
+                size={64}
+                className="text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Failed to recreate lane, please retry</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      <div className="flex w-full pb-2 md:pb-3">
+        <div>
+          <CircularProgress
+            value={
+              Number(lane.totalChallenges) > 0
+                ? (Number(lane.challengesPassed) /
+                    Number(lane.totalChallenges)) *
+                  100
+                : 0
+            }
+            size={70}
+            strokeWidth={6}
+            circleStrokeWidth={6}
+            progressStrokeWidth={6}
+            showLabel
+            labelClassName="text-[10px] font-extrabold"
+            renderLabel={(_progress) =>
+              `${
+                Number(lane.totalChallenges) > 0
+                  ? `${Number(lane.challengesPassed)} /
+                      ${Number(lane.totalChallenges)}`
+                  : `0 / 0`
+              }`
+            }
+          />
+        </div>
+
+        <div className="flex w-full items-center justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <p className="line-clamp-1 text-lg font-black md:text-xl">
+              {lane.youtubeDetails.title}
+            </p>
+
+            <div className="flex items-center gap-px text-xs md:text-sm">
+              <span>{lane.totalAttempts} Attempts</span>
+              <Dot />
+              <span className="capitalize">{dateToNow(lane.updatedAt)}</span>
+            </div>
+          </div>
+        </div>
+
+        {activeTab !== "featured" && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="my-1 mr-2">
+              <EllipsisVertical className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-32" align="center">
+              <DropdownMenuGroup>
+                {lane.state != "accepted" && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={handleRetry}
+                      className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+                    >
+                      Retry Lane
+                    </DropdownMenuItem>
+                  </>
+                )}
+
+                <DropdownMenuItem
+                  onClick={handleAddToFeatured}
+                  className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+                >
+                  Add to Featured
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={handleRemove}
+                  className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+                >
+                  Remove Lane
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+    </Link>
+  );
 }

@@ -130,7 +130,7 @@ export const TasksTab = () => {
           </SectionContainer>
         )}
 
-        <SectionContainer>
+        {/* <SectionContainer>
           <h2 className="text-base font-semibold">Comment</h2>
           <Textarea
             placeholder="Additional comments..."
@@ -138,7 +138,7 @@ export const TasksTab = () => {
             onChange={(e) => handleInputChange(e, "comments")}
             className="border-brand-black/40 h-[100px] rounded-xl border border-solid"
           />
-        </SectionContainer>
+        </SectionContainer> */}
         <Button
           size={"lg"}
           disabled={mutation.isPending}
