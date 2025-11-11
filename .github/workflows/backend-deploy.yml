@@ -1,0 +1,55 @@
+name: CI/CD - Backend (Node + Bun)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**" # only trigger when backend changes
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        run: bun run tsc --noEmit
+
+      - name: Build project
+        run: bun run build
+
+      - name: Run tests (optional)
+        run: bun test --if-present
+
+      - name: Deploy to EC2
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+          SSH_KEY: ${{ secrets.EC2_KEY }}
+        run: |
+          echo "$SSH_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # copy build output and restart backend
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r dist package.json bun.lockb $USER@$HOST:~/app/
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+            cd ~/app
+            bun install --frozen-lockfile
+            pm2 restart my-backend || pm2 start dist/index.js --name my-backend
+          EOF
+
+          rm -f private_key.pem
