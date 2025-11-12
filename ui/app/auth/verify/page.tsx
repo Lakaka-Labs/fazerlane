@@ -1,6 +1,7 @@
 "use client";
 
 import { resendVerifyEmailM, verifyEmailM } from "@/api/mutations/auth/profile";
+import { InlineLoader } from "@/components/loader";
 import AuthTitle from "@/components/title/auth.title";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import axios from "axios";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function Verification() {
@@ -95,75 +96,81 @@ export default function Verification() {
 
   if (!vtoken) {
     return (
-      <div className="flex flex-col gap-5">
-        <AuthTitle title="Invalid Verification Link" />
-        <p className="text-center italic">
-          The verification link is invalid. Please check your email for the
-          correct link, or request a new verification email.
-        </p>
-      </div>
+      <Suspense fallback={<InlineLoader fill />}>
+        <div className="flex flex-col gap-5">
+          <AuthTitle title="Invalid Verification Link" />
+          <p className="text-center italic">
+            The verification link is invalid. Please check your email for the
+            correct link, or request a new verification email.
+          </p>
+        </div>
+      </Suspense>
     );
   }
 
   if (!isPending && isVerified) {
     return (
-      <div className="flex flex-col gap-5">
-        <AuthTitle title="Email Verified!" />
-        <p className="text-center italic">
-          Your email has been successfully verified. You can now close this tab
-          and log in to your account.
-        </p>
-        <Button asChild size={"lg"} className="w-full">
-          <Link href={appRoutes.auth.signIn}>Go to Login</Link>
-        </Button>
-      </div>
+      <Suspense fallback={<InlineLoader fill />}>
+        <div className="flex flex-col gap-5">
+          <AuthTitle title="Email Verified!" />
+          <p className="text-center italic">
+            Your email has been successfully verified. You can now close this
+            tab and log in to your account.
+          </p>
+          <Button asChild size={"lg"} className="w-full">
+            <Link href={appRoutes.auth.signIn}>Go to Login</Link>
+          </Button>
+        </div>
+      </Suspense>
     );
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <AuthTitle title="Email Verification" />
+    <Suspense fallback={<InlineLoader fill />}>
+      <div className="flex flex-col gap-5">
+        <AuthTitle title="Email Verification" />
 
-      {isPending && (
-        <div className="flex flex-col items-center gap-2">
-          <LoaderCircle size={32} className="text-primary animate-spin" />
-          <p className="text-center italic">
-            Verifying your email, please wait...
-          </p>
-        </div>
-      )}
+        {isPending && (
+          <div className="flex flex-col items-center gap-2">
+            <LoaderCircle size={32} className="text-primary animate-spin" />
+            <p className="text-center italic">
+              Verifying your email, please wait...
+            </p>
+          </div>
+        )}
 
-      {showResend && (
-        <div className="flex w-full flex-col gap-4">
-          <p className="text-center italic">
-            Verification failed or link expired.
-          </p>
+        {showResend && (
+          <div className="flex w-full flex-col gap-4">
+            <p className="text-center italic">
+              Verification failed or link expired.
+            </p>
 
-          {manualEmail && (
-            <div className="flex flex-col gap-2">
-              <Label>Email</Label>
-              <Input
-                type="email"
-                placeholder="you@example.com"
-                value={promptedUserEmail}
-                onChange={(e) => {
-                  setPromptedUserEmail(e.target.value);
-                }}
-              />
-            </div>
-          )}
+            {manualEmail && (
+              <div className="flex flex-col gap-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={promptedUserEmail}
+                  onChange={(e) => {
+                    setPromptedUserEmail(e.target.value);
+                  }}
+                />
+              </div>
+            )}
 
-          <Button
-            size={"lg"}
-            onClick={() => {
-              resendVerificationEmail();
-            }}
-            className="w-full"
-          >
-            Resend Verification Email
-          </Button>
-        </div>
-      )}
-    </div>
+            <Button
+              size={"lg"}
+              onClick={() => {
+                resendVerificationEmail();
+              }}
+              className="w-full"
+            >
+              Resend Verification Email
+            </Button>
+          </div>
+        )}
+      </div>
+    </Suspense>
   );
 }

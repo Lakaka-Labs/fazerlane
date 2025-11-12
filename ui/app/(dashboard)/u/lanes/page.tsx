@@ -4,7 +4,7 @@ import LearnCard from "@/components/cards/lane/lane.card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateLaneDialog } from "@/components/dialog/lane";
 import { motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { getFeaturedLanes, getLanes } from "@/api/queries/lane";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
@@ -121,109 +121,111 @@ export default function DUserHome() {
   }, [featuredLanesData]);
 
   return (
-    <div className="px-xLayout">
-      <Tabs
-        defaultValue={tabsTriggerArr[0].value}
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="gap-10"
-      >
-        <div className="flex flex-col items-center justify-center gap-6 lg:flex-row">
-          <TabsList className="flex justify-center gap-10 !bg-transparent p-2">
-            {tabsTriggerArr.map((tab) => {
-              const isActive = activeTab === tab.value;
-              return (
-                <div key={tab.value}>
-                  <motion.div whileTap={{ scale: 0.9 }}>
-                    <TabsTrigger
-                      value={tab.value}
-                      className="text-brand-black/40 data-[state=active]:text-brand-black !h-8 transform cursor-pointer !rounded-[6px] !bg-transparent !px-2.5 !py-2 text-sm font-normal !shadow-none transition-all duration-200 ease-linear"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  </motion.div>
+    <Suspense fallback={<InlineLoader fill />}>
+      <div className="px-xLayout">
+        <Tabs
+          defaultValue={tabsTriggerArr[0].value}
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="gap-10"
+        >
+          <div className="flex flex-col items-center justify-center gap-6 lg:flex-row">
+            <TabsList className="flex justify-center gap-10 !bg-transparent p-2">
+              {tabsTriggerArr.map((tab) => {
+                const isActive = activeTab === tab.value;
+                return (
+                  <div key={tab.value}>
+                    <motion.div whileTap={{ scale: 0.9 }}>
+                      <TabsTrigger
+                        value={tab.value}
+                        className="text-brand-black/40 data-[state=active]:text-brand-black !h-8 transform cursor-pointer !rounded-[6px] !bg-transparent !px-2.5 !py-2 text-sm font-normal !shadow-none transition-all duration-200 ease-linear"
+                      >
+                        {tab.label}
+                      </TabsTrigger>
+                    </motion.div>
 
-                  {isActive && (
-                    <motion.div
-                      layoutId="home-lane-tab-underline"
-                      className="bg-brand-text h-0.5 w-full"
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </TabsList>
-        </div>
+                    {isActive && (
+                      <motion.div
+                        layoutId="home-lane-tab-underline"
+                        className="bg-brand-text h-0.5 w-full"
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </TabsList>
+          </div>
 
-        <>
-          {lanesData && (
-            <TabsContent value={tabsTriggerArr[0].value}>
-              {lanesData.length < 1 && (
-                <div className="flex items-center justify-center py-28">
-                  <CreateLaneDialog />
-                </div>
-              )}
+          <>
+            {lanesData && (
+              <TabsContent value={tabsTriggerArr[0].value}>
+                {lanesData.length < 1 && (
+                  <div className="flex items-center justify-center py-28">
+                    <CreateLaneDialog />
+                  </div>
+                )}
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-                {lanesData.length > 0 &&
-                  lanesData.map((lane, index) => (
-                    <LearnCard key={index} lane={lane} />
-                  ))}
-              </div>
-
-              {lanesData.length > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="fixed right-5 bottom-5 z-10 flex w-fit items-center justify-center md:right-10 md:bottom-10">
-                      <CreateLaneDialog customTrigger={true} />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Create New Lane</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
-              {lanesData.length > 0 && (
-                <div
-                  ref={lanesLoaderRef}
-                  className="flex h-14 w-full items-center justify-center"
-                >
-                  {isFetchingNextPage && <InlineLoader fill />}
-                </div>
-              )}
-            </TabsContent>
-          )}
-
-          {featuredLanesData && (
-            <TabsContent value="featured">
-              {featuredLanesData.length < 1 && (
-                <div className="flex w-full justify-center py-10 text-center text-base font-medium">
-                  No available featured lane
-                </div>
-              )}
-
-              {featuredLanesData.length > 0 && (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-                  {featuredLanesData.map((lane, index) => (
-                    <LearnCard key={index} lane={lane} />
-                  ))}
+                  {lanesData.length > 0 &&
+                    lanesData.map((lane, index) => (
+                      <LearnCard key={index} lane={lane} />
+                    ))}
                 </div>
-              )}
 
-              {featuredLanesData.length > 0 && (
-                <div
-                  ref={featuredLoaderRef}
-                  className="flex h-14 w-full items-center justify-center"
-                >
-                  {featuredisFetchingNextPage && <InlineLoader fill />}
-                </div>
-              )}
-            </TabsContent>
-          )}
-        </>
-      </Tabs>
-    </div>
+                {lanesData.length > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="fixed right-5 bottom-5 z-10 flex w-fit items-center justify-center md:right-10 md:bottom-10">
+                        <CreateLaneDialog customTrigger={true} />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Create New Lane</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
+                {lanesData.length > 0 && (
+                  <div
+                    ref={lanesLoaderRef}
+                    className="flex h-14 w-full items-center justify-center"
+                  >
+                    {isFetchingNextPage && <InlineLoader fill />}
+                  </div>
+                )}
+              </TabsContent>
+            )}
+
+            {featuredLanesData && (
+              <TabsContent value="featured">
+                {featuredLanesData.length < 1 && (
+                  <div className="flex w-full justify-center py-10 text-center text-base font-medium">
+                    No available featured lane
+                  </div>
+                )}
+
+                {featuredLanesData.length > 0 && (
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+                    {featuredLanesData.map((lane, index) => (
+                      <LearnCard key={index} lane={lane} />
+                    ))}
+                  </div>
+                )}
+
+                {featuredLanesData.length > 0 && (
+                  <div
+                    ref={featuredLoaderRef}
+                    className="flex h-14 w-full items-center justify-center"
+                  >
+                    {featuredisFetchingNextPage && <InlineLoader fill />}
+                  </div>
+                )}
+              </TabsContent>
+            )}
+          </>
+        </Tabs>
+      </div>
+    </Suspense>
   );
 }
 
