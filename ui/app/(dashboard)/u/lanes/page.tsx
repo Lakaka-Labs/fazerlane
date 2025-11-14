@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateLaneDialog } from "@/components/dialog/lane";
 import { motion } from "motion/react";
 import { Suspense, useEffect, useRef } from "react";
-import { getFeaturedLanes, getLanes } from "@/api/queries/lane";
+import { getFeaturedLanes, getLanes } from "@/services/queries/lane";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   Tooltip,

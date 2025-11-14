@@ -1,6 +1,6 @@
 "use client";
 
-import { getLaneByID } from "@/api/queries/lane/get.lane-by-id";
+import { getLaneByID } from "@/services/queries/lane/get.lane-by-id";
 import { InlineLoader } from "@/components/loader";
 import { challegeTabs } from "@/components/tabs/challenge/components";
 import { queryStateParams } from "@/config/routes";
@@ -66,7 +66,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
   return (
     <div className="md:max-w-sidebarmw shadow-brand-shadow sticky flex min-h-[500px] w-full max-w-full flex-col gap-6 overflow-y-auto rounded-[12px] bg-white p-3 md:m-1 md:min-h-full md:p-6">
       {laneData && (
-        <h1 className="flex gap-2 text-base font-extrabold items-center">
+        <h1 className="flex items-center gap-2 text-base font-extrabold">
           <div className="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
             <Image
               src={"/icons/yt-white.png"}

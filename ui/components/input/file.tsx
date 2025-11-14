@@ -1,6 +1,6 @@
 "use client";
 
-import { uploadFile } from "@/api/mutations/storage/upload";
+import { uploadFile } from "@/services/mutations/storage/upload";
 import { FileData } from "@/types/api/challenges/tasks";
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";

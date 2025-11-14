@@ -22,11 +22,11 @@ import Link from "next/link";
 import AuthTitle from "@/components/title/auth.title";
 import toast from "react-hot-toast";
 import { usePersistStore } from "@/store/persist.store";
-import { signInM } from "@/api/mutations/auth/auth";
+import { signInM } from "@/services/mutations/auth/auth";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { googleLoginQ } from "@/api/queries/auth/auth";
+import { googleLoginQ } from "@/services/queries/auth/auth";
 import { parseAsString, useQueryState } from "nuqs";
 import { setTokensToCookies } from "@/config/axios";
 

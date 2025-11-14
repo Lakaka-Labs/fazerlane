@@ -5,7 +5,7 @@ import { ArrowDownToLine, ChevronDown, Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { SectionContainer } from "./components";
 import { useQuery } from "@tanstack/react-query";
-import { getSubmissions } from "@/api/queries/challenge/submissions/get";
+import { getSubmissions } from "@/services/queries/challenge/submissions/get";
 import { InlineLoader } from "@/components/loader";
 import { dateToNow } from "@/utils/date-to-now";
 import Image from "next/image";
