@@ -22,7 +22,8 @@ export default class Services {
             adapters.youtubeRepository,
             adapters.resourceRepository,
             adapters.progressRepository,
-            adapters.parameters.appSecrets
+            adapters.parameters.appSecrets,
+            adapters.challengeRepository
         )
         this.challengeService = new ChallengeService(
             adapters.laneRepository,

@@ -10,7 +10,9 @@ import type LLMRepository from "../../../domain/llm/repository.ts";
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
 import {type Challenge, convertChallengeToString} from "../../../domain/challenge";
 import {challengePrompt} from "../../../../packages/prompts/challenge.ts";
+import type {Lane} from "../../../domain/lane";
 
+type Split = { startTime: number, endTime: number }
 export default class GenerateChallenge {
     appSecrets: AppSecrets
     laneRepository: LaneRepository
@@ -45,38 +47,25 @@ export default class GenerateChallenge {
                 message: `generating`,
                 type: "success",
             });
-
+            let totalInput = 0
+            let totalOutput = 0
             const lane = await this.laneRepository.getById(laneId)
-            const messages: Message[] = [
-                {text: challengePrompt()},
-                {
-                    data: {
-                        fileUri: `https://www.youtube.com/watch?v=${lane.youtube}`,
-                        ...(lane.startTime && {startOffset: lane.startTime}),
-                        ...(lane.endTime && {endOffset: lane.endTime}),
-                    }
-                }
-            ];
-            const inputToken = await this.llmRepository.getTokens(messages);
-            console.log(inputToken)
-            const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages);
-            console.log(outputToken)
-            const challenges = this.extractChallenges(llmResult);
-            const embeddings = await this.llmRepository.generateEmbedding(challenges.map((c)=>{
-                return convertChallengeToString(c)
-            }))
-            await this.challengeRepository.add(laneId, challenges.map((c,i)=>{
-                return {...c, embedding: embeddings[i]?.embedding || []}
-            }));
-
+            let splits = lane.youtubeDetails?.duration ? this.splitDuration(lane.youtubeDetails?.duration) : []
+            for await (const split of splits) {
+                const {inputToken, outputToken} = await this.withRetry(() => this.generate(split, lane));
+                totalOutput += outputToken
+                totalInput += inputToken
+            }
             await this.sendProgress({
                 lane: laneId,
                 message: `completed`,
                 type: "success",
             });
             await this.laneRepository.update(laneId, {state: "completed"});
-        } catch (e) {
+        } catch
+            (e) {
             console.log(e)
+            await this.challengeRepository.remove(laneId);
             if (attempts >= maxAttempt) {
                 const message = `failed`;
                 await this.updateLaneAsFailed(laneId, message);
@@ -91,7 +80,72 @@ export default class GenerateChallenge {
         }
     }
 
-    private async updateLaneAsFailed(laneId: string, message: string): Promise<void> {
+    async withRetry<T>(
+        fn: () => Promise<T>,
+        maxAttempts: number = 3,
+        baseDelay: number = 61000
+    ): Promise<T> {
+        let lastError: Error;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                return await fn();
+            } catch (e) {
+                lastError = e instanceof Error ? e : new Error(String(e));
+                const isLastAttempt = attempt === maxAttempts - 1;
+
+                console.log(
+                    `Attempt ${attempt + 1}/${maxAttempts} failed:`,
+                    lastError.message
+                );
+
+                if (isLastAttempt) throw lastError;
+
+                // Exponential backoff
+                const delay = baseDelay * Math.pow(2, attempt);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+
+        // TypeScript requires this, though it's unreachable
+        throw lastError!;
+    }
+
+    private generate = async (split: Split, lane: Lane): Promise<{
+        inputToken: number,
+        outputToken: number
+    }> => {
+        let previousChallenges = await this.challengeRepository.get(lane.id)
+        const messages: Message[] = [
+            {text: challengePrompt(previousChallenges)},
+            {
+                data: {
+                    fileUri: `https://www.youtube.com/watch?v=${lane.youtube}`,
+                    ...(split.startTime && {startOffset: split.startTime}),
+                    ...(split.endTime && {endOffset: split.endTime}),
+                }
+            }
+        ];
+        const inputToken = await this.llmRepository.getTokens(messages);
+        const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages);
+        const challenges = this.extractChallenges(llmResult);
+        const embeddings = await this.llmRepository.generateEmbedding(challenges.map((c) => {
+            return convertChallengeToString(c)
+        }))
+        await this.challengeRepository.add(lane.id, challenges.map((c, i) => {
+            return {...c, embedding: embeddings[i]?.embedding || []}
+        }));
+        await new Promise(resolve => setTimeout(resolve, 61000))
+        return {inputToken, outputToken}
+    }
+
+    private async updateLaneAsFailed(laneId
+                                     :
+                                     string, message
+                                     :
+                                     string
+    ):
+        Promise<void> {
         await this.laneRepository.update(laneId, {state: "failed"});
         await this.sendProgress({
             lane: laneId,
@@ -100,7 +154,11 @@ export default class GenerateChallenge {
         });
     }
 
-    private extractChallenges(raw: string): Omit<Challenge, "id" | "lane">[] {
+    private extractChallenges(raw
+                              :
+                              string
+    ):
+        Omit<Challenge, "id" | "lane"> [] {
         const jsonMatch = raw.match(/```json\s*([\s\S]*?)\s*```/) ||
             raw.match(/\[\s*{[\s\S]*}\s*\]/);
 
@@ -119,8 +177,13 @@ export default class GenerateChallenge {
         return challenges;
     }
 
-    private validateChallenges(challenges: Omit<Challenge, "id" | "lane">[]): void {
-        for (const c of challenges) {
+    private validateChallenges(challenges
+                               :
+                               Omit<Challenge, "id" | "lane"> []
+    ):
+        void {
+        for (const c of challenges
+            ) {
             if (!c.title || !c.objective || !c.assignment ||
                 !Array.isArray(c.submissionFormat) || !c.difficulty || !c.instruction ||
                 !Array.isArray(c.references)) {
@@ -129,8 +192,29 @@ export default class GenerateChallenge {
         }
     }
 
-    sendProgress = async (progress: BaseProgress) => {
+    private sendProgress = async (progress: BaseProgress) => {
         await this.progressRepository.add(progress)
         this.progressWebsocketRepository.Broadcast({data: progress}, progress.lane)
     }
+
+
+    private splitDuration = (duration: number, maxLength: number = 1800): Split[] => {
+        const segments: { startTime: number, endTime: number }[] = [];
+
+        let currentTime = 0;
+
+        while (currentTime < duration) {
+            const startTime = currentTime;
+            const endTime = Math.min(currentTime + maxLength, duration);
+
+            segments.push({
+                startTime: startTime,
+                endTime: endTime
+            });
+
+            currentTime = endTime + 1;
+        }
+
+        return segments;
+    };
 }

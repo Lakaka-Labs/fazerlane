@@ -14,11 +14,16 @@ export default class ChallengePG implements ChallengeRepository {
 
     add = async (laneId: string, challenges: Omit<Challenge, "id" | "lane">[]): Promise<void> => {
         await this.sql.begin(async tx => {
-            await tx`DELETE
-                     FROM challenges
-                     WHERE lane = ${laneId}`;
-
-            const challengeParameters = challenges.map((c,index) => ({
+            // await tx`DELETE
+            //          FROM challenges
+            //          WHERE lane = ${laneId}`;
+            const [last] = await tx<{ position: number }[]>`SELECT position
+                                                            FROM challenges
+                                                            WHERE lane = ${laneId}
+                                                            ORDER BY position DESC
+                                                            LIMIT 1`
+            let startPosition = last?.position ? last.position + 1 : 0
+            const challengeParameters = challenges.map((c, index) => ({
                 lane: laneId,
                 title: c.title,
                 objective: c.objective,
@@ -26,7 +31,7 @@ export default class ChallengePG implements ChallengeRepository {
                 assignment: c.assignment,
                 submission_format: `{${c.submissionFormat.map((item) => `${item}`).join(',')}}`,
                 difficulty: c.difficulty,
-                position: index,
+                position: index + startPosition,
                 embedding: `${JSON.stringify(c.embedding)}`
             }));
 
@@ -62,6 +67,11 @@ export default class ChallengePG implements ChallengeRepository {
         });
     };
 
+    remove = async (laneId: string): Promise<void> => {
+        await this.sql`DELETE
+                       FROM challenges
+                       WHERE lane = ${laneId}`;
+    }
     get = async (laneId: string, userId?: string, filter?: ChallengeFilter): Promise<Challenge[]> => {
         // Calculate pagination offset
         const offset = filter?.page && filter?.limit ? (filter.page - 1) * filter.limit : 0;
@@ -69,36 +79,36 @@ export default class ChallengePG implements ChallengeRepository {
 
         // Get challenges with their references and user completion/attempt data
         const result = await this.sql`
-        SELECT c.id,
-               c.lane,
-               c.title,
-               c.objective,
-               c.instruction,
-               c.assignment,
-               c.submission_format,
-               c.difficulty,
-               c.position,
+            SELECT c.id,
+                   c.lane,
+                   c.title,
+                   c.objective,
+                   c.instruction,
+                   c.assignment,
+                   c.submission_format,
+                   c.difficulty,
+                   c.position,
 
-               -- References as JSON aggregation
-               COALESCE(
-                               JSON_AGG(
-                               CASE
-                                   WHEN cr.id IS NOT NULL THEN
-                                       JSON_BUILD_OBJECT(
-                                               'challenge', c.title,
-                                               'location', JSON_BUILD_OBJECT(
-                                                       'startTime', cr.start_time,
-                                                       'endTime', cr.end_time
-                                                           ),
-                                               'purpose', cr.purpose
-                                       )
-                                   END
-                                       ) FILTER (WHERE cr.id IS NOT NULL),
-                               '[]'::json
-               ) as "references",
+                   -- References as JSON aggregation
+                   COALESCE(
+                                   JSON_AGG(
+                                   CASE
+                                       WHEN cr.id IS NOT NULL THEN
+                                           JSON_BUILD_OBJECT(
+                                                   'challenge', c.title,
+                                                   'location', JSON_BUILD_OBJECT(
+                                                           'startTime', cr.start_time,
+                                                           'endTime', cr.end_time
+                                                               ),
+                                                   'purpose', cr.purpose
+                                           )
+                                       END
+                                           ) FILTER (WHERE cr.id IS NOT NULL),
+                                   '[]'::json
+                   ) as "references",
 
-               -- User completion status (only when userId is provided)
-               ${userId ? this.sql`
+                   -- User completion status (only when userId is provided)
+                   ${userId ? this.sql`
            CASE 
                WHEN cu.user_id IS NOT NULL THEN true 
                ELSE false 
@@ -111,9 +121,9 @@ export default class ChallengePG implements ChallengeRepository {
            NULL as "attemptsCount"
        `}
 
-        FROM challenges c
-                 LEFT JOIN challenge_references cr ON c.id = cr.challenge
-            ${userId ? this.sql`
+            FROM challenges c
+                     LEFT JOIN challenge_references cr ON c.id = cr.challenge
+                ${userId ? this.sql`
              LEFT JOIN challenge_users cu ON c.id = cu.challenge_id AND cu.user_id = ${userId}
              LEFT JOIN (
                  SELECT 
@@ -124,16 +134,16 @@ export default class ChallengePG implements ChallengeRepository {
                  GROUP BY challenge_id
              ) ca ON c.id = ca.challenge_id
          ` : this.sql``}
-        WHERE c.lane = ${laneId}
-            ${filter?.fromPosition !== undefined ? this.sql`AND c.position >= ${filter.fromPosition}` : this.sql``}
-            ${filter?.toPosition !== undefined ? this.sql`AND c.position <= ${filter.toPosition}` : this.sql``}
-        GROUP BY c.id, c.lane, c.title, c.objective, c.instruction, c.assignment, c.submission_format, c.difficulty,
-                 c.position
-                     ${userId ? this.sql`, cu.user_id, ca.attempts_count` : this.sql``}
-        ORDER BY ${filter?.order === 'desc' ? this.sql`c.position DESC` : this.sql`c.position ASC`}
-        ${limit !== undefined ? this.sql`LIMIT ${limit}` : this.sql``}
-        ${offset > 0 ? this.sql`OFFSET ${offset}` : this.sql``}
-    `;
+            WHERE c.lane = ${laneId}
+                ${filter?.fromPosition !== undefined ? this.sql`AND c.position >= ${filter.fromPosition}` : this.sql``}
+                ${filter?.toPosition !== undefined ? this.sql`AND c.position <= ${filter.toPosition}` : this.sql``}
+            GROUP BY c.id, c.lane, c.title, c.objective, c.instruction, c.assignment, c.submission_format, c.difficulty,
+                     c.position
+                         ${userId ? this.sql`, cu.user_id, ca.attempts_count` : this.sql``}
+            ORDER BY ${filter?.order === 'desc' ? this.sql`c.position DESC` : this.sql`c.position ASC`}
+        `;
+        // ${limit !== undefined ? this.sql`LIMIT ${limit}` : this.sql``}
+        // ${offset > 0 ? this.sql`OFFSET ${offset}` : this.sql``}
 
         // Transform the result to match the Challenge type structure
         return result.map((row: any) => {
@@ -174,39 +184,39 @@ export default class ChallengePG implements ChallengeRepository {
 
         // Get challenges with similarity above threshold
         const result = await this.sql`
-        SELECT c.id,
-               c.lane,
-               c.title,
-               c.objective,
-               c.instruction,
-               c.assignment,
-               c.submission_format,
-               c.difficulty,
-               c.position,
-               
-               -- Calculate cosine similarity (1 - cosine distance)
-               1 - (c.embedding <=> ${JSON.stringify(embedding)}::vector) as similarity,
+            SELECT c.id,
+                   c.lane,
+                   c.title,
+                   c.objective,
+                   c.instruction,
+                   c.assignment,
+                   c.submission_format,
+                   c.difficulty,
+                   c.position,
 
-               -- References as JSON aggregation
-               COALESCE(
-                   JSON_AGG(
-                       CASE
-                           WHEN cr.id IS NOT NULL THEN
-                               JSON_BUILD_OBJECT(
-                                   'challenge', c.title,
-                                   'location', JSON_BUILD_OBJECT(
-                                       'startTime', cr.start_time,
-                                       'endTime', cr.end_time
-                                   ),
-                                   'purpose', cr.purpose
-                               )
-                       END
-                   ) FILTER (WHERE cr.id IS NOT NULL),
-                   '[]'::json
-               ) as "references",
+                   -- Calculate cosine similarity (1 - cosine distance)
+                   1 - (c.embedding <=> ${JSON.stringify(embedding)}::vector) as similarity,
 
-               -- User completion status (only when userId is provided)
-               ${userId ? this.sql`
+                   -- References as JSON aggregation
+                   COALESCE(
+                                   JSON_AGG(
+                                   CASE
+                                       WHEN cr.id IS NOT NULL THEN
+                                           JSON_BUILD_OBJECT(
+                                                   'challenge', c.title,
+                                                   'location', JSON_BUILD_OBJECT(
+                                                           'startTime', cr.start_time,
+                                                           'endTime', cr.end_time
+                                                               ),
+                                                   'purpose', cr.purpose
+                                           )
+                                       END
+                                           ) FILTER (WHERE cr.id IS NOT NULL),
+                                   '[]'::json
+                   )                                                          as "references",
+
+                   -- User completion status (only when userId is provided)
+                   ${userId ? this.sql`
                    CASE 
                        WHEN cu.user_id IS NOT NULL THEN true 
                        ELSE false 
@@ -219,9 +229,9 @@ export default class ChallengePG implements ChallengeRepository {
                    NULL as "attemptsCount"
                `}
 
-        FROM challenges c
-        LEFT JOIN challenge_references cr ON c.id = cr.challenge
-        ${userId ? this.sql`
+            FROM challenges c
+                     LEFT JOIN challenge_references cr ON c.id = cr.challenge
+                ${userId ? this.sql`
             LEFT JOIN challenge_users cu ON c.id = cu.challenge_id AND cu.user_id = ${userId}
             LEFT JOIN (
                 SELECT 
@@ -232,14 +242,16 @@ export default class ChallengePG implements ChallengeRepository {
                 GROUP BY challenge_id
             ) ca ON c.id = ca.challenge_id
         ` : this.sql``}
-        WHERE c.embedding IS NOT NULL
-            AND (1 - (c.embedding <=> ${JSON.stringify(embedding)}::vector)) >= ${threshold || 0.7} AND c.lane = ${lane}
-        GROUP BY c.id, c.lane, c.title, c.objective, c.instruction, c.assignment, 
-                 c.submission_format, c.difficulty, c.position, c.embedding
-                 ${userId ? this.sql`, cu.user_id, ca.attempts_count` : this.sql``}
-        ORDER BY similarity DESC
-        LIMIT ${limit || 10}
-    `;
+            WHERE c.embedding IS NOT NULL
+              AND (1 - (c.embedding <=> ${JSON.stringify(embedding)}::vector)) >= ${threshold || 0.7}
+              AND c.lane = ${lane}
+            GROUP BY c.id, c.lane, c.title, c.objective, c.instruction, c.assignment,
+                     c.submission_format, c.difficulty, c.position,
+                     c.embedding
+                         ${userId ? this.sql`, cu.user_id, ca.attempts_count` : this.sql``}
+            ORDER BY similarity DESC
+            LIMIT ${limit || 10}
+        `;
 
         // Transform the result to match the Challenge type structure
         return result.map((row: any) => {
@@ -347,7 +359,8 @@ export default class ChallengePG implements ChallengeRepository {
                    ) as "references"
             FROM challenges c
                      LEFT JOIN challenge_references cr ON c.id = cr.challenge
-            WHERE c.lane = ${laneId} AND c.position = ${position}
+            WHERE c.lane = ${laneId}
+              AND c.position = ${position}
             GROUP BY c.id
         `;
 
@@ -415,14 +428,14 @@ export default class ChallengePG implements ChallengeRepository {
             let parameter = {
                 user_id: feedback.userId,
                 challenge_id: feedback.challengeId,
-                feedback:feedback.feedback,
+                feedback: feedback.feedback,
                 pass: feedback.pass,
                 ...(feedback.files && {files: `{${feedback.files.map((item) => `${item}`).join(',')}}`,}),
-                ...(feedback.textSubmission && {text_submission:feedback.textSubmission}),
+                ...(feedback.textSubmission && {text_submission: feedback.textSubmission}),
                 ...(feedback.comment && {comment: feedback.comment}),
             }
             await tx`
-                INSERT INTO challenge_attempts ${tx(parameter)} 
+                INSERT INTO challenge_attempts ${tx(parameter)}
             `;
             if (feedback.pass) await tx`
                 INSERT INTO challenge_users (user_id, challenge_id)
@@ -467,29 +480,29 @@ export default class ChallengePG implements ChallengeRepository {
         const offset = (page - 1) * limit;
 
         const result = await this.sql`
-        SELECT ca.id,
-               ca.user_id      as "userId",
-               ca.challenge_id as "challengeId",
-               ca.feedback,
-               ca.pass,
-               ca.files,
-               ca.text_submission as "textSubmission",
-               ca.comment,
-               ca.created_at   as "createdAt",
-               COALESCE(
-                   array_agg(so.public_url ORDER BY array_position(ca.files, so.id::text)) 
-                   FILTER (WHERE so.public_url IS NOT NULL),
-                   '{}'
-               ) as "filesUrl"
-        FROM challenge_attempts ca
-        LEFT JOIN storage_objects so ON so.id::text = ANY(ca.files)
-        WHERE ca.challenge_id = ${id}
-          AND ca.user_id = ${userId}
-        GROUP BY ca.id, ca.user_id, ca.challenge_id, ca.feedback, ca.pass, 
-                 ca.files, ca.text_submission, ca.comment, ca.created_at
-        ORDER BY ca.created_at DESC
-        LIMIT ${limit} OFFSET ${offset}
-    `;
+            SELECT ca.id,
+                   ca.user_id         as "userId",
+                   ca.challenge_id    as "challengeId",
+                   ca.feedback,
+                   ca.pass,
+                   ca.files,
+                   ca.text_submission as "textSubmission",
+                   ca.comment,
+                   ca.created_at      as "createdAt",
+                   COALESCE(
+                                   array_agg(so.public_url ORDER BY array_position(ca.files, so.id::text))
+                                   FILTER (WHERE so.public_url IS NOT NULL),
+                                   '{}'
+                   )                  as "filesUrl"
+            FROM challenge_attempts ca
+                     LEFT JOIN storage_objects so ON so.id::text = ANY (ca.files)
+            WHERE ca.challenge_id = ${id}
+              AND ca.user_id = ${userId}
+            GROUP BY ca.id, ca.user_id, ca.challenge_id, ca.feedback, ca.pass,
+                     ca.files, ca.text_submission, ca.comment, ca.created_at
+            ORDER BY ca.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
 
         return result.map((row: any) => ({
             id: row.id,

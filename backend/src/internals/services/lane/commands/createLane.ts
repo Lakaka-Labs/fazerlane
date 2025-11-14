@@ -27,10 +27,10 @@ export default class CreateLane {
         let video = await this.youtubeRepository.getDetails(youtube)
         if (endTime && endTime > video.duration) throw new BadRequestError(`end time is longer than video`);
         if (startTime && startTime > video.duration) throw new BadRequestError(`start time is longer than video`);
-        const duration = (endTime || video.duration) - (startTime || 0);
-        if (duration > this.appSecrets.maxYoutubeLength) {
-            throw new BadRequestError(`video: ${youtube} is too long`);
-        }
+        // const duration = (endTime || video.duration) - (startTime || 0);
+        // if (duration > this.appSecrets.maxYoutubeLength) {
+        //     throw new BadRequestError(`video: ${youtube} is too long`);
+        // }
         let yts = await this.resourceRepository.addYoutubes([video])
         if (!yts[0]) throw new Error("failed to add youtube video")
         let laneId = await this.laneRepository.create(creator, yts[0], startTime, endTime)

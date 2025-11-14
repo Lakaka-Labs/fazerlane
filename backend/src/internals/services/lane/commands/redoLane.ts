@@ -8,28 +8,23 @@ import {QueueName} from "../../../domain/queue";
 import type {Youtube} from "../../../domain/resource";
 import type ResourceRepository from "../../../domain/resource/repository.ts";
 import type ProgressRepository from "../../../domain/progress/repository.ts";
+import type ChallengeRepository from "../../../domain/challenge/repository.ts";
 
 export default class RedoLane {
-    appSecrets: AppSecrets
-    laneRepository: LaneRepository
-    queueRepository: QueueRepository
-    youtubeRepository: YoutubeRepository
-    resourceRepository: ResourceRepository
-    progressRepository: ProgressRepository
 
-    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, progressRepository: ProgressRepository, appSecrets: AppSecrets) {
-        this.laneRepository = laneRepository
-        this.queueRepository = queueRepository
-        this.youtubeRepository = youtubeRepository
-        this.resourceRepository = resourceRepository
-        this.progressRepository = progressRepository
-        this.appSecrets = appSecrets
+    constructor(
+        private readonly laneRepository: LaneRepository,
+        private readonly queueRepository: QueueRepository,
+        private readonly progressRepository: ProgressRepository,
+        private readonly challengeRepository: ChallengeRepository
+    ) {
     }
 
     async handle(id: string): Promise<void> {
         const original = await this.laneRepository.getById(id)
         if (original.state != "failed" && original.state != "completed") throw new BadRequestError("you can only redo a completed or failed lane")
         await this.progressRepository.delete(id)
+        await this.challengeRepository.remove(id)
         await this.laneRepository.update(id, {state: "accepted"})
         await this.queueRepository.addJob(QueueName.challengeGeneration, {laneId: id})
     }
