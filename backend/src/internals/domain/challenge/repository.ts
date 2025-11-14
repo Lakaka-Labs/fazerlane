@@ -3,6 +3,7 @@ import type BaseFilter from "../../../packages/types/filter";
 
 export default interface ChallengeRepository {
     add: (laneId: string, challenges: Omit<Challenge, "id" | "lane">[]) => Promise<void>
+    remove: (laneId: string) => Promise<void>
     get: (laneId: string, userId?: string, filter?: ChallengeFilter) => Promise<Challenge[]>
     getSimilar: (
         embedding: number[],

@@ -13,6 +13,7 @@ import AddLane from "./commands/addLane.ts";
 import GetLaneByID from "./queries/getLaneByID.ts";
 import RemoveLane from "./commands/removeLane.ts";
 import GetFeaturedLanes from "./queries/getFeaturedLanes.ts";
+import type ChallengeRepository from "../../domain/challenge/repository.ts";
 
 export class Commands {
     createLane: CreateLane
@@ -20,9 +21,9 @@ export class Commands {
     addLane: AddLane
     removeLane: RemoveLane
 
-    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, progressRepository: ProgressRepository, appSecrets: AppSecrets) {
+    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, progressRepository: ProgressRepository, appSecrets: AppSecrets,challengeRepository: ChallengeRepository) {
         this.createLane = new CreateLane(laneRepository, queueRepository, youtubeRepository, resourceRepository, appSecrets)
-        this.redoLane = new RedoLane(laneRepository, queueRepository, youtubeRepository, resourceRepository, progressRepository, appSecrets)
+        this.redoLane = new RedoLane(laneRepository, queueRepository, progressRepository, challengeRepository)
         this.addLane = new AddLane(laneRepository)
         this.removeLane = new RemoveLane(laneRepository)
     }
@@ -47,8 +48,8 @@ export default class LaneService {
     commands: Commands
     queries: Queries
 
-    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, progressRepository: ProgressRepository, appSecrets: AppSecrets) {
-        this.commands = new Commands(laneRepository, queueRepository, youtubeRepository, resourceRepository, progressRepository, appSecrets)
+    constructor(laneRepository: LaneRepository, queueRepository: QueueRepository, youtubeRepository: YoutubeRepository, resourceRepository: ResourceRepository, progressRepository: ProgressRepository, appSecrets: AppSecrets,challengeRepository: ChallengeRepository) {
+        this.commands = new Commands(laneRepository, queueRepository, youtubeRepository, resourceRepository, progressRepository, appSecrets,challengeRepository)
         this.queries = new Queries(progressRepository,laneRepository)
     }
 }
