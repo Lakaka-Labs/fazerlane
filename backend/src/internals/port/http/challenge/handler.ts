@@ -90,13 +90,13 @@ export default class ChallengeHandler extends ChallengeSchema {
         const creator = (req.user as User).id;
         const challengeId = req.params.challengeId;
         if (!challengeId) throw new BadRequestError("provide challenge id")
-        const filter : BaseFilter = {
+        const filter: BaseFilter = {
             page: Number(req.query.page),
             limit: Number(req.query.limit)
         }
 
 
-        const attempts = await this.challengeService.queries.getAttempts.handle(challengeId, creator,filter)
+        const attempts = await this.challengeService.queries.getAttempts.handle(challengeId, creator, filter)
         new SuccessResponse(res, {attempts}).send();
     }
 
@@ -134,7 +134,51 @@ export default class ChallengeHandler extends ChallengeSchema {
         if (req.body.text) parameters.text = req.body.text
         if (req.body.comment) parameters.comment = req.body.comment
         if (req.body.files) parameters.files = req.body.files
-        const {pass, feedback} = await this.challengeService.commands.markChallenge.handle(parameters)
-        new SuccessResponse(res, {pass, feedback}).send();
+
+        // Set up SSE headers
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+
+        // Create abort controller for this request
+        const abortController = new AbortController();
+
+        // Handle client disconnect
+        req.on('close', () => {
+            abortController.abort();
+        });
+        try {
+            const {generator, challengeId} =
+                await this.challengeService.commands.markChallenge.handle(parameters)
+
+            // Send initial metadata
+            res.write(`data: ${JSON.stringify({
+                type: 'started',
+                challengeId,
+            })}\n\n`);
+
+            // Stream the response
+            for await (const chunk of generator) {
+                if (abortController.signal.aborted) {
+                    break;
+                }
+                res.write(`data: ${chunk}\n\n`);
+            }
+
+            // End the stream
+            res.end();
+
+        } catch (error) {
+            console.error('SSE streaming error:', error);
+
+            // Send error event
+            res.write(`data: ${JSON.stringify({
+                type: 'error',
+                error: error instanceof Error ? error.message : 'Unknown error'
+            })}\n\n`);
+
+            res.end();
+        }
     }
 }
