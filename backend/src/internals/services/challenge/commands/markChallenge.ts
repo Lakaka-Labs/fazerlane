@@ -193,7 +193,7 @@ export default class MarkChallenge {
         storageObjects?: StorageObject[],
     ): Promise<Message[]> {
         const messages: Message[] = [{
-            text: submissionPrompt(challenge, recentChallenges, nextChallenge, previousFeedbacks, text, comment)
+            text: submissionPrompt(challenge, recentChallenges, nextChallenge, previousFeedbacks, text)
         }];
 
         if (storageObjects?.length) {
