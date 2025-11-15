@@ -1,4 +1,15 @@
 services:
+  backend:
+    build: .
+    container_name: fazerlane_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5000:5000"
+    networks:
+      - fazerlane_network
+
   postgres:
     image: ankane/pgvector
     container_name: postgres_db
@@ -8,7 +19,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5433:5432"
+      - "5433:5433"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
