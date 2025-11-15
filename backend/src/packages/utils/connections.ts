@@ -13,7 +13,7 @@ export const bunPostgresClientConnection = (credentials: PostgresCredentials) =>
         database: credentials.db,
         username: credentials.user,
         password: credentials.password,
-        tls: credentials.ssl,
+        ssl: credentials.ssl,
 
         onconnect: client => {
         },
