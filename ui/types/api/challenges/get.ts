@@ -11,6 +11,7 @@ export interface ChallengeReference {
 
 export interface Challenge {
   id: string;
+  position: number;
   lane: string;
   title: string;
   objective: string;

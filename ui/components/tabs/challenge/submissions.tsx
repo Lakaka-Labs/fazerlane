@@ -30,7 +30,7 @@ export const SubmissionsTab = () => {
         <div className="flex flex-col gap-6">
           {isLoading && (
             <div className="flex h-full w-full items-center justify-center py-10">
-              <InlineLoader />
+              <InlineLoader fill />
             </div>
           )}
 
@@ -216,7 +216,7 @@ function FileDisplay({ url, className }: FileDisplayProps) {
   }, [url]);
 
   if (loading) {
-    return <InlineLoader />;
+    return <InlineLoader fill />;
   }
 
   if (!fileType) {

@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { DetailsTab } from "./details";
 import { SubmissionsTab } from "./submissions";
 import { TasksTab } from "./tasks";
@@ -18,14 +19,16 @@ export const SectionContainer = ({
 export const SectionContent = ({
   title,
   content,
+  contentClassName,
 }: {
   title: string;
   content: string;
+  contentClassName?: string;
 }) => {
   return (
     <SectionContainer>
       <h2 className="text-base font-semibold">{title}</h2>
-      <div className="text-sm font-normal">
+      <div className={cn("text-base font-normal", contentClassName)}>
         <ReactMarkdown>{content}</ReactMarkdown>
       </div>
     </SectionContainer>

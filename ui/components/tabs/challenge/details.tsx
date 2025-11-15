@@ -43,7 +43,7 @@ export const DetailsTab = () => {
 
         {loadingLaneData && (
           <div className="flex w-full justify-center">
-            <InlineLoader />
+            <InlineLoader fill />
           </div>
         )}
 

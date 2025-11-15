@@ -122,7 +122,7 @@ export default function DUserHome() {
 
   return (
     <Suspense fallback={<InlineLoader fill />}>
-      <div className="px-xLayout">
+      <div className="lg:px-xLayout px-4">
         <Tabs
           defaultValue={tabsTriggerArr[0].value}
           value={activeTab}

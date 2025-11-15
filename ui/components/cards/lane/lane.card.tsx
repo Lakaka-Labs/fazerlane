@@ -41,9 +41,94 @@ interface LearnCardProps {
 
 export default function LearnCard({ lane }: LearnCardProps) {
   // const router = useRouter();
-  const [activeTab] = useQueryState("tab");
 
+  if (lane.state !== "completed") {
+    return (
+      <div className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col gap-2 rounded-md transition-all duration-200 ease-in-out md:gap-3">
+        {lane.state === "accepted" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
+                <Image
+                  src={lane.youtubeDetails.thumbnail}
+                  alt="img"
+                  width={1280}
+                  height={720}
+                  className="h-[250px] w-full transform rounded-md object-cover object-center opacity-20 brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                  quality={100}
+                  priority
+                />
+                <div className="bg-brand-deep-black/60 absolute top-1/2 left-1/2 flex h-[250px] w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md group-hover:rounded-t-md group-hover:rounded-b-none">
+                  <LoaderCircle size={64} className="animate-spin text-white" />
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Creating Lane</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {lane.state === "failed" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
+                <Image
+                  src={lane.youtubeDetails.thumbnail}
+                  alt="img"
+                  width={1280}
+                  height={720}
+                  className="h-[250px] w-full transform rounded-md object-cover object-center opacity-20 brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                  quality={100}
+                  priority
+                />
+                <div className="bg-brand-deep-black/60 absolute top-1/2 left-1/2 flex h-[250px] w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md group-hover:rounded-t-md group-hover:rounded-b-none">
+                  <OctagonAlert
+                    size={64}
+                    className="text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse"
+                  />
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Failed to recreate lane, please retry</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        <ProgressCardSection lane={lane} />
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={
+        lane.state !== "completed"
+          ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
+          : appRoutes.dashboard.user.challanges(lane.id)
+      }
+      className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col gap-2 rounded-md transition-all duration-200 ease-in-out md:gap-3"
+    >
+      {lane.state === "completed" && (
+        <Image
+          src={lane.youtubeDetails.thumbnail}
+          alt="img"
+          width={1280}
+          height={720}
+          className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+          quality={100}
+          priority
+        />
+      )}
+
+      <ProgressCardSection lane={lane} />
+    </Link>
+  );
+}
+
+const ProgressCardSection = ({ lane }: LearnCardProps) => {
   const queryClient = useQueryClient();
+  const [activeTab] = useQueryState("tab");
 
   const removeLaneM = useMutation({
     mutationFn: (laneId: string) => removeLane({ laneId }),
@@ -128,155 +213,98 @@ export default function LearnCard({ lane }: LearnCardProps) {
   }
 
   return (
-    <Link
-      href={
-        lane.state !== "completed"
-          ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
-          : appRoutes.dashboard.user.challanges(lane.id)
-      }
-      className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col gap-2 rounded-md transition-all duration-200 ease-in-out md:gap-3"
-    >
-      {lane.state === "completed" && (
-        <Image
-          src={lane.youtubeDetails.thumbnail}
-          alt="img"
-          width={1280}
-          height={720}
-          className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
-          quality={100}
-          priority
-        />
-      )}
-
-      {lane.state === "accepted" && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
-              <Image
-                src={lane.youtubeDetails.thumbnail}
-                alt="img"
-                width={1280}
-                height={720}
-                className="h-[250px] w-full transform rounded-md object-cover object-center blur-xs brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
-                quality={100}
-                priority
-              />
-              <LoaderCircle
-                size={64}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin text-white"
-              />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Creating Lane</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-
-      {lane.state === "failed" && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
-              <Image
-                src={lane.youtubeDetails.thumbnail}
-                alt="img"
-                width={1280}
-                height={720}
-                className="h-[250px] w-full transform rounded-md object-cover object-center blur-xs brightness-30 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
-                quality={100}
-                priority
-              />
-              <OctagonAlert
-                size={64}
-                className="text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse"
-              />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Failed to recreate lane, please retry</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
-
-      <div className="flex w-full pb-2 md:pb-3">
-        <div>
-          <CircularProgress
-            value={
+    <div className="flex w-full pb-2 md:pb-3">
+      <div>
+        <CircularProgress
+          value={
+            Number(lane.totalChallenges) > 0
+              ? (Number(lane.challengesPassed) / Number(lane.totalChallenges)) *
+                100
+              : 0
+          }
+          size={70}
+          strokeWidth={6}
+          circleStrokeWidth={6}
+          progressStrokeWidth={6}
+          showLabel
+          labelClassName="text-[10px] font-extrabold"
+          renderLabel={(_progress) =>
+            `${
               Number(lane.totalChallenges) > 0
-                ? (Number(lane.challengesPassed) /
-                    Number(lane.totalChallenges)) *
-                  100
-                : 0
-            }
-            size={70}
-            strokeWidth={6}
-            circleStrokeWidth={6}
-            progressStrokeWidth={6}
-            showLabel
-            labelClassName="text-[10px] font-extrabold"
-            renderLabel={(_progress) =>
-              `${
-                Number(lane.totalChallenges) > 0
-                  ? `${Number(lane.challengesPassed)} /
+                ? `${Number(lane.challengesPassed)} /
                       ${Number(lane.totalChallenges)}`
-                  : `0 / 0`
-              }`
-            }
-          />
-        </div>
+                : `0 / 0`
+            }`
+          }
+        />
+      </div>
 
-        <div className="flex w-full items-center justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <p className="line-clamp-1 text-lg font-black md:text-xl">
-              {lane.youtubeDetails.title}
-            </p>
+      <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <p className="line-clamp-1 text-lg font-black md:text-xl">
+            {lane.youtubeDetails.title}
+          </p>
 
-            <div className="flex items-center gap-px text-xs md:text-sm">
-              <span>{lane.totalAttempts} Attempts</span>
-              <Dot />
-              <span className="capitalize">{dateToNow(lane.updatedAt)}</span>
-            </div>
+          <div className="flex items-center gap-px text-xs md:text-sm">
+            <span className="whitespace-nowrap">
+              {lane.totalAttempts} Attempts
+            </span>
+            <Dot />
+            <span className="line-clamp-1 capitalize">
+              {dateToNow(lane.updatedAt)}
+            </span>
           </div>
         </div>
-
-        {activeTab !== "featured" && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="my-1 mr-2">
-              <EllipsisVertical className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-32" align="center">
-              <DropdownMenuGroup>
-                {lane.state != "accepted" && (
-                  <>
-                    <DropdownMenuItem
-                      onClick={handleRetry}
-                      className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
-                    >
-                      Retry Lane
-                    </DropdownMenuItem>
-                  </>
-                )}
-
-                <DropdownMenuItem
-                  onClick={handleAddToFeatured}
-                  className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
-                >
-                  Add to Featured
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                  onClick={handleRemove}
-                  className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
-                >
-                  Remove Lane
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
       </div>
-    </Link>
+
+      {activeTab !== "featured" && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="my-1 mr-2">
+            <EllipsisVertical className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-32" align="center">
+            <DropdownMenuGroup>
+              {lane.state != "accepted" && (
+                <>
+                  <DropdownMenuItem
+                    onClick={handleRetry}
+                    className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+                  >
+                    Retry Lane
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              <DropdownMenuItem
+                onClick={handleRemove}
+                className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+              >
+                Remove Lane
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {activeTab === "featured" && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="my-1 mr-2">
+            <EllipsisVertical className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-32" align="center">
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={handleAddToFeatured}
+                className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+              >
+                Add to Lanes
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
   );
-}
+};

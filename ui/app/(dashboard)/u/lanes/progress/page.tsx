@@ -191,7 +191,7 @@ export default function ChallengeProgress() {
   }, [laneId]);
 
   return (
-    <div className="px-xLayout relative flex h-full items-center justify-center">
+    <div className="lg:px-xLayout relative flex h-full items-center justify-center px-4">
       <div
         className={`fixed top-0 left-0 z-[0] h-screen w-screen overflow-hidden`}
       >

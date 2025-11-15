@@ -38,7 +38,7 @@ export default function HeaderAvatar() {
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-32" align="center">
+      <DropdownMenuContent className="w-32" align="end">
         <DropdownMenuLabel>{session?.user?.username}</DropdownMenuLabel>
 
         <DropdownMenuGroup>

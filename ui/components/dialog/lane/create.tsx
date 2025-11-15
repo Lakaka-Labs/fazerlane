@@ -101,7 +101,7 @@ export default function CreateLaneDialog({
           </DialogTrigger>
         )}
 
-        <DialogContent className="border-brand-border max-w-sm border-2 border-solid md:max-w-2xl">
+        <DialogContent className="border-brand-border max-w-sm border-2 border-solid px-3 md:max-w-2xl lg:px-6">
           <Form {...createLaneForm}>
             <form
               onSubmit={createLaneForm.handleSubmit(handleCreateLane)}
@@ -142,7 +142,7 @@ export default function CreateLaneDialog({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <FormField
                     control={createLaneForm.control}
                     name="startTime"

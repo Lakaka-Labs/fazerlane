@@ -7,7 +7,7 @@ const ReactPlayer = dynamic(() => import("react-player"), {
   ssr: false,
   loading: () => (
     <div className="flex w-full items-center justify-center py-10">
-      <InlineLoader fill={true} />
+      <InlineLoader fill />
     </div>
   ),
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { getChallenges } from "@/services/queries/challenge/get.challenge";
-import { Chatbot } from "@/components/chatbot";
+// import { Chatbot } from "@/components/chatbot";
 import { PageLoader } from "@/components/loader";
 import { LaneSideBar } from "@/components/navigation/sidebar/lane";
 import { usePersistStore } from "@/store/persist.store";
@@ -20,8 +20,9 @@ interface ChallengeLayoutProps {
 export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
   const { id } = use(params);
 
-  const { currentChallenge, setCurrentChellenge, showChatbot } =
-    usePersistStore((store) => store);
+  const { currentChallenge, setCurrentChellenge } = usePersistStore(
+    (store) => store
+  );
 
   function handleChallengeClick(challenge: Challenge) {
     setCurrentChellenge(challenge);
@@ -34,7 +35,9 @@ export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
 
   useEffect(() => {
     if (!currentChallenge && challenge && challenge.length > 0) {
-      handleChallengeClick(challenge[0]);
+      handleChallengeClick(
+        challenge.filter((challenge) => challenge.position === 0)[0]
+      );
     }
   }, [challenge]);
 
@@ -51,14 +54,14 @@ export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
   }
 
   return (
-    <div className="pl-xLayout mx-auto flex h-full w-full flex-col gap-12 md:flex-row md:overflow-hidden">
+    <div className="lg:pl-xLayout mx-auto flex h-full w-full flex-col gap-12 pr-3 pl-3 md:flex-row md:overflow-hidden lg:pr-0">
       <LaneSideBar challenges={challenge} />
 
       <div className="md:pr-xLayout h-full w-full md:overflow-y-auto">
         {children}
       </div>
 
-      {showChatbot && <Chatbot />}
+      {/* {showChatbot && <Chatbot />} */}
     </div>
   );
 }

@@ -1,14 +1,14 @@
 services:
-  backend:
-    build: .
-    container_name: fazerlane_backend
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "5000:5000"
-    networks:
-      - fazerlane_network
+#  backend:
+#    build: .
+#    container_name: fazerlane_backend
+#    restart: unless-stopped
+#    env_file:
+#      - .env
+#    ports:
+#      - "5000:5000"
+#    networks:
+#      - fazerlane_network
 
   postgres:
     image: ankane/pgvector
