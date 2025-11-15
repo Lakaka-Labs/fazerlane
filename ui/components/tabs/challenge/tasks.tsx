@@ -8,7 +8,7 @@ import {
   submitTask,
   SubmitTaskData,
   SubmitTaskQuery,
-} from "@/api/mutations/tasks/submit.task";
+} from "@/services/mutations/tasks/submit.task";
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";

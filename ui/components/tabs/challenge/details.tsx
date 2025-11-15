@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { SectionContainer, SectionContent } from "./components";
 import { ReferenceLocation } from "@/types/api/challenges";
 import { useQuery } from "@tanstack/react-query";
-import { getLaneByID } from "@/api/queries/lane/get.lane-by-id";
+import { getLaneByID } from "@/services/queries/lane/get.lane-by-id";
 import { useParams } from "next/navigation";
 import { getYouTubeUrl } from "@/utils/format-url";
 import { InlineLoader } from "@/components/loader";

@@ -1,6 +1,6 @@
 "use client";
 
-import { getChallenges } from "@/api/queries/challenge/get.challenge";
+import { getChallenges } from "@/services/queries/challenge/get.challenge";
 import { Chatbot } from "@/components/chatbot";
 import { PageLoader } from "@/components/loader";
 import { LaneSideBar } from "@/components/navigation/sidebar/lane";

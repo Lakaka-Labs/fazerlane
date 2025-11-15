@@ -1,6 +1,9 @@
 "use client";
 
-import { resendVerifyEmailM, verifyEmailM } from "@/api/mutations/auth/profile";
+import {
+  resendVerifyEmailM,
+  verifyEmailM,
+} from "@/services/mutations/auth/profile";
 import { InlineLoader } from "@/components/loader";
 import AuthTitle from "@/components/title/auth.title";
 import { Button } from "@/components/ui/button";

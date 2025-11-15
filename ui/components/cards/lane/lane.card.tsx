@@ -1,7 +1,7 @@
 "use client";
 
-import { removeLane } from "@/api/mutations/lane/delete";
-import { redoLane } from "@/api/mutations/lane/redo";
+import { removeLane } from "@/services/mutations/lane/delete";
+import { redoLane } from "@/services/mutations/lane/redo";
 import { CircularProgress } from "@/components/progress-09";
 import appRoutes from "@/config/routes";
 import { Lane } from "@/types/api/lane";
@@ -33,7 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useQueryState } from "nuqs";
-import { addFeaturedLane } from "@/api/mutations/lane/add.featured";
+import { addFeaturedLane } from "@/services/mutations/lane/add.featured";
 
 interface LearnCardProps {
   lane: Lane;

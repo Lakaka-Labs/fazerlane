@@ -14,8 +14,8 @@ import { useRouter } from "next/navigation";
 import appRoutes, { queryStateParams, WS_BASE_URL } from "@/config/routes";
 import { useQueryState } from "nuqs";
 import { useMutation } from "@tanstack/react-query";
-import { redoLane } from "@/api/mutations/lane/redo";
-import { removeLane } from "@/api/mutations/lane/delete";
+import { redoLane } from "@/services/mutations/lane/redo";
+import { removeLane } from "@/services/mutations/lane/delete";
 import { usePersistStore } from "@/store/persist.store";
 
 export default function ChallengeProgress() {
