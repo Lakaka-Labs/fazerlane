@@ -11,33 +11,23 @@ import type ChallengeRepository from "../../../domain/challenge/repository.ts";
 import {type Challenge, convertChallengeToString} from "../../../domain/challenge";
 import {challengePrompt} from "../../../../packages/prompts/challenge.ts";
 import type {Lane} from "../../../domain/lane";
+import type UserRepository from "../../../domain/user/repository.ts";
+import type {User} from "../../../domain/user";
+import Gemini from "../../../adapters/llm";
+import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
 
 type Split = { startTime: number, endTime: number }
 export default class GenerateChallenge {
-    appSecrets: AppSecrets
-    laneRepository: LaneRepository
-    resourceRepository: ResourceRepository
-    progressRepository: ProgressRepository
-    progressWebsocketRepository: ProgressWebsocketRepository
-    llmRepository: LLMRepository
-    challengeRepository: ChallengeRepository
 
     constructor(
-        laneRepository: LaneRepository,
-        resourceRepository: ResourceRepository,
-        appSecrets: AppSecrets,
-        progressRepository: ProgressRepository,
-        progressWebsocketRepository: ProgressWebsocketRepository,
-        llmRepository: LLMRepository,
-        challengeRepository: ChallengeRepository
+        private readonly laneRepository: LaneRepository,
+        private readonly appSecrets: AppSecrets,
+        private readonly progressRepository: ProgressRepository,
+        private readonly progressWebsocketRepository: ProgressWebsocketRepository,
+        private llmRepository: LLMRepository,
+        private readonly challengeRepository: ChallengeRepository,
+        private readonly userRepository: UserRepository
     ) {
-        this.laneRepository = laneRepository
-        this.resourceRepository = resourceRepository
-        this.appSecrets = appSecrets
-        this.progressRepository = progressRepository
-        this.progressWebsocketRepository = progressWebsocketRepository
-        this.llmRepository = llmRepository
-        this.challengeRepository = challengeRepository
     }
 
     async handle(laneId: string, attempts: number, maxAttempt: number): Promise<void> {
@@ -50,9 +40,12 @@ export default class GenerateChallenge {
             let totalInput = 0
             let totalOutput = 0
             const lane = await this.laneRepository.getById(laneId)
+            const user = await this.userRepository.get({id: lane.creator})
+
             let splits = lane.youtubeDetails?.duration ? this.splitDuration(lane.youtubeDetails?.duration) : []
-            for await (const split of splits) {
-                const {inputToken, outputToken} = await this.withRetry(() => this.generate(split, lane));
+            for await (const split of splits
+                ) {
+                const {inputToken, outputToken} = await this.withRetry(() => this.generate(split, lane, user));
                 totalOutput += outputToken
                 totalInput += inputToken
             }
@@ -80,12 +73,10 @@ export default class GenerateChallenge {
         }
     }
 
-    async withRetry<T>(
-        fn: () => Promise<T>,
-        maxAttempts: number = 3,
-        baseDelay: number = 61000
-    ): Promise<T> {
-        let lastError: Error;
+    async withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, baseDelay: number = 61000): Promise<T> {
+        let lastError
+            :
+            Error;
 
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             try {
@@ -107,16 +98,18 @@ export default class GenerateChallenge {
             }
         }
 
-        // TypeScript requires this, though it's unreachable
+// TypeScript requires this, though it's unreachable
         throw lastError!;
     }
 
-    private generate = async (split: Split, lane: Lane): Promise<{
+    private generate = async (split: Split, lane: Lane, user: User): Promise<{
         inputToken: number,
         outputToken: number
     }> => {
+        let customPrompt = user.customPrompt
         let previousChallenges = await this.challengeRepository.get(lane.id)
         const messages: Message[] = [
+            {text: customPrompt || ""},
             {text: challengePrompt(previousChallenges)},
             {
                 data: {
@@ -127,6 +120,9 @@ export default class GenerateChallenge {
             }
         ];
         const inputToken = await this.llmRepository.getTokens(messages);
+        if (user.apiKey) {
+            this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
+        }
         const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages);
         const challenges = this.extractChallenges(llmResult);
         const embeddings = await this.llmRepository.generateEmbedding(challenges.map((c) => {
@@ -139,13 +135,7 @@ export default class GenerateChallenge {
         return {inputToken, outputToken}
     }
 
-    private async updateLaneAsFailed(laneId
-                                     :
-                                     string, message
-                                     :
-                                     string
-    ):
-        Promise<void> {
+    private async updateLaneAsFailed(laneId: string, message: string): Promise<void> {
         await this.laneRepository.update(laneId, {state: "failed"});
         await this.sendProgress({
             lane: laneId,
@@ -154,10 +144,7 @@ export default class GenerateChallenge {
         });
     }
 
-    private extractChallenges(raw
-                              :
-                              string
-    ):
+    private extractChallenges(raw: string):
         Omit<Challenge, "id" | "lane"> [] {
         const jsonMatch = raw.match(/```json\s*([\s\S]*?)\s*```/) ||
             raw.match(/\[\s*{[\s\S]*}\s*\]/);
@@ -177,11 +164,7 @@ export default class GenerateChallenge {
         return challenges;
     }
 
-    private validateChallenges(challenges
-                               :
-                               Omit<Challenge, "id" | "lane"> []
-    ):
-        void {
+    private validateChallenges(challenges: Omit<Challenge, "id" | "lane"> []): void {
         for (const c of challenges
             ) {
             if (!c.title || !c.objective || !c.assignment ||

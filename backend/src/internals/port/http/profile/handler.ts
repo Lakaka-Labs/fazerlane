@@ -21,7 +21,7 @@ export default class ProfileHandler {
     }
 
     private configureRoutes() {
-        this.router.patch('/username',
+        this.router.put('/username',
             ValidationMiddleware(z.object({
                 username: z.string().min(3),
             }), "body"),
@@ -29,7 +29,23 @@ export default class ProfileHandler {
             this.updateUsername
         );
 
-        this.router.patch('/password/change',
+        this.router.put('/prompt',
+            ValidationMiddleware(z.object({
+                prompt: z.string().min(1),
+            }), "body"),
+            Authorize(this.authenticationService),
+            this.addCustomPrompt
+        );
+
+        this.router.put('/key',
+            ValidationMiddleware(z.object({
+                key: z.string().min(1),
+            }), "body"),
+            Authorize(this.authenticationService),
+            this.addApiKey
+        );
+
+        this.router.put('/password/change',
             ValidationMiddleware(z.object({
                 oldPassword: z.string(),
                 newPassword: z.string().min(8).max(128),
@@ -38,7 +54,7 @@ export default class ProfileHandler {
             this.changePassword
         );
 
-        this.router.patch('/password/reset',
+        this.router.put('/password/reset',
             ValidationMiddleware(z.object({
                 password: z.string().min(8).max(128),
             }), "body"),
@@ -53,7 +69,7 @@ export default class ProfileHandler {
             this.forgotPassword
         );
 
-        this.router.patch('/email/verify',
+        this.router.put('/email/verify',
             AuthorizeEmailToken(this.authenticationService),
             this.verifyEmail
         );
@@ -111,5 +127,21 @@ export default class ProfileHandler {
         if (!oldPassword || !newPassword) throw new BadRequestError("provide both old and new passwords")
         await this.authenticationService.commands.changePassword.handle(user.id, oldPassword, newPassword)
         new SuccessResponse(res, {message: "password changed"}).send()
+    }
+
+    addCustomPrompt = async (req: Request, res: Response) => {
+        let user = req.user as User;
+        let {prompt} = req.body;
+        if (!prompt) throw new BadRequestError("provide new custom prompt")
+        await this.authenticationService.commands.updateProfile.handle(user.id, {customPrompt: prompt})
+        new SuccessResponse(res, {message: "prompt configured"}).send()
+    }
+
+    addApiKey = async (req: Request, res: Response) => {
+        let user = req.user as User;
+        let {key} = req.body;
+        if (!key) throw new BadRequestError("provide gemini api key")
+        await this.authenticationService.commands.updateProfile.handle(user.id, {apiKey: key})
+        new SuccessResponse(res, {message: "api key configured"}).send()
     }
 }

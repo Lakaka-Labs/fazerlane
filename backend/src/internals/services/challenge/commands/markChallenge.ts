@@ -15,6 +15,9 @@ import type {ObjectRepository} from "../../../domain/objects/repository.ts";
 import {isValidSubmissionType} from "../../../../packages/utils/mime.ts";
 import type {MemoriesRepository} from "../../../domain/memories/repository.ts";
 import {formatHumanReadableTimestamp} from "../../../../packages/utils/time.ts";
+import type UserRepository from "../../../domain/user/repository.ts";
+import Gemini from "../../../adapters/llm";
+import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
 
 export type MarkChallengeParameters = {
     id: string;
@@ -37,11 +40,13 @@ const RECENT_CHALLENGES_LIMIT = 10;
 export default class MarkChallenge {
     constructor(
         private readonly challengeRepository: ChallengeRepository,
-        private readonly llmRepository: LLMRepository,
+        private llmRepository: LLMRepository,
         private readonly xpRepository: XPRepository,
         private readonly appSecret: AppSecrets,
         private readonly objectRepository: ObjectRepository,
-        private readonly attemptMemoriesRepository: MemoriesRepository
+        private readonly attemptMemoriesRepository: MemoriesRepository,
+        private readonly userRepository: UserRepository,
+        private readonly appSecrets: AppSecrets,
     ) {
     }
 
@@ -88,7 +93,7 @@ export default class MarkChallenge {
 
         try {
             // Fetch all required data in parallel
-            const [previousFeedbacks, recentChallenges, nextChallenge] = await Promise.all([
+            const [previousFeedbacks, recentChallenges, nextChallenge, user] = await Promise.all([
                 parameter.useMemory ? this.challengeRepository.getAttempts(id, userId, {
                     limit: ATTEMPTS_FETCH_LIMIT,
                     page: 1
@@ -98,7 +103,8 @@ export default class MarkChallenge {
                     order: "desc",
                     limit: RECENT_CHALLENGES_LIMIT
                 }),
-                this.challengeRepository.getByPosition(challenge.lane, challenge.position + 1)
+                this.challengeRepository.getByPosition(challenge.lane, challenge.position + 1),
+                this.userRepository.get({id: userId})
             ]);
 
             // Build prompt messages
@@ -109,12 +115,16 @@ export default class MarkChallenge {
                 previousFeedbacks,
                 text,
                 comment,
-                storageObjects
+                storageObjects,
+                user.customPrompt
             );
 
             // Get input token count
             const inputCount = await this.llmRepository.getTokens(promptMessage);
             console.log({inputCount});
+            if (user.apiKey) {
+                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
+            }
 
             // Start streaming
             const streamResult = this.llmRepository.getTextStream([{role: "user", messages: promptMessage}], signal);
@@ -191,10 +201,13 @@ export default class MarkChallenge {
         text?: string,
         comment?: string,
         storageObjects?: StorageObject[],
+        customPrompt?: string
     ): Promise<Message[]> {
-        const messages: Message[] = [{
-            text: submissionPrompt(challenge, recentChallenges, nextChallenge, previousFeedbacks, text)
-        }];
+        const messages: Message[] = [
+            {
+                text: submissionPrompt(challenge, recentChallenges, nextChallenge, previousFeedbacks, text)
+            }
+        ];
 
         if (storageObjects?.length) {
             messages.push(...storageObjects.map((object) => {
@@ -203,7 +216,7 @@ export default class MarkChallenge {
                 }
             }));
         }
-
+        if (customPrompt) messages.push({text: customPrompt})
         return messages;
     }
 
@@ -238,15 +251,16 @@ export default class MarkChallenge {
     }
 
     private extractAssessment(raw: string): MarkResult {
+        console.log(raw)
         const jsonMatch = raw.match(/```json\s*([\s\S]*?)\s*```/) ||
             raw.match(/\[\s*{[\s\S]*}\s*\]/);
 
+        let jsonString = ""
         if (!jsonMatch) {
-            throw new InvalidAssessmentsError();
+            jsonString = raw
+        } else {
+            jsonString = jsonMatch[1]?.trim() || jsonMatch[0];
         }
-
-        const jsonString = jsonMatch[1]?.trim() || jsonMatch[0];
-
         let parsed: any;
         try {
             parsed = JSON.parse(jsonString);

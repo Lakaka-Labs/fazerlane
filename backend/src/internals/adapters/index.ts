@@ -69,7 +69,7 @@ export default class Adapters {
         this.userRepository = new UserRepositoryPG(parameters.postgresClient)
         this.laneRepository = new LanePG(parameters.postgresClient)
         this.queueRepository = new BullMQ(parameters.redisClient)
-        this.youtubeRepository = new Youtube(parameters.appSecrets.googleAPIKey, parameters.appSecrets.baseYoutubeApiUrl)
+        this.youtubeRepository = new Youtube(parameters.appSecrets.geminiConfiguration.apiKey, parameters.appSecrets.baseYoutubeApiUrl)
         this.llmRepository = new Gemini(parameters.geminiClient, parameters.appSecrets)
         this.resourceRepository = new SegmentPG(parameters.postgresClient)
         this.progressRepository = new ProgressPG(parameters.postgresClient)

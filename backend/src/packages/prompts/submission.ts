@@ -80,12 +80,12 @@ Assess against success criteria:
 
 ## Output Format
 
-{
-"pass": boolean,
-"feedback": "string"
-}
-
-text
+\`\`\`json
+    {
+        "pass":boolean,
+        "feedback":"string"
+    }
+\`\`\`
 
 ## Feedback Guidelines
 

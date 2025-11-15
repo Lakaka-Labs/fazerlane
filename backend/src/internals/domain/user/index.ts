@@ -9,6 +9,8 @@ export type User = {
     xp: number
     createdAt: string
     updatedAt: string
+    customPrompt?: string
+    apiKey?: string
 }
 
 export type GetUserParameters = {

@@ -12,6 +12,7 @@ import ResetPassword from "./commands/resetPassword.ts";
 import ChangePassword from "./commands/changePassword.ts";
 import ForgotPassword from "./commands/forgotPassword.ts";
 import Login from "./query/login.ts";
+import UpdateProfile from "./commands/updateProfile.ts";
 
 export class Commands {
     authenticate: Authenticate
@@ -23,6 +24,7 @@ export class Commands {
     forgotPassword: ForgotPassword
     resetPassword: ResetPassword
     changePassword: ChangePassword
+    updateProfile: UpdateProfile
 
     constructor(userRepository: Repository, appSecrets: AppSecrets, emailRepository: EmailRepository) {
         this.authenticate = new Authenticate(userRepository)
@@ -34,6 +36,7 @@ export class Commands {
         this.forgotPassword = new ForgotPassword(userRepository, appSecrets, emailRepository)
         this.resetPassword = new ResetPassword(userRepository)
         this.changePassword = new ChangePassword(userRepository)
+        this.updateProfile = new UpdateProfile(userRepository)
     }
 
 }

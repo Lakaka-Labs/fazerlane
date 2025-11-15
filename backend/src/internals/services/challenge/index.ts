@@ -15,6 +15,7 @@ import GetChallenges from "./queries/getChallenges.ts";
 import type XPRepository from "../../domain/xp/repository.ts";
 import type {ObjectRepository} from "../../domain/objects/repository.ts";
 import type {MemoriesRepository} from "../../domain/memories/repository.ts";
+import type UserRepository from "../../domain/user/repository.ts";
 
 export class Commands {
     generateChallenge: GenerateChallenges
@@ -24,7 +25,6 @@ export class Commands {
 
     constructor(
         laneRepository: LaneRepository,
-        resourceRepository: ResourceRepository,
         appSecrets: AppSecrets,
         progressRepository: ProgressRepository,
         progressWebsocketRepository: ProgressWebsocketRepository,
@@ -32,19 +32,20 @@ export class Commands {
         challengeRepository: ChallengeRepository,
         xpRepository: XPRepository,
         objectRepository: ObjectRepository,
-        attemptMemoriesRepository: MemoriesRepository
+        attemptMemoriesRepository: MemoriesRepository,
+        userRepository: UserRepository
     ) {
         this.generateChallenge = new GenerateChallenges(
             laneRepository,
-            resourceRepository,
             appSecrets,
             progressRepository,
             progressWebsocketRepository,
             llmRepository,
             challengeRepository,
+            userRepository
         )
         this.markChallenge = new MarkChallenge(
-            challengeRepository, llmRepository, xpRepository, appSecrets, objectRepository, attemptMemoriesRepository
+            challengeRepository, llmRepository, xpRepository, appSecrets, objectRepository, attemptMemoriesRepository, userRepository, appSecrets
         )
         this.unmarkChallenge = new UnmarkChallenge(
             challengeRepository
@@ -74,7 +75,6 @@ export default class ChallengeService {
 
     constructor(
         laneRepository: LaneRepository,
-        resourceRepository: ResourceRepository,
         appSecrets: AppSecrets,
         progressRepository: ProgressRepository,
         progressWebsocketRepository: ProgressWebsocketRepository,
@@ -82,18 +82,20 @@ export default class ChallengeService {
         challengeRepository: ChallengeRepository,
         xpRepository: XPRepository,
         objectRepository: ObjectRepository,
-        attemptMemoriesRepository: MemoriesRepository
+        attemptMemoriesRepository: MemoriesRepository,
+        userRepository: UserRepository
     ) {
         this.commands = new Commands(
             laneRepository,
-            resourceRepository,
             appSecrets,
             progressRepository,
             progressWebsocketRepository,
             llmRepository,
             challengeRepository,
             xpRepository,
-            objectRepository, attemptMemoriesRepository
+            objectRepository,
+            attemptMemoriesRepository,
+            userRepository
         )
         this.queries = new Queries(challengeRepository)
     }

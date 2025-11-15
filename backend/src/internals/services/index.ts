@@ -27,7 +27,6 @@ export default class Services {
         )
         this.challengeService = new ChallengeService(
             adapters.laneRepository,
-            adapters.resourceRepository,
             adapters.parameters.appSecrets,
             adapters.progressRepository,
             adapters.progressWebsocketRepository,
@@ -35,7 +34,8 @@ export default class Services {
             adapters.challengeRepository,
             adapters.xpRepository,
             adapters.objectRepository,
-            adapters.attemptMemoriesRepository
+            adapters.attemptMemoriesRepository,
+            adapters.userRepository
         )
         this.xpService = new XPService(
             adapters.xpRepository,

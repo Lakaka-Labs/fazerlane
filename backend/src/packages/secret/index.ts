@@ -78,7 +78,7 @@ export default class AppSecrets {
     redisCredentials: RedisCredentials
     googleOAuthCredentials: GoogleOAuthCredentials
     geminiConfiguration: GeminiConfiguration
-    googleAPIKey: string
+    // googleAPIKey: string
     maxYoutubeLength: number
     maxVideoLength: number
     baseYoutubeApiUrl: string
@@ -130,7 +130,7 @@ export default class AppSecrets {
             model: this.getEnvironmentVariableOrFallback("GEMINI_MODEL", "gemini-2.5-flash"),
         }
 
-        this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
+        // this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
 
         this.maxYoutubeLength = this.getEnvironmentVariableAsNumber("MAX_YOUTUBE_LENGTH", 3000)
         this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 120)

@@ -75,7 +75,7 @@ export class InvalidChallengesError extends Error {
 
 export class InvalidAssessmentsError extends Error {
     constructor() {
-        super("invalid challenge generated");
+        super("failed to generate feedback, try again");
     }
 }
 

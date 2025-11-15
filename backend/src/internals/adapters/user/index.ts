@@ -52,7 +52,9 @@ export default class UserRepositoryPG implements Repository {
                    streak,
                    xp,
                    created_at,
-                   updated_at
+                   updated_at,
+                   custom_prompt,
+                   api_key
             FROM users
             WHERE ${whereClause}
             LIMIT 1
@@ -74,7 +76,9 @@ export default class UserRepositoryPG implements Repository {
             streak: row.streak,
             xp: row.xp,
             createdAt: row.created_at,
-            updatedAt: row.updated_at
+            updatedAt: row.updated_at,
+            customPrompt: row.custom_prompt,
+            apiKey: row.api_key
         };
     }
 
@@ -84,12 +88,14 @@ export default class UserRepositoryPG implements Repository {
             ...(user.googleId && {google_id: user.googleId}),
             ...(user.username && {username: user.username}),
             ...(user.password && {password: user.password}),
-            ...(user.emailVerified && {email_verified: user.emailVerified})
+            ...(user.emailVerified && {email_verified: user.emailVerified}),
+            ...(user.customPrompt && {custom_prompt: user.customPrompt}),
+            ...(user.apiKey && {api_key: user.apiKey})
         };
 
         const [newUser] = await this.sql`
             INSERT INTO users ${this.sql(userData)}
-                RETURNING id, email, password, google_id, username, email_verified, streak, xp, created_at, updated_at
+                RETURNING id, email, password, google_id, username, email_verified, streak, xp, created_at, updated_at, custom_prompt, api_key
         `;
 
         return {
@@ -101,19 +107,29 @@ export default class UserRepositoryPG implements Repository {
             streak: newUser.streak,
             xp: newUser.xp,
             createdAt: newUser.created_at,
-            updatedAt: newUser.updated_at
+            updatedAt: newUser.updated_at,
+            customPrompt: newUser.custom_prompt,
+            apiKey: newUser.api_key
+
         };
     };
 
     async update(id: string, user: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>): Promise<User> {
-        let setUser = {...user, ...(user.emailVerified && {email_verified: user.emailVerified})}
+        let setUser = {
+            ...user,
+            ...(user.emailVerified && {email_verified: user.emailVerified}),
+            ...(user.customPrompt && {custom_prompt: user.customPrompt}),
+            ...(user.apiKey && {api_key: user.apiKey})
+        }
         delete setUser.emailVerified
+        delete setUser.customPrompt
+        delete setUser.apiKey
 
         const [newUser] = await this.sql`
             UPDATE users
             SET ${this.sql(setUser)}
             WHERE id = ${id}
-            RETURNING id, email, password, google_id, username, email_verified, streak, xp, created_at, updated_at
+            RETURNING id, email, password, google_id, username, email_verified, streak, xp, created_at, updated_at, custom_prompt, api_key
         `;
 
         return {
@@ -125,7 +141,10 @@ export default class UserRepositoryPG implements Repository {
             streak: newUser.streak,
             xp: newUser.xp,
             createdAt: newUser.created_at,
-            updatedAt: newUser.updated_at
+            updatedAt: newUser.updated_at,
+            customPrompt: newUser.custom_prompt,
+            apiKey: newUser.api_key
+
         };
     };
 
