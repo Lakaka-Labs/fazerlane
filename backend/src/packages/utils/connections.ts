@@ -1,5 +1,5 @@
 import {SQL} from "bun";
-import type {PostgresCredentials, RedisCredentials, StorageCredentials} from "../secret";
+import type {PostgresCredentials, QDrantCredentials, RedisCredentials, StorageCredentials} from "../secret";
 import Redis from "ioredis";
 import {GoogleGenAI} from '@google/genai';
 import {Memory} from "mem0ai/oss";
@@ -36,7 +36,7 @@ export const googleGeminiClient = (geminiAPIKey: string) => {
     return new GoogleGenAI({apiKey: geminiAPIKey});
 }
 
-export const mem0AttemptMemory = (openaiAPIKey: string) => {
+export const mem0AttemptMemory = (openaiAPIKey: string,qdrantCredentials: QDrantCredentials) => {
     return new Memory({
         llm: {
             provider: 'openai',
@@ -57,15 +57,15 @@ export const mem0AttemptMemory = (openaiAPIKey: string) => {
             config: {
                 collectionName: 'attempt_memories',
                 dimension: 3072,
-                host: 'localhost',
-                port: 6333,
+                host: qdrantCredentials.host,
+                port: qdrantCredentials.port,
             },
         },
         customPrompt: FeedbackFactPrompt
     });
 }
 
-export const mem0ChatMemory = (openaiAPIKey: string) => {
+export const mem0ChatMemory = (openaiAPIKey: string,qdrantCredentials: QDrantCredentials) => {
     return new Memory({
         llm: {
             provider: 'openai',
@@ -86,8 +86,8 @@ export const mem0ChatMemory = (openaiAPIKey: string) => {
             config: {
                 collectionName: 'memories',
                 dimension: 3072,
-                host: 'localhost',
-                port: 6333,
+                host: qdrantCredentials.host,
+                port: qdrantCredentials.port,
             },
         },
     });

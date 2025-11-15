@@ -26,8 +26,8 @@ class FazerlaneBackend {
     const geminiClient = googleGeminiClient(
       appSecrets.geminiConfiguration.apiKey
     );
-    const mem0ChatClient = mem0ChatMemory(appSecrets.openaiAPIKey);
-    const mem0AttemptClient = mem0AttemptMemory(appSecrets.openaiAPIKey);
+    const mem0ChatClient = mem0ChatMemory(appSecrets.openaiAPIKey,appSecrets.qdrantCredentials);
+    const mem0AttemptClient = mem0AttemptMemory(appSecrets.openaiAPIKey,appSecrets.qdrantCredentials);
     const storageClient = s3Client(appSecrets.storageCredentials);
 
     this.adapters = new Adapters({
