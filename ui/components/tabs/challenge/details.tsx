@@ -36,6 +36,7 @@ export const DetailsTab = () => {
       <SectionContent
         title="Instructions"
         content={currentChallenge!.instruction}
+        contentClassName={`leading-relaxed text-lg`}
       />
 
       <SectionContainer>
@@ -117,7 +118,7 @@ const ReferencesDropdown = ({
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="bg-brand-background-dashboard px-2 py-6 md:px-8"
           >
-            <div className="h-[450px] w-full overflow-hidden rounded-[12px]">
+            <div className="aspect-video w-full overflow-hidden rounded-[12px]">
               <YoutubeVideo
                 url={videoLink}
                 startTime={location.startTime}

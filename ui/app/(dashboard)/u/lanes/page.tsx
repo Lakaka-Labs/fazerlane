@@ -175,7 +175,7 @@ export default function DUserHome() {
                 {lanesData.length > 0 && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="fixed right-5 bottom-5 z-10 flex w-fit items-center justify-center md:right-10 md:bottom-10">
+                      <div className="fixed right-5 -bottom-15 sm:-bottom-5 z-10 flex w-fit items-center justify-center md:right-10 lg:bottom-10">
                         <CreateLaneDialog customTrigger={true} />
                       </div>
                     </TooltipTrigger>

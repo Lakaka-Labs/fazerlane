@@ -10,7 +10,7 @@ import appRoutes from "@/config/routes";
 
 export default function HeroHome() {
   return (
-    <main className={`font-lato flex h-screen flex-col justify-between`}>
+    <main className={`font-lato flex h-screen flex-col justify-between p-4`}>
       <div className={`absolute -z-10 h-screen w-screen overflow-hidden`}>
         <Hyperspeed
           effectOptions={hyperSpeedEffectOptions as HyperSpeedEffectOptions}
@@ -35,10 +35,10 @@ export default function HeroHome() {
         {/*    <Image src={"/doom.png"} alt={"logo"} width={250} height={250} className={"w-10"}/>*/}
         {/*    Inspired By MfDoom*/}
         {/*</Badge>*/}
-        <h1 className={"text-5xl font-bold"}>
+        <h1 className={"text-3xl md:text-5xl font-bold"}>
           Follow the lane. The lane is your guide.
         </h1>
-        <p className={`max-w-xl text-lg text-black/65`}>
+        <p className={`max-w-xl text-sm md:text-lg text-black/65`}>
           Peddle on the floor, thirsty for a score? Fazerlane is the path. We
           turn endless YouTube tutorials into actionable challenges, so you can
           stop just watching and start doing.
