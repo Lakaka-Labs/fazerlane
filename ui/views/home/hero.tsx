@@ -10,7 +10,7 @@ import appRoutes from "@/config/routes";
 
 export default function HeroHome() {
   return (
-    <main className={`font-lato flex h-screen flex-col justify-between p-4`}>
+    <main className={`font-lato flex h-screen flex-col justify-between`}>
       <div className={`absolute -z-10 h-screen w-screen overflow-hidden`}>
         <Hyperspeed
           effectOptions={hyperSpeedEffectOptions as HyperSpeedEffectOptions}
@@ -28,7 +28,7 @@ export default function HeroHome() {
 
       <div
         className={
-          "flex flex-1 flex-col items-center justify-center gap-6 text-center"
+          "flex flex-1 flex-col items-center justify-center gap-6 text-center px-4"
         }
       >
         {/*<Badge className={`rounded-full bg-gray-300 text-base text-black px-4 py-1 font-light`}>*/}
