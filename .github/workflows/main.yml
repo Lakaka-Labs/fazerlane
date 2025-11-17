@@ -26,8 +26,14 @@ jobs:
               with:
                   ssh-private-key: ${{ secrets.SSH_PEM }}
 
+            - name: ping
+              run: ping -c 3 ${{ secrets.SERVER_HOST }}
+
+            - name: nslookup
+              run: nslookup ${{ secrets.SERVER_HOST }}
+            
             - name: Add Server to Known Hosts
-              run: ssh-keyscan -v -T 240 ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+              run: ssh-keyscan -v ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
             - name: Test SSH Connection
               run: |
