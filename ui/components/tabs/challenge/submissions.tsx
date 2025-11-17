@@ -134,55 +134,61 @@ const SubmissionsDropdown = ({
               </p>
             </div>
 
-            <div className="text-brand-black flex flex-col gap-2">
-              <h4 className="text-base font-semibold">Submitted Files</h4>
+            {files.length > 0 && (
+              <div className="text-brand-black flex flex-col gap-2">
+                <h4 className="text-base font-semibold">Submitted Files</h4>
 
-              {files.length > 0 ? (
-                <div className="bg-brand-background-dashboard flex flex-wrap gap-4 rounded-xl p-4">
-                  {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-lg"
-                    >
-                      <FileDisplay url={file} />
-                      <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-                    </div>
-                  ))}{" "}
-                </div>
-              ) : (
-                <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-                  No submitted files.
-                </p>
-              )}
-            </div>
+                {files.length > 0 ? (
+                  <div className="bg-brand-background-dashboard flex flex-wrap gap-4 rounded-xl p-4">
+                    {files.map((file, index) => (
+                      <div
+                        key={index}
+                        className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-lg"
+                      >
+                        <FileDisplay url={file} />
+                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
+                      </div>
+                    ))}{" "}
+                  </div>
+                ) : (
+                  <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
+                    No submitted files.
+                  </p>
+                )}
+              </div>
+            )}
 
-            <div className="text-brand-black flex flex-col gap-2">
-              <h4 className="text-base font-semibold">Text Submission</h4>
+            {text && (
+              <div className="text-brand-black flex flex-col gap-2">
+                <h4 className="text-base font-semibold">Text Submission</h4>
 
-              {text ? (
-                <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
-                  {text}
-                </p>
-              ) : (
-                <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-                  No text submission provided.
-                </p>
-              )}
-            </div>
+                {text ? (
+                  <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
+                    {text}
+                  </p>
+                ) : (
+                  <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
+                    No text submission provided.
+                  </p>
+                )}
+              </div>
+            )}
 
-            <div className="text-brand-black flex flex-col gap-2">
-              <h4 className="text-base font-semibold">Comments</h4>
+            {comments && (
+              <div className="text-brand-black flex flex-col gap-2">
+                <h4 className="text-base font-semibold">Comments</h4>
 
-              {comments ? (
-                <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
-                  {comments}
-                </p>
-              ) : (
-                <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-                  No comments provided.
-                </p>
-              )}
-            </div>
+                {comments ? (
+                  <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
+                    {comments}
+                  </p>
+                ) : (
+                  <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
+                    No comments provided.
+                  </p>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

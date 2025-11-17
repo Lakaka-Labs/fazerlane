@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePersistStore } from "@/store/persist.store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,10 +14,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import appRoutes from "@/config/routes";
+import ProfileSettingsDialog from "@/components/dialog/profile/profile-settings";
 
 export default function HeaderAvatar() {
   const router = useRouter();
   const { session, setClear } = usePersistStore((state) => state);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const handleLogout = () => {
     setClear();
@@ -28,35 +31,49 @@ export default function HeaderAvatar() {
     router.push(appRoutes.home.index);
   };
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Avatar className="cursor-pointer">
-          <AvatarImage />
-          <AvatarFallback className="bg-brand-black hover:bg-primary text-brand-white size-8 uppercase">
-            {session?.user?.username?.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-32" align="end">
-        <DropdownMenuLabel>{session?.user?.username}</DropdownMenuLabel>
+  const handleProfile = () => {
+    setProfileOpen(true);
+  };
 
-        <DropdownMenuGroup>
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Avatar className="cursor-pointer">
+            <AvatarImage />
+            <AvatarFallback className="bg-brand-black hover:bg-primary text-brand-white size-8 uppercase">
+              {session?.user?.username?.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-32" align="end">
+          <DropdownMenuLabel>{session?.user?.username}</DropdownMenuLabel>
+
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={handleHome}
+              className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+            >
+              Home
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleProfile}
+              className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+            >
+              Settings
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={handleHome}
-            className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+            onClick={handleLogout}
+            className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-primary [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
           >
-            Home
+            Log out
           </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleLogout}
-          className="hover:!bg-primary dark:hover:!bg-primary [variant=destructive]:focus:!bg-primary [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
-        >
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ProfileSettingsDialog open={profileOpen} onOpenChange={setProfileOpen} />
+    </>
   );
 }

@@ -1,0 +1,97 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { CustomPromptFields, customPromptSchema } from "@/schemas/profile";
+import { updateCustomPromptM } from "@/services/mutations/profile/update.profile";
+
+export function CustomPromptTab() {
+  const customPromptForm = useForm<CustomPromptFields>({
+    resolver: zodResolver(customPromptSchema),
+    defaultValues: {
+      customPrompt: "",
+    },
+  });
+
+  const { isPending, mutateAsync: updateCustomPrompt } = useMutation({
+    mutationFn: updateCustomPromptM,
+    onSuccess: (data) => {
+      if (data.message) {
+        toast.success("Custom prompt updated successfully!");
+      }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
+
+  async function onSubmit(values: CustomPromptFields) {
+    await updateCustomPrompt(values);
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-1">
+        <p className="text-brand-text/60 text-sm">
+          Provide additional context for AI assistance while using Fazerlane
+        </p>
+      </div>
+
+      <Form {...customPromptForm}>
+        <form
+          onSubmit={customPromptForm.handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
+          <FormField
+            control={customPromptForm.control}
+            name="customPrompt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Custom Prompt</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="e.g., I'm learning web development and prefer React with TypeScript..."
+                    className="min-h-32"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  This context will be used to personalize your AI interactions
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-end pt-2">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full sm:w-auto"
+            >
+              {isPending ? "Saving..." : "Save Prompt"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}

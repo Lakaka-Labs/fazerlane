@@ -138,7 +138,7 @@ export default function DUserHome() {
                     <motion.div whileTap={{ scale: 0.9 }}>
                       <TabsTrigger
                         value={tab.value}
-                        className="text-brand-black/40 data-[state=active]:text-brand-black !h-8 transform cursor-pointer !rounded-[6px] !bg-transparent !px-2.5 !py-2 text-sm font-normal !shadow-none transition-all duration-200 ease-linear"
+                        className="text-brand-black/40 data-[state=active]:text-brand-black !h-8 transform cursor-pointer !rounded-[6px] border-0 !bg-transparent !px-2.5 !py-2 text-sm font-normal !shadow-none transition-all duration-200 ease-linear"
                       >
                         {tab.label}
                       </TabsTrigger>
@@ -175,7 +175,7 @@ export default function DUserHome() {
                 {lanesData.length > 0 && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="fixed right-5 -bottom-15 sm:-bottom-5 z-10 flex w-fit items-center justify-center md:right-10 lg:bottom-10">
+                      <div className="fixed right-5 -bottom-15 z-10 flex w-fit items-center justify-center sm:-bottom-5 md:right-10 lg:bottom-10">
                         <CreateLaneDialog customTrigger={true} />
                       </div>
                     </TooltipTrigger>
