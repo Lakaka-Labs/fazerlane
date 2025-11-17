@@ -13,6 +13,8 @@ interface User {
   emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  apiKey: string | null;
+  customPrompt: string | null;
 }
 
 export type Session = Token & { user: User };

@@ -1,7 +1,7 @@
 "use client";
 
 import { getLaneByID } from "@/services/queries/lane/get.lane-by-id";
-import { InlineLoader } from "@/components/loader";
+import { InlineLoader, SkeletonLoader } from "@/components/loader";
 import { challegeTabs } from "@/components/tabs/challenge/components";
 import { queryStateParams } from "@/config/routes";
 import { usePersistStore } from "@/store/persist.store";
@@ -80,29 +80,42 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
     <>
       <div className="md:max-w-sidebarmw shadow-brand-shadow sticky hidden h-[90%] min-h-[500px] w-full max-w-full flex-col rounded-2xl bg-white pb-4 md:m-1 lg:flex">
         {/* Header */}
-        {laneData && (
-          <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
-            <h1 className="flex items-center gap-3 text-base font-extrabold">
-              <div className="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                <Image
-                  src={"/icons/yt-white.png"}
-                  alt={"youtube icon"}
+        <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
+          <h1 className="flex items-center gap-3 text-base font-extrabold">
+            <div className="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+              <Image
+                src={"/icons/yt-white.png"}
+                alt={"youtube icon"}
+                height={20}
+                width={20}
+                className="text-primary"
+              />
+            </div>
+            <span className="line-clamp-2">
+              {loadingLaneData ? (
+                <SkeletonLoader
+                  variant="pulse"
+                  rounded="none"
                   height={20}
-                  width={20}
-                  className="text-primary"
+                  width={300}
                 />
-              </div>
-              <span className="line-clamp-2">
-                {laneData.youtubeDetails.title}
-              </span>
-            </h1>
-          </div>
-        )}
+              ) : (
+                laneData && laneData.youtubeDetails.title
+              )}
+            </span>
+          </h1>
+        </div>
 
-        {/* Loading State */}
         {loadingLaneData && (
-          <div className="flex w-full justify-center py-8">
-            <InlineLoader fill />
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonLoader
+                key={index}
+                height={150}
+                variant="pulse"
+                rounded="lg"
+              />
+            ))}
           </div>
         )}
 
@@ -122,7 +135,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
                 }}
                 className={`relative cursor-pointer transition-all duration-200 ${
                   challengeID === challenge.position
-                    ? "border-l-4 border-[#444440] border-b-0 bg-[#4444401A]"
+                    ? "border-b-0 border-l-4 border-[#444440] bg-[#4444401A]"
                     : "hover:bg-[#4444401A]"
                 }`}
               >
@@ -231,7 +244,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
                   }}
                   className={`relative cursor-pointer transition-all duration-200 ${
                     challengeID === challenge.position
-                      ? "border-l-4 border-[#444440] border-b-0 bg-[#4444401A]"
+                      ? "border-b-0 border-l-4 border-[#444440] bg-[#4444401A]"
                       : "hover:bg-[#4444401A]"
                   }`}
                 >

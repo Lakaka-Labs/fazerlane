@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,16 +21,18 @@ import {
 import { ApiKeyFields, apiKeySchema } from "@/schemas/profile";
 import {
   updateApiKeyM,
-  // deleteApiKeyM,
+  deleteApiKeyM,
 } from "@/services/mutations/profile/update.profile";
+import { usePersistStore } from "@/store/persist.store";
 
 export function ApiKeyTab() {
+  const store = usePersistStore((state) => state);
   const [showApiKey, setShowApiKey] = useState(false);
 
   const apiKeyForm = useForm<ApiKeyFields>({
     resolver: zodResolver(apiKeySchema),
     defaultValues: {
-      apiKey: "",
+      apiKey: store.session.user.apiKey || "",
     },
   });
 
@@ -38,7 +40,10 @@ export function ApiKeyTab() {
     mutationFn: updateApiKeyM,
     onSuccess: (data) => {
       if (data.message) {
-        toast.success("API key updated successfully!");
+        toast.success(
+          data.message ||
+            "API key updated successfully, please login again to see changes!"
+        );
         apiKeyForm.reset();
       }
     },
@@ -51,29 +56,29 @@ export function ApiKeyTab() {
     },
   });
 
-  // const { isPending: isDeleting, mutateAsync: deleteApiKey } = useMutation({
-  //   mutationFn: deleteApiKeyM,
-  //   onSuccess: (data) => {
-  //     if (data.message === "success") {
-  //       toast.success("API key removed successfully!");
-  //     }
-  //   },
-  //   onError: (error) => {
-  //     if (axios.isAxiosError(error)) {
-  //       toast.error(error.response?.data.message || "Something went wrong");
-  //     } else {
-  //       toast.error("Unexpected error");
-  //     }
-  //   },
-  // });
+  const { isPending: isDeleting, mutateAsync: deleteApiKey } = useMutation({
+    mutationFn: deleteApiKeyM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("API key removed successfully!");
+      }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
 
   async function onSubmit(values: ApiKeyFields) {
     await updateApiKey(values);
   }
 
-  // async function handleDeleteApiKey() {
-  //   await deleteApiKey();
-  // }
+  async function handleDeleteApiKey() {
+    await deleteApiKey();
+  }
 
   return (
     <div className="space-y-6">
@@ -123,16 +128,16 @@ export function ApiKeyTab() {
           />
 
           <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
-            {/* <Button
+            <Button
               type="button"
               variant="destructive"
               onClick={handleDeleteApiKey}
               disabled={isDeleting}
-              className="w-full sm:w-auto"
+              className="w-full rounded-sm px-4 sm:w-auto"
             >
               <Trash2 className="size-4" />
               {isDeleting ? "Removing..." : "Remove Key"}
-            </Button> */}
+            </Button>
             <Button
               type="submit"
               disabled={isUpdating}

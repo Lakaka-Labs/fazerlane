@@ -12,8 +12,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { InlineLoader } from "@/components/loader";
+import { InlineLoader, SkeletonLoader } from "@/components/loader";
 import { useQueryState } from "nuqs";
+import { cn } from "@/lib/utils";
 
 export default function DUserHome() {
   const lanesLoaderRef = useRef(null);
@@ -25,16 +26,22 @@ export default function DUserHome() {
   const limit = 10;
   const limitFL = 10;
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useInfiniteQuery({
-      queryKey: ["get-lanes"],
-      queryFn: async ({ pageParam = 1 }) =>
-        await getLanes({ limit, page: pageParam }),
-      initialPageParam: 1,
-      getNextPageParam: (lastPage, allPages) => {
-        return lastPage.length < limit ? undefined : allPages.length + 1;
-      },
-    });
+  const {
+    data,
+    isLoading: lanesLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ["get-lanes"],
+    queryFn: async ({ pageParam = 1 }) =>
+      await getLanes({ limit, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length < limit ? undefined : allPages.length + 1;
+    },
+  });
 
   const lanesData = data?.pages.flat() ?? [];
 
@@ -81,6 +88,7 @@ export default function DUserHome() {
   // featured lanes
   const {
     data: featureddata,
+    isLoading: featuredLoading,
     fetchNextPage: featuredfetchNextPage,
     hasNextPage: featuredhasNextPage,
     isFetchingNextPage: featuredisFetchingNextPage,
@@ -159,13 +167,28 @@ export default function DUserHome() {
           <>
             {lanesData && (
               <TabsContent value={tabsTriggerArr[0].value}>
-                {lanesData.length < 1 && (
+                {!lanesLoading && lanesData.length < 1 && (
                   <div className="flex items-center justify-center py-28">
                     <CreateLaneDialog />
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+                <div
+                  className={cn(
+                    "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10",
+                    lanesLoading && "lg:gap-6"
+                  )}
+                >
+                  {lanesLoading &&
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <SkeletonLoader
+                        key={index}
+                        height={350}
+                        variant="pulse"
+                        rounded="lg"
+                      />
+                    ))}
+
                   {lanesData.length > 0 &&
                     lanesData.map((lane, index) => (
                       <LearnCard key={index} lane={lane} />
@@ -198,19 +221,33 @@ export default function DUserHome() {
 
             {featuredLanesData && (
               <TabsContent value="featured">
-                {featuredLanesData.length < 1 && (
+                {!featuredLoading && featuredLanesData.length < 1 && (
                   <div className="flex w-full justify-center py-10 text-center text-base font-medium">
                     No available featured lane
                   </div>
                 )}
 
-                {featuredLanesData.length > 0 && (
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-                    {featuredLanesData.map((lane, index) => (
+                <div
+                  className={cn(
+                    "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-10",
+                    featuredLoading && "gap-6"
+                  )}
+                >
+                  {featuredLoading &&
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <SkeletonLoader
+                        key={index}
+                        height={350}
+                        variant="pulse"
+                        rounded="lg"
+                      />
+                    ))}
+
+                  {featuredLanesData.length > 0 &&
+                    featuredLanesData.map((lane, index) => (
                       <LearnCard key={index} lane={lane} />
                     ))}
-                  </div>
-                )}
+                </div>
 
                 {featuredLanesData.length > 0 && (
                   <div

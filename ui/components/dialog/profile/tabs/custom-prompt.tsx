@@ -18,12 +18,15 @@ import {
 } from "@/components/ui/form";
 import { CustomPromptFields, customPromptSchema } from "@/schemas/profile";
 import { updateCustomPromptM } from "@/services/mutations/profile/update.profile";
+import { usePersistStore } from "@/store/persist.store";
 
 export function CustomPromptTab() {
+  const store = usePersistStore((state) => state);
+
   const customPromptForm = useForm<CustomPromptFields>({
     resolver: zodResolver(customPromptSchema),
     defaultValues: {
-      customPrompt: "",
+      customPrompt: store.session.user.customPrompt || "",
     },
   });
 
@@ -31,7 +34,10 @@ export function CustomPromptTab() {
     mutationFn: updateCustomPromptM,
     onSuccess: (data) => {
       if (data.message) {
-        toast.success("Custom prompt updated successfully!");
+        toast.success(
+          data.message ||
+            "Custom prompt updated successfully, please login again to see changes!"
+        );
       }
     },
     onError: (error) => {

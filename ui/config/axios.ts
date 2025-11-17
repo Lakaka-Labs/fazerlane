@@ -213,6 +213,8 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
+        console.log("failed to fetch refresh token");
+
         isRefreshing = false;
         clearTokens();
 

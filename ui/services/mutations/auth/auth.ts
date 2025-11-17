@@ -22,6 +22,8 @@ interface AuthData {
     emailVerified: boolean;
     createdAt: string;
     updatedAt: string;
+    apiKey: string | null;
+    customPrompt: string | null;
   };
 }
 

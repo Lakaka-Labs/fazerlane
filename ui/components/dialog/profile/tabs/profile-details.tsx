@@ -20,12 +20,12 @@ import { ProfileFields, profileSchema } from "@/schemas/profile";
 import { updateProfileM } from "@/services/mutations/profile/update.profile";
 
 export function ProfileDetailsTab() {
-  const { session, setUser } = usePersistStore((state) => state);
+  const { session } = usePersistStore((state) => state);
 
   const profileForm = useForm<ProfileFields>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      email: session?.user?.email || "",
+      // email: session?.user?.email || "",
       username: session?.user?.username || "",
     },
   });
@@ -33,11 +33,11 @@ export function ProfileDetailsTab() {
   const { isPending, mutateAsync: updateProfile } = useMutation({
     mutationFn: updateProfileM,
     onSuccess: (data) => {
-      if (data.message === "success") {
-        toast.success("Profile updated successfully!");
-        if (data.data) {
-          setUser(data.data.user);
-        }
+      if (data.message) {
+        toast.success(
+          data.message ||
+            "Profile updated successfully, please login again to see changes!"
+        );
       }
     },
     onError: (error) => {
@@ -80,7 +80,7 @@ export function ProfileDetailsTab() {
             )}
           />
 
-          <FormField
+          {/* <FormField
             control={profileForm.control}
             name="email"
             render={({ field }) => (
@@ -96,7 +96,7 @@ export function ProfileDetailsTab() {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
 
           <div className="flex justify-end pt-2">
             <Button

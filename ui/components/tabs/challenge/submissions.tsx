@@ -4,14 +4,20 @@ import { useEffect, useState } from "react";
 import { ArrowDownToLine, ChevronDown, Play } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { SectionContainer } from "./components";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSubmissions } from "@/services/queries/challenge/submissions/get";
-import { InlineLoader } from "@/components/loader";
+import { InlineLoader, SkeletonLoader } from "@/components/loader";
 import { dateToNow } from "@/utils/date-to-now";
 import Image from "next/image";
 import { usePersistStore } from "@/store/persist.store";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { unmarkChallenge } from "@/services/mutations/challenge/unmark";
+import toast from "react-hot-toast";
+import { queryKeys } from "@/config/routes";
 
 export const SubmissionsTab = () => {
+  const queryClient = useQueryClient();
   const { currentChallenge } = usePersistStore((store) => store);
 
   if (!currentChallenge?.id) {
@@ -24,15 +30,45 @@ export const SubmissionsTab = () => {
       getSubmissions({ challenge_id: currentChallenge.id as string }),
   });
 
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: unmarkChallenge,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("Submissions cleared successfully!");
+      }
+    },
+  });
+
+  async function handleClearSubmissions() {
+    if (!currentChallenge) {
+      toast.error("No challenge selected.");
+      return;
+    }
+
+    await mutateAsync({ challenge_id: currentChallenge.id }).then((res) => {
+      if (res.message === "success") {
+        toast.success("Submissions cleared successfully!");
+
+        queryClient.invalidateQueries({
+          queryKey: [queryKeys.getChallengeSubmissions],
+        });
+      }
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <SectionContainer>
         <div className="flex flex-col gap-6">
-          {isLoading && (
-            <div className="flex h-full w-full items-center justify-center py-10">
-              <InlineLoader fill />
-            </div>
-          )}
+          {isLoading &&
+            Array.from({ length: 3 }).map((_, index) => (
+              <SkeletonLoader
+                key={index}
+                height={80}
+                variant="pulse"
+                rounded="lg"
+              />
+            ))}
 
           {submissions && submissions.length < 1 && (
             <p className="bg-brand-background-dashboard text-brand-black flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
@@ -53,6 +89,18 @@ export const SubmissionsTab = () => {
                 comments={submission.comment}
               />
             ))}
+
+          {!isLoading && submissions && submissions.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                disabled={isPending}
+                onClick={handleClearSubmissions}
+                size={"lg"}
+              >
+                {isPending ? "Clearing..." : "Clear Submissions"}
+              </Button>
+            </div>
+          )}
         </div>
       </SectionContainer>
     </div>
@@ -86,7 +134,10 @@ const SubmissionsDropdown = ({
     <div className="border-brand-black/20 rounded-xl border">
       <div
         onClick={handleToggleResourcesDropdown}
-        className="border-brand-black/20 flex h-20 items-center justify-between rounded-t-xl border-b px-4"
+        className={cn(
+          "border-brand-black/20 flex h-20 items-center justify-between rounded-t-xl px-4",
+          isOpen && "border-b"
+        )}
       >
         <p className="text-brand-grey text-base font-medium capitalize">
           {time}
@@ -113,7 +164,7 @@ const SubmissionsDropdown = ({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            transition={{ duration: 0.15, ease: "linear" }}
             className="flex flex-col gap-6 px-4 py-6"
           >
             <div

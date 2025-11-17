@@ -33,3 +33,7 @@ export const queryStateParams = {
   tab: "tab",
   laneId: "laneId",
 };
+
+export const queryKeys = {
+  getChallengeSubmissions: "get-challenge-submissions",
+};

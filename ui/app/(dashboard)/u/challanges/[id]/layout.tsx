@@ -1,7 +1,7 @@
 "use client";
 
 import { getChallenges } from "@/services/queries/challenge/get.challenge";
-import { PageLoader } from "@/components/loader";
+import { InlineLoader } from "@/components/loader";
 import { LaneSideBar } from "@/components/navigation/sidebar/lane";
 import { usePersistStore } from "@/store/persist.store";
 import { Challenge } from "@/types/api/challenges";
@@ -41,15 +41,19 @@ export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
   }, [challenge]);
 
   if (!id) {
-    return <div>No ID provided</div>;
+    return <div className="text-center font-medium">No ID provided</div>;
   }
 
   if (isLoading) {
-    return <PageLoader />;
+    return (
+      <div className="lg:pl-xLayout lg:pr-xLayout mx-auto flex h-full w-full flex-col gap-12 pr-3 pl-3 md:flex-row md:overflow-hidden">
+        <InlineLoader fill />
+      </div>
+    );
   }
 
   if (!challenge || challenge.length < 1) {
-    return <div>Lane not found</div>;
+    return <div className="text-center font-medium">Lane not found</div>;
   }
 
   return (

@@ -1,33 +1,26 @@
 import apiClient from "@/config/axios";
-import { API_BASE_URL } from "@/config/routes";
-import { ApiResponse } from "@/types/api";
 import { buildQuery } from "@/utils/api";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { AxiosError } from "axios";
 
 interface UpdateProfilePayload {
   username: string;
-  email: string;
+  // email: string;
 }
 
 interface UpdateProfileData {
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    password: string;
-    emailVerified: boolean;
-    createdAt: string;
-    updatedAt: string;
+  statusCode: number;
+  message: string;
+  data: {
+    message: string;
   };
 }
 
-export const updateProfileM = async (
-  payload: UpdateProfilePayload
-): Promise<ApiResponse<UpdateProfileData>> => {
-  const res: AxiosResponse<ApiResponse<UpdateProfileData>> = await axios.patch(
-    `${API_BASE_URL}/profile`,
-    payload
-  );
+export const updateProfileM = async (payload: UpdateProfilePayload) => {
+  const query = buildQuery("/profile/username");
+
+  const data = { key: payload.username };
+
+  const res = await apiClient.put<UpdateProfileData>(query, data);
   return res.data;
 };
 
@@ -82,13 +75,9 @@ interface DeleteApiKeyData {
   };
 }
 
-interface DeleteApiKeyPayload {
-  apiKey: string;
-}
-
-export const deleteApiKeyM = async (payload: DeleteApiKeyPayload) => {
+export const deleteApiKeyM = async () => {
   try {
-    const query = buildQuery(`/profile/key/${payload.apiKey}`);
+    const query = buildQuery(`/profile/key`);
     const res = await apiClient.delete<DeleteApiKeyData>(query);
 
     return res.data;

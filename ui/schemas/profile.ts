@@ -7,7 +7,7 @@ export const profileSchema = z.object({
       /^[A-Za-z0-9_]{3,30}$/,
       "Username must be 3–30 chars and contain only letters, numbers, or _"
     ),
-  email: z.string().email("Invalid email"),
+  // email: z.string().email("Invalid email"),
 });
 
 export const apiKeySchema = z.object({

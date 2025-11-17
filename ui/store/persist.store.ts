@@ -15,6 +15,8 @@ export const defaultInitState: PersistMainStoreState = {
     emailVerified: false,
     createdAt: "",
     updatedAt: "",
+    apiKey: null,
+    customPrompt: null,
   },
   token: {
     jwt: "",
@@ -31,6 +33,8 @@ export const defaultInitState: PersistMainStoreState = {
       emailVerified: false,
       createdAt: "",
       updatedAt: "",
+      apiKey: null,
+      customPrompt: null,
     },
   },
 

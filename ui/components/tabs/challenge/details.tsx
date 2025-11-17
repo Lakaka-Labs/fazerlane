@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getLaneByID } from "@/services/queries/lane/get.lane-by-id";
 import { useParams } from "next/navigation";
 import { getYouTubeUrl } from "@/utils/format-url";
-import { InlineLoader } from "@/components/loader";
+import { SkeletonLoader } from "@/components/loader";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -43,8 +43,15 @@ export const DetailsTab = () => {
         <h2 className="text-base font-semibold">References</h2>
 
         {loadingLaneData && (
-          <div className="flex w-full justify-center">
-            <InlineLoader fill />
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <SkeletonLoader
+                key={index}
+                height={50}
+                variant="pulse"
+                rounded="none"
+              />
+            ))}
           </div>
         )}
 
