@@ -30,7 +30,7 @@ jobs:
               run: |
                   mkdir -p ~/.ssh
                   chmod 700 ~/.ssh
-                  ssh-keyscan -H 13.48.178.248 >> ~/.ssh/known_hosts 2>&1 || true
+                  ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
                   chmod 644 ~/.ssh/known_hosts
                   echo "Known hosts updated:"
                   cat ~/.ssh/known_hosts
