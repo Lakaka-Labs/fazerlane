@@ -24,11 +24,9 @@ jobs:
             - name: Setup SSH Key
               run: |
                   mkdir -p ~/.ssh
-                  echo "$SSH_PEM" > ~/.ssh/key.pem
+                  echo "${{ secrets.SSH_PEM }}" | base64 -d > ~/.ssh/key.pem
                   chmod 600 ~/.ssh/key.pem
                   ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-              env:
-                  SSH_PEM: ${{ secrets.SSH_PEM }}
 
             - name: Test SSH Connection
               run: |
