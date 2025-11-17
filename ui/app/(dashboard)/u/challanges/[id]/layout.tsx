@@ -1,7 +1,6 @@
 "use client";
 
 import { getChallenges } from "@/services/queries/challenge/get.challenge";
-// import { Chatbot } from "@/components/chatbot";
 import { PageLoader } from "@/components/loader";
 import { LaneSideBar } from "@/components/navigation/sidebar/lane";
 import { usePersistStore } from "@/store/persist.store";
