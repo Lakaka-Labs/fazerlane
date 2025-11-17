@@ -113,7 +113,8 @@
   /* Your custom colors */
   --text: oklab(13.44% 0 0);
   --background: oklab(100% 0 0);
-  --primary: oklab(63.28% 0.227 0.11);
+  /* --primary: oklab(63.28% 0.227 0.11); */
+  --primary: oklab(0% 0 0);
   --secondary: oklab(100% 0 0);
   --accent: oklab(0% 0 0);
 
@@ -151,7 +152,8 @@
   /* Your custom dark colors */
   --text: oklab(13.44% 0 0);
   --background: oklab(100% 0 0);
-  --primary: oklab(63.28% 0.227 0.11);
+  /* --primary: oklab(63.28% 0.227 0.11); */
+  --primary: oklab(0% 0 0);
   --secondary: oklab(100% 0 0);
   --accent: oklab(0% 0 0);
 

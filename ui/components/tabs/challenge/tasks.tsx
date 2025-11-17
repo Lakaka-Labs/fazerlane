@@ -125,6 +125,8 @@ export const TasksTab = () => {
               switch (message.type) {
                 case "started":
                   console.log("Challenge started:", message.challengeId);
+                  toast.success("Task submitted successfully!");
+
                   break;
 
                 case "chunk":
@@ -136,7 +138,7 @@ export const TasksTab = () => {
                   setFinalResult(message);
                   console.log("Challenge complete:", message);
                   setIsConnected(false);
-                  toast.success("Task submitted successfully!");
+
                   break;
               }
             } catch (err) {
@@ -303,7 +305,7 @@ export const TasksTab = () => {
                 cancel();
               }}
               disabled={!isConnected && !isSubmitting}
-              className="bg-primary rounded px-4 text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-brand-red rounded px-4 text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </Button>
@@ -317,9 +319,28 @@ export const TasksTab = () => {
             {error}
           </div>
         )}
-        {isConnected && (
+        {/* {isConnected && (
           <div className="text-brand-bright-green bg-brand-bright-green/10 rounded p-4">
             Connected - Receiving data...
+          </div>
+        )} */}
+
+        {isConnected && !isComplete && (
+          <div className="flex animate-pulse flex-col gap-2 border-l-4 border-gray-300 bg-gray-500/10 px-4 py-6">
+            <div className="h-7 w-32 rounded bg-gray-300"></div>
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-16 rounded bg-gray-300"></div>
+              <div className="h-5 w-12 rounded bg-gray-300"></div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="h-5 w-20 rounded bg-gray-300"></div>
+              <div className="space-y-2">
+                <div className="h-4 w-full rounded bg-gray-300"></div>
+                <div className="h-4 w-5/6 rounded bg-gray-300"></div>
+                <div className="h-4 w-8/9 rounded bg-gray-300"></div>
+                <div className="h-4 w-3/4 rounded bg-gray-300"></div>
+              </div>
+            </div>
           </div>
         )}
 

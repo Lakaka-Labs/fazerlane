@@ -28,24 +28,28 @@ export default function HeroHome() {
 
       <div
         className={
-          "flex flex-1 flex-col items-center justify-center gap-6 text-center px-4"
+          "flex flex-1 flex-col items-center justify-center gap-6 px-4 text-center"
         }
       >
         {/*<Badge className={`rounded-full bg-gray-300 text-base text-black px-4 py-1 font-light`}>*/}
         {/*    <Image src={"/doom.png"} alt={"logo"} width={250} height={250} className={"w-10"}/>*/}
         {/*    Inspired By MfDoom*/}
         {/*</Badge>*/}
-        <h1 className={"text-3xl md:text-5xl font-bold"}>
+        <h1 className={"text-3xl font-bold md:text-5xl"}>
           Follow the lane. The lane is your guide.
         </h1>
-        <p className={`max-w-xl text-sm md:text-lg text-black/65`}>
+        <p className={`max-w-xl text-sm text-black/65 md:text-lg`}>
           Peddle on the floor, thirsty for a score? Fazerlane is the path. We
           turn endless YouTube tutorials into actionable challenges, so you can
           stop just watching and start doing.
           {/*Submit your progress in any form and master skills by getting your*/}
           {/*hands dirty.*/}
         </p>
-        <Button asChild size={"xl"} className={``}>
+        <Button
+          asChild
+          size={"xl"}
+          className={`bg-brand-red hover:bg-brand-red/80`}
+        >
           <Link href={appRoutes.auth.signIn}>Get on the Lane</Link>
         </Button>
       </div>

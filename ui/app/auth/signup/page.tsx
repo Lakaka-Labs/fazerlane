@@ -109,7 +109,7 @@ export default function Signup() {
   return (
     <div className="flex flex-col gap-5">
       <AuthTitle title="Welcome to Fazerlane" />
-
+      {/* 
       <Button variant="outline" className="w-full gap-2" onClick={googleOAuth}>
         <Image
           src={"/icons/google-icon.svg"}
@@ -120,7 +120,7 @@ export default function Signup() {
         Continue with Google
       </Button>
 
-      <TextSeperator text="OR" />
+      <TextSeperator text="OR" /> */}
 
       <Form {...signUpForm}>
         <form

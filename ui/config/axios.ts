@@ -6,7 +6,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import Cookies from "js-cookie";
-import { API_BASE_URL } from "./routes";
+import { API_BARE_URL, API_BASE_URL } from "./routes";
 
 const getCookie = (name: string): string | undefined => {
   return Cookies.get(name);
@@ -190,7 +190,7 @@ api.interceptors.response.use(
         }
 
         const response = await axios.get<RefreshResponse>(
-          `${API_BASE_URL}/auth/token/refresh`,
+          `${API_BARE_URL}/auth/token/refresh`,
           {
             headers: {
               Authorization: `Bearer ${refreshToken}`,

@@ -20,23 +20,21 @@ WORKDIR /app
 # Create the appuser BEFORE chown
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Copy only what’s needed from builder
+# Copy only what's needed from builder
 COPY --from=base /app/package.json ./package.json
 COPY --from=base /app/bun.lock ./bun.lock
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/migrate.cjs ./migrate.cjs
 COPY --from=base /app/migrations ./migrations
 
-
-
 # Copy the rest of the source code
 COPY . .
 
-# Make sure upload temp dir exists & has right permissions
-RUN mkdir -p /app/public/temp && chown -R appuser:appgroup /app/public
-
-
-# COPY --from=base /app/.env ./.env
+# Create uploads directory and set permissions
+RUN mkdir -p /app/uploads && \
+    mkdir -p /app/public/temp && \
+    chown -R appuser:appgroup /app/uploads && \
+    chown -R appuser:appgroup /app/public
 
 # Expose your Express port
 EXPOSE 5000
@@ -45,6 +43,4 @@ EXPOSE 5000
 USER appuser
 
 # Start the app
-# CMD ["bun", "start"]
 CMD ["sh", "-c", "bun start"]
-

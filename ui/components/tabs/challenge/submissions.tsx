@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { SectionContainer } from "./components";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSubmissions } from "@/services/queries/challenge/submissions/get";
-import { InlineLoader, SkeletonLoader } from "@/components/loader";
+import { InlineLoader } from "@/components/loader";
 import { dateToNow } from "@/utils/date-to-now";
 import Image from "next/image";
 import { usePersistStore } from "@/store/persist.store";
@@ -35,6 +35,10 @@ export const SubmissionsTab = () => {
     onSuccess: (data) => {
       if (data.message === "success") {
         toast.success("Submissions cleared successfully!");
+
+        queryClient.invalidateQueries({
+          queryKey: [queryKeys.getChallengeSubmissions],
+        });
       }
     },
   });
@@ -45,15 +49,7 @@ export const SubmissionsTab = () => {
       return;
     }
 
-    await mutateAsync({ challenge_id: currentChallenge.id }).then((res) => {
-      if (res.message === "success") {
-        toast.success("Submissions cleared successfully!");
-
-        queryClient.invalidateQueries({
-          queryKey: [queryKeys.getChallengeSubmissions],
-        });
-      }
-    });
+    await mutateAsync({ challenge_id: currentChallenge.id });
   }
 
   return (
@@ -62,11 +58,9 @@ export const SubmissionsTab = () => {
         <div className="flex flex-col gap-6">
           {isLoading &&
             Array.from({ length: 3 }).map((_, index) => (
-              <SkeletonLoader
+              <div
                 key={index}
-                height={80}
-                variant="pulse"
-                rounded="lg"
+                className="h-20 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700"
               />
             ))}
 
@@ -96,6 +90,7 @@ export const SubmissionsTab = () => {
                 disabled={isPending}
                 onClick={handleClearSubmissions}
                 size={"lg"}
+                className="bg-brand-red hover:bg-brand-red/80"
               >
                 {isPending ? "Clearing..." : "Clear Submissions"}
               </Button>
@@ -161,11 +156,11 @@ const SubmissionsDropdown = ({
         {isOpen && (
           <motion.div
             key="submission-wrapper"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
             transition={{ duration: 0.15, ease: "linear" }}
-            className="flex flex-col gap-6 px-4 py-6"
+            className="flex flex-col gap-6 overflow-hidden rounded-xl bg-white px-4 py-6"
           >
             <div
               className={`border-brand-green bg-brand-lite-green flex transform cursor-pointer flex-col gap-3 border-l-4 border-solid p-4 transition-all duration-200 ease-linear`}

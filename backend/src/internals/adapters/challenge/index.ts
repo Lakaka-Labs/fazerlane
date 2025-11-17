@@ -405,16 +405,18 @@ export default class ChallengePG implements ChallengeRepository {
 
         await this.sql`
             DELETE
-            FROM challenge_users
-            WHERE user_id = ${user_id}
-              AND challenge_id = ANY (${`{${ids.map((id) => `"${id}"`).join(',')}}`})
-        `;
-        await this.sql`
-            DELETE
             FROM challenge_attempts
             WHERE user_id = ${user_id}
               AND challenge_id = ANY (${`{${ids.map((id) => `"${id}"`).join(',')}}`})
         `;
+
+        await this.sql`
+            DELETE
+            FROM challenge_users
+            WHERE user_id = ${user_id}
+              AND challenge_id = ANY (${`{${ids.map((id) => `"${id}"`).join(',')}}`})
+        `;
+
     };
 
     getCompletedChallenges = async (laneId: string, user_id: string): Promise<string[]> => {

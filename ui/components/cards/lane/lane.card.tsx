@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useQueryState } from "nuqs";
 import { addFeaturedLane } from "@/services/mutations/lane/add.featured";
+import { useState } from "react";
 
 interface LearnCardProps {
   lane: Lane;
@@ -129,6 +130,7 @@ export default function LearnCard({ lane }: LearnCardProps) {
 const ProgressCardSection = ({ lane }: LearnCardProps) => {
   const queryClient = useQueryClient();
   const [activeTab] = useQueryState("tab");
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const removeLaneM = useMutation({
     mutationFn: (laneId: string) => removeLane({ laneId }),
@@ -169,6 +171,8 @@ const ProgressCardSection = ({ lane }: LearnCardProps) => {
     e.preventDefault();
     e.stopPropagation();
 
+    setIsRetrying(true);
+
     if (!lane.id) {
       toast.error("Missing lane ID");
       return;
@@ -186,6 +190,8 @@ const ProgressCardSection = ({ lane }: LearnCardProps) => {
       }
     } catch (error) {
       toast.error((error as string) || "Failed to retry lane");
+    } finally {
+      setIsRetrying(false);
     }
   }
 
@@ -267,6 +273,7 @@ const ProgressCardSection = ({ lane }: LearnCardProps) => {
               {lane.state != "accepted" && (
                 <>
                   <DropdownMenuItem
+                    disabled={isRetrying || lane.state === "accepted"}
                     onClick={handleRetry}
                     className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
                   >

@@ -6,13 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { Eye, EyeOff, Trash2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -120,9 +119,7 @@ export function ApiKeyTab() {
                     </button>
                   </div>
                 </FormControl>
-                <FormDescription>
-                  Your API key will be encrypted and stored securely
-                </FormDescription>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -137,10 +134,9 @@ export function ApiKeyTab() {
                 handleDeleteApiKey();
               }}
               disabled={isDeleting}
-              className="w-full rounded-sm px-4 sm:w-auto"
+              className="w-full px-4 sm:w-auto"
             >
-              <Trash2 className="size-4" />
-              {isDeleting ? "Removing..." : "Remove Key"}
+              {isDeleting ? "Removing..." : "Remove"}
             </Button>
             <Button
               type="submit"

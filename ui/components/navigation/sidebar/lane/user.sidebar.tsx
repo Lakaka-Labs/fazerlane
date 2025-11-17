@@ -82,7 +82,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
         {/* Header */}
         <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
           <h1 className="flex items-center gap-3 text-base font-extrabold">
-            <div className="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+            <div className="bg-brand-red flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
               <Image
                 src={"/icons/yt-white.png"}
                 alt={"youtube icon"}
@@ -205,7 +205,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
           {laneData && (
             <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
               <h1 className="flex items-center gap-3 text-base font-extrabold">
-                <div className="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                <div className="bg-brand-red flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
                   <Image
                     src={"/icons/yt-white.png"}
                     alt={"youtube icon"}

@@ -3,9 +3,8 @@
 import { uploadFile } from "@/services/mutations/storage/upload";
 import { FileData } from "@/types/api/challenges/tasks";
 import { useMutation } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { LoaderPinwheel } from "lucide-react";
 import { useRef, useState } from "react";
-import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 
 interface FileUploadProps {
@@ -45,11 +44,15 @@ export default function FileUpload({ setFileLink }: FileUploadProps) {
 
     const droppedFiles = Array.from(e.dataTransfer.files);
     addFiles(droppedFiles);
+
+    handleUploadFiles();
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
     addFiles(selectedFiles);
+
+    handleUploadFiles();
   };
 
   const addFiles = (newFiles: File[]): void => {
@@ -70,9 +73,9 @@ export default function FileUpload({ setFileLink }: FileUploadProps) {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
-  const removeFile = (fileData: FileData): void => {
-    setFiles((prev) => prev.filter((file) => file.id !== fileData.id));
-  };
+  // const removeFile = (fileData: FileData): void => {
+  //   setFiles((prev) => prev.filter((file) => file.id !== fileData.id));
+  // };
 
   const handleBrowseClick = (): void => {
     fileInputRef.current?.click();
@@ -125,7 +128,14 @@ export default function FileUpload({ setFileLink }: FileUploadProps) {
         </div>
       </div>
 
-      {files.length > 0 && (
+      {isLoading && (
+        <div className="text-brand-grey flex justify-center gap-4 pt-6">
+          <p className="text-center">Uploading</p>
+          <LoaderPinwheel size={24} className="animate-spin" />
+        </div>
+      )}
+
+      {/* {files.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="mt-6 rounded-lg border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-200 p-4">
@@ -164,7 +174,7 @@ export default function FileUpload({ setFileLink }: FileUploadProps) {
             </Button>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

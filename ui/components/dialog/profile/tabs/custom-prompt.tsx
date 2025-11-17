@@ -22,7 +22,6 @@ import {
   updateCustomPromptM,
 } from "@/services/mutations/profile/update.profile";
 import { usePersistStore } from "@/store/persist.store";
-import { Trash2 } from "lucide-react";
 
 export function CustomPromptTab() {
   const store = usePersistStore((state) => state);
@@ -126,10 +125,9 @@ export function CustomPromptTab() {
                 handleDeleteCustomPrompt();
               }}
               disabled={isDeleting}
-              className="w-full rounded-sm px-4 sm:w-auto"
+              className="w-full px-4 sm:w-auto"
             >
-              <Trash2 className="size-4" />
-              {isDeleting ? "Removing..." : "Remove Custom Prompt"}
+              {isDeleting ? "Removing..." : "Remove"}
             </Button>
 
             <Button

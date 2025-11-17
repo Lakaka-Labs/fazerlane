@@ -14,6 +14,7 @@ import { getYouTubeUrl } from "@/utils/format-url";
 import { SkeletonLoader } from "@/components/loader";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { normalizeTime } from "@/utils/normalized.time";
 
 export const DetailsTab = () => {
   const params = useParams();
@@ -134,9 +135,9 @@ const ReferencesDropdown = ({
             </div>
 
             <div className="font-lato mt-3 flex w-full items-center justify-center gap-2 text-center font-semibold">
-              <span>From: [{location.startTime}]</span>
+              <span>From: [{normalizeTime(location.startTime)}]</span>
               <span>-</span>
-              <span>To: [{location.endTime}]</span>
+              <span>To: [{normalizeTime(location.endTime)}]</span>
             </div>
           </motion.div>
         )}
