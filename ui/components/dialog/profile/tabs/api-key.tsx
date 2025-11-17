@@ -83,6 +83,7 @@ export function ApiKeyTab() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-semibold">API Key</h2>
         <p className="text-brand-text/60 text-sm">
           Manage your API key for external integrations
         </p>

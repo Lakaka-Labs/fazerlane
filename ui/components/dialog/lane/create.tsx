@@ -98,7 +98,7 @@ export default function CreateLaneDialog({
           </DialogTrigger>
         )}
 
-        <DialogContent className="border-brand-border flex h-screen max-w-sm items-center overflow-y-auto rounded-none border-2 border-solid px-3 md:max-w-2xl lg:block lg:h-fit lg:rounded-lg lg:px-6">
+        <DialogContent className="border-brand-border flex max-h-[80dvh] max-w-[90%] rounded-lg border-2 border-solid px-4 md:block md:max-w-2xl md:px-6">
           <Form {...createLaneForm}>
             <form
               onSubmit={createLaneForm.handleSubmit(handleCreateLane)}
@@ -110,96 +110,94 @@ export default function CreateLaneDialog({
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="grid gap-6">
-                {youtubeLink && isValidYouTubeUrl(youtubeLink) && (
-                  <div className="h-[330px] w-full overflow-hidden rounded-[12px]">
-                    <YoutubeVideo url={youtubeLink} />
+              <div className="flex flex-col gap-3 overflow-y-auto lg:pr-2">
+                <div className="grid gap-6">
+                  {youtubeLink && isValidYouTubeUrl(youtubeLink) && (
+                    <div className="h-[330px] w-full overflow-hidden rounded-[12px]">
+                      <YoutubeVideo url={youtubeLink} />
+                    </div>
+                  )}
+                  <div>
+                    <FormField
+                      control={createLaneForm.control}
+                      name="youtubeLink"
+                      render={({ field }) => (
+                        <FormItem className="gap-3">
+                          <FormLabel>
+                            Paste in a YouTube URL below to be used to create a
+                            new lane
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://www.youtube.com/watch?v="
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                )}
-
-                <div>
-                  <FormField
-                    control={createLaneForm.control}
-                    name="youtubeLink"
-                    render={({ field }) => (
-                      <FormItem className="gap-3">
-                        <FormLabel>
-                          Paste in a YouTube URL below to be used to create a
-                          new lane
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="https://www.youtube.com/watch?v="
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <FormField
+                      control={createLaneForm.control}
+                      name="startTime"
+                      render={({ field }) => (
+                        <FormItem className="gap-3">
+                          <FormLabel>Start Time (e.g., 1m10s)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="30m10s" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createLaneForm.control}
+                      name="endTime"
+                      render={({ field }) => (
+                        <FormItem className="gap-3">
+                          <FormLabel>End Time (e.g., 2m30s)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="1h30m10s" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="text-sm font-light md:text-base">
+                    <h3 className="flex items-center gap-1">
+                      <Asterisk size={12} />
+                      Notes
+                    </h3>
+                    <ul className="text-sm">
+                      <li className="flex gap-1 pl-2">
+                        <Dot />
+                        Only public YouTube videos are supported
+                      </li>
+                      <li className="flex gap-1 pl-2">
+                        <Dot />
+                        Recently uploaded videos may not be available to import
+                      </li>
+                      <li className="flex gap-1 pl-2">
+                        <Dot />
+                        Upload only Youtube tutorials for good results
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <FormField
-                    control={createLaneForm.control}
-                    name="startTime"
-                    render={({ field }) => (
-                      <FormItem className="gap-3">
-                        <FormLabel>Start Time (e.g., 1m10s)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="30m10s" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={createLaneForm.control}
-                    name="endTime"
-                    render={({ field }) => (
-                      <FormItem className="gap-3">
-                        <FormLabel>End Time (e.g., 2m30s)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="1h30m10s" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="text-sm font-light md:text-base">
-                  <h3 className="flex items-center gap-1">
-                    <Asterisk size={12} />
-                    Notes
-                  </h3>
-                  <ul className="text-sm">
-                    <li className="flex gap-1 pl-2">
-                      <Dot />
-                      Only public YouTube videos are supported
-                    </li>
-                    <li className="flex gap-1 pl-2">
-                      <Dot />
-                      Recently uploaded videos may not be available to import
-                    </li>
-                    <li className="flex gap-1 pl-2">
-                      <Dot />
-                      Upload only Youtube tutorials for good results
-                    </li>
-                  </ul>
-                </div>
+                <DialogFooter>
+                  <Button
+                    disabled={mutate.isPending}
+                    type="submit"
+                    className="mt-4"
+                    // className="h-9 rounded-[6px] bg-black px-4 hover:bg-black/50"
+                  >
+                    {mutate.isPending ? "Creating..." : "Create Lane"}
+                  </Button>
+                </DialogFooter>
               </div>
-              <DialogFooter>
-                <Button
-                  disabled={mutate.isPending}
-                  type="submit"
-                  className="mt-4"
-                  // className="h-9 rounded-[6px] bg-black px-4 hover:bg-black/50"
-                >
-                  {mutate.isPending ? "Creating..." : "Create Lane"}
-                </Button>
-              </DialogFooter>
             </form>
           </Form>
         </DialogContent>

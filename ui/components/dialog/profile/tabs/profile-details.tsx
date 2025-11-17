@@ -56,6 +56,7 @@ export function ProfileDetailsTab() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-semibold">Profile</h2>
         <p className="text-brand-text/60 text-sm">
           Update your personal information
         </p>

@@ -84,6 +84,8 @@ export function CustomPromptTab() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-semibold">AI Context</h2>
+
         <p className="text-brand-text/60 text-sm">
           Provide additional context for AI assistance while using Fazerlane
         </p>

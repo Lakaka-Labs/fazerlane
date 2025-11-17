@@ -7,6 +7,7 @@ import { usePersistStore } from "@/store/persist.store";
 import { Challenge } from "@/types/api/challenges";
 import { useQuery } from "@tanstack/react-query";
 import { ReactNode, use, useEffect } from "react";
+import { getLaneByID } from "@/services/queries/lane/get.lane-by-id";
 
 interface ChallengeLayoutProps {
   params: Promise<{
@@ -32,6 +33,11 @@ export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
     queryFn: () => getChallenges({ lane_id: id }),
   });
 
+  const { isLoading: loadingLaneData } = useQuery({
+    queryKey: ["get-lane-by-id", id],
+    queryFn: () => getLaneByID({ id: id as string }),
+  });
+
   useEffect(() => {
     if (!currentChallenge && challenge && challenge.length > 0) {
       handleChallengeClick(
@@ -44,7 +50,7 @@ export default function LaneLayout({ params, children }: ChallengeLayoutProps) {
     return <div className="text-center font-medium">No ID provided</div>;
   }
 
-  if (isLoading) {
+  if (isLoading || loadingLaneData) {
     return (
       <div className="lg:pl-xLayout lg:pr-xLayout mx-auto flex h-full w-full flex-col gap-12 pr-3 pl-3 md:flex-row md:overflow-hidden">
         <InlineLoader fill />
