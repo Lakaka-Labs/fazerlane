@@ -231,8 +231,6 @@ jobs:
                     echo ""
                     echo "=== UI Logs (last 20 lines) ==="
                     docker logs --tail 20 ${{ env.UI_CONTAINER_NAME }} || echo "Container not running"
-                    echo ""
-                    docker exec ui-container printenv | grep NEXT_PUBLIC_API_URL
                   EOF
 
             - name: Cleanup SSH Key
