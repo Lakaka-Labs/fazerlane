@@ -44,9 +44,8 @@ export default function PasswordReset() {
         toast.success("Password has been reset successfully!");
         passwordResetForm.reset();
         setTimeout(() => {
-          toast.success("Redirecting to sign in...");
           router.push(appRoutes.auth.signIn);
-        }, 1000);
+        }, 500);
       }
     },
     onError: (error) => {

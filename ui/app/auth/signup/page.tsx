@@ -66,9 +66,8 @@ export default function Signup() {
           });
         }
         setTimeout(() => {
-          toast.success("Redirecting to dashboard...");
           router.push(appRoutes.dashboard.user.lanes);
-        }, 1000);
+        }, 500);
       }
     },
     onError: (error) => {

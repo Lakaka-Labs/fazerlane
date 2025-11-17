@@ -65,7 +65,6 @@ export default function Signin() {
             user: data.data.user,
           });
         }
-        toast.success("Redirecting to dashboard...");
         router.push(appRoutes.dashboard.user.lanes);
       }
     },
