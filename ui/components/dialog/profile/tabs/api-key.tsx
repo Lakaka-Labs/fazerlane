@@ -131,7 +131,10 @@ export function ApiKeyTab() {
             <Button
               type="button"
               variant="destructive"
-              onClick={handleDeleteApiKey}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteApiKey();
+              }}
               disabled={isDeleting}
               className="w-full rounded-sm px-4 sm:w-auto"
             >

@@ -18,7 +18,7 @@ interface UpdateProfileData {
 export const updateProfileM = async (payload: UpdateProfilePayload) => {
   const query = buildQuery("/profile/username");
 
-  const data = { key: payload.username };
+  const data = { username: payload.username };
 
   const res = await apiClient.put<UpdateProfileData>(query, data);
   return res.data;
@@ -135,6 +135,38 @@ export const updateCustomPromptM = async (
 
       throw new Error(
         error.response?.data?.message || "Failed to update custom prompt"
+      );
+    }
+
+    console.error("error nibba", error);
+
+    throw error;
+  }
+};
+
+interface DeleteCustomPromptData {
+  statusCode: number;
+  message: string;
+  data: {
+    message: string;
+  };
+}
+
+export const deleteCustomPromptM = async () => {
+  try {
+    const query = buildQuery(`/profile/prompt`);
+    const res = await apiClient.delete<DeleteCustomPromptData>(query);
+
+    return res.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      console.error(
+        "error nibba",
+        error.response?.data?.message || "Failed to delete custom prompt"
+      );
+
+      throw new Error(
+        error.response?.data?.message || "Failed to delete custom prompt"
       );
     }
 

@@ -17,8 +17,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CustomPromptFields, customPromptSchema } from "@/schemas/profile";
-import { updateCustomPromptM } from "@/services/mutations/profile/update.profile";
+import {
+  deleteCustomPromptM,
+  updateCustomPromptM,
+} from "@/services/mutations/profile/update.profile";
 import { usePersistStore } from "@/store/persist.store";
+import { Trash2 } from "lucide-react";
 
 export function CustomPromptTab() {
   const store = usePersistStore((state) => state);
@@ -49,8 +53,32 @@ export function CustomPromptTab() {
     },
   });
 
+  const { isPending: isDeleting, mutateAsync: deleteCustomPrompt } =
+    useMutation({
+      mutationFn: deleteCustomPromptM,
+      onSuccess: (data) => {
+        if (data.message === "success") {
+          toast.success(
+            data.message ||
+              "Custom prompt deleted successfully, please login again to see changes!"
+          );
+        }
+      },
+      onError: (error) => {
+        if (axios.isAxiosError(error)) {
+          toast.error(error.response?.data.message || "Something went wrong");
+        } else {
+          toast.error("Unexpected error");
+        }
+      },
+    });
+
   async function onSubmit(values: CustomPromptFields) {
     await updateCustomPrompt(values);
+  }
+
+  async function handleDeleteCustomPrompt() {
+    await deleteCustomPrompt();
   }
 
   return (
@@ -87,7 +115,21 @@ export function CustomPromptTab() {
             )}
           />
 
-          <div className="flex justify-end pt-2">
+          <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteCustomPrompt();
+              }}
+              disabled={isDeleting}
+              className="w-full rounded-sm px-4 sm:w-auto"
+            >
+              <Trash2 className="size-4" />
+              {isDeleting ? "Removing..." : "Remove Custom Prompt"}
+            </Button>
+
             <Button
               type="submit"
               disabled={isPending}

@@ -12,12 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import appRoutes from "@/config/routes";
 import ProfileSettingsDialog from "@/components/dialog/profile/profile-settings";
 
 export default function HeaderAvatar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { session, setClear } = usePersistStore((state) => state);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -28,7 +29,7 @@ export default function HeaderAvatar() {
   };
 
   const handleHome = () => {
-    router.push(appRoutes.home.index);
+    router.push(appRoutes.dashboard.user.lanes);
   };
 
   const handleProfile = () => {
@@ -47,15 +48,19 @@ export default function HeaderAvatar() {
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-32" align="end">
-          <DropdownMenuLabel>{session?.user?.username}</DropdownMenuLabel>
+          <DropdownMenuLabel className="text-brand-grey font-semibold">
+            {session?.user?.username}
+          </DropdownMenuLabel>
 
           <DropdownMenuGroup>
-            <DropdownMenuItem
-              onClick={handleHome}
-              className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
-            >
-              Home
-            </DropdownMenuItem>
+            {pathname !== appRoutes.dashboard.user.lanes && (
+              <DropdownMenuItem
+                onClick={handleHome}
+                className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
+              >
+                Home
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={handleProfile}
               className="hover:!bg-brand-black dark:hover:!bg-brand-black [variant=destructive]:focus:!bg-brand-black [variant=destructive]:focus:text-brand-white hover:text-brand-white dark:hover:text-brand-white"
