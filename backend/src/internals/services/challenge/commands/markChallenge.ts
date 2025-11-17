@@ -75,11 +75,11 @@ export default class MarkChallenge {
 
     private async getStorageObjects(files: string[], submissionFormat: SubmissionFormat[]): Promise<StorageObject[]> {
         const storageObjects = await this.objectRepository.get(files);
-        for (const storageObject of storageObjects) {
-            if (!isValidSubmissionType(storageObject.mimeType, submissionFormat)) {
-                throw new BadRequestError(`invalid submission, only upload ${submissionFormat.join(", ")}`)
-            }
-        }
+        // for (const storageObject of storageObjects) {
+        //     if (!isValidSubmissionType(storageObject.mimeType, submissionFormat)) {
+        //         throw new BadRequestError(`invalid submission, only upload ${submissionFormat.join(", ")}`)
+        //     }
+        // }
         return storageObjects
     }
 

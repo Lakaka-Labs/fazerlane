@@ -160,7 +160,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
       {/* Mobile Sidebar */}
       <div className="lg:hidden">
         {/* Menu Button */}
-        <div className="fixed top-[70px] right-0 z-30 p-4">
+        <div className="fixed top-[52px] left-0 z-30 p-4">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -193,11 +193,11 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
           initial={{ height: 0, opacity: 1 }}
           animate={
             openChallengeSB
-              ? { height: "calc(100vh - 212px)", opacity: 1 }
+              ? { height: "calc(100vh - 164px)", opacity: 1 }
               : { height: 0, opacity: 1 }
           }
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={`fixed top-[142px] left-1/2 z-30 flex w-[90%] max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white pb-4 shadow-2xl sm:left-2.5 sm:max-w-sm sm:translate-0 ${
+          className={`fixed top-[122px] left-1/2 z-30 flex w-[90%] max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white pb-4 shadow-2xl sm:left-2.5 sm:max-w-sm sm:translate-0 ${
             openChallengeSB ? "flex" : "hidden"
           }`}
         >
