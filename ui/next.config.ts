@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: 'dist',
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
