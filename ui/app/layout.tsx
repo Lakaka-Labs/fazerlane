@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import {
   Geist,
   Geist_Mono,
@@ -12,6 +11,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 import AppProvider from "@/providers";
+import { rootMetadata } from "@/config/metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -88,34 +88,7 @@ const geistLato = Lato({
   ],
 });
 
-export const metadata: Metadata = {
-  title: "Fazerlane",
-  description: "Gamify any youtube tutorial",
-  icons: {
-    icon: "/brand/favicon.svg",
-  },
-  openGraph: {
-    title: "Fazerlane",
-    description: "Gamify any youtube tutorial.",
-    url: "https://fazerlane.com/",
-    siteName: "StableBank",
-    images: [
-      {
-        url: "https://fazerlane.com/brand/favicon.svg",
-        width: 1200,
-        height: 630,
-        alt: "Fazerlane Logo",
-      },
-    ],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Fazerlane",
-    description: "Gamify any youtube tutorial",
-    images: ["https://fazerlane.com/brand/favicon.svg"],
-  },
-};
+export const metadata = rootMetadata;
 
 export default function RootLayout({
   children,
@@ -123,7 +96,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${geistJulius.variable} ${geistLato.variable} ${geistNunito.variable} ${sfProDisplay.variable} font-lato antialiased`}
       >

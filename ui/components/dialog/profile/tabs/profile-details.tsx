@@ -1,0 +1,114 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { usePersistStore } from "@/store/persist.store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { ProfileFields, profileSchema } from "@/schemas/profile";
+import { updateProfileM } from "@/services/mutations/profile/update.profile";
+
+export function ProfileDetailsTab() {
+  const { session, setUser } = usePersistStore((state) => state);
+
+  const profileForm = useForm<ProfileFields>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      email: session?.user?.email || "",
+      username: session?.user?.username || "",
+    },
+  });
+
+  const { isPending, mutateAsync: updateProfile } = useMutation({
+    mutationFn: updateProfileM,
+    onSuccess: (data) => {
+      if (data.message === "success") {
+        toast.success("Profile updated successfully!");
+        if (data.data) {
+          setUser(data.data.user);
+        }
+      }
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data.message || "Something went wrong");
+      } else {
+        toast.error("Unexpected error");
+      }
+    },
+  });
+
+  async function onSubmit(values: ProfileFields) {
+    await updateProfile(values);
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-1">
+        <p className="text-brand-text/60 text-sm">
+          Update your personal information
+        </p>
+      </div>
+
+      <Form {...profileForm}>
+        <form
+          onSubmit={profileForm.handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
+          <FormField
+            control={profileForm.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input type="text" placeholder="fazername" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={profileForm.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-end pt-2">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full sm:w-auto"
+            >
+              {isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}

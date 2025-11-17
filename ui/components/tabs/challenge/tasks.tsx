@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { challegeTabs, SectionContainer, SectionContent } from "./components";
+import { SectionContainer, SectionContent } from "./components";
 import FileUpload from "@/components/input/file";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePersistStore } from "@/store/persist.store";
 import {
   submitTask,
@@ -10,21 +10,176 @@ import {
   SubmitTaskQuery,
 } from "@/services/mutations/tasks/submit.task";
 import toast from "react-hot-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useQueryState } from "nuqs";
-import { queryStateParams } from "@/config/routes";
+import { useMutation } from "@tanstack/react-query";
+import { API_BASE_URL } from "@/config/routes";
+import axios, { CancelTokenSource } from "axios";
+import { getCurrentToken } from "@/config/axios";
 
 interface TasksFormValues {
   text: string;
   comments: string;
 }
 
-export const TasksTab = () => {
-  const queryClient = useQueryClient();
+interface SSEStarted {
+  type: "started";
+  challengeId: string;
+}
 
-  const [, setTab] = useQueryState(queryStateParams.tab, {
-    defaultValue: challegeTabs[0].value,
-  });
+interface SSEChunk {
+  type: "chunk";
+  data: string;
+  challengeId: string;
+}
+
+interface SSEComplete {
+  type: "complete";
+  pass: boolean;
+  feedback: string;
+  challengeId: string;
+}
+
+type SSEMessage = SSEStarted | SSEChunk | SSEComplete;
+
+export const TasksTab = () => {
+  const [isConnected, setIsConnected] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [finalResult, setFinalResult] = useState<SSEComplete | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const cancelTokenRef = useRef<CancelTokenSource | null>(null);
+
+  const submitWithSSE = async (
+    apiBaseUrl: string,
+    challengeId: string,
+    data: SubmitTaskData
+  ) => {
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel("New request initiated");
+    }
+
+    setIsComplete(false);
+    setFinalResult(null);
+    setError(null);
+    setIsSubmitting(true);
+
+    const url = `${apiBaseUrl}/challenge/${challengeId}`;
+    cancelTokenRef.current = axios.CancelToken.source();
+
+    try {
+      const tkObj = getCurrentToken();
+
+      if (!tkObj) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:logout"));
+        }
+
+        throw new Error("No authentication token found");
+      }
+
+      const response = await axios.post(url, data, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+          Authorization: `Bearer ${tkObj.token}`,
+        },
+        responseType: "stream",
+        cancelToken: cancelTokenRef.current.token,
+        adapter: "fetch",
+        onDownloadProgress: (progressEvent) => {
+          console.log("download progress event", progressEvent);
+
+          setIsConnected(true);
+          setIsSubmitting(false);
+        },
+      });
+
+      setIsConnected(true);
+      setIsSubmitting(false);
+
+      const reader = response.data.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          setIsConnected(false);
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Split by newlines to process complete messages
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+
+            try {
+              const message: SSEMessage = JSON.parse(data);
+
+              switch (message.type) {
+                case "started":
+                  console.log("Challenge started:", message.challengeId);
+                  break;
+
+                case "chunk":
+                  console.log("Received chunk:", message.data);
+                  break;
+
+                case "complete":
+                  setIsComplete(true);
+                  setFinalResult(message);
+                  console.log("Challenge complete:", message);
+                  setIsConnected(false);
+                  toast.success("Task submitted successfully!");
+                  break;
+              }
+            } catch (err) {
+              console.error("Error parsing SSE message:", err);
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      if (axios.isCancel(err)) {
+        console.log("Request canceled:", err.message);
+        toast.error("Request canceled");
+      } else {
+        console.error("Error with SSE request:", err);
+        setError(
+          err.response?.data?.message || err.message || "Failed to connect"
+        );
+      }
+      setIsConnected(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const cancel = () => {
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel("Request canceled by user");
+      cancelTokenRef.current = null;
+    }
+    setIsConnected(false);
+    setIsSubmitting(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      cancel();
+    };
+  }, []);
+
+  // const queryClient = useQueryClient();
+
+  // const [, setTab] = useQueryState(queryStateParams.tab, {
+  //   defaultValue: challegeTabs[0].value,
+  // });
 
   const {
     currentChallenge,
@@ -71,16 +226,7 @@ export const TasksTab = () => {
       challenge_id: currentChallenge.id,
     };
 
-    const res = await mutation.mutateAsync(submissionData);
-
-    if (res) {
-      toast.success("Task submitted successfully!");
-      await queryClient.invalidateQueries({ queryKey: ["get-challenges"] });
-      // setCurrentChallengeTab(challegeTabs[2].value);
-      setTab(challegeTabs[2].value);
-    }
-
-    console.log("task submission", submissionData);
+    submitWithSSE(API_BASE_URL, currentChallenge.id, submissionData);
   }
 
   if (!currentChallenge) {
@@ -139,14 +285,59 @@ export const TasksTab = () => {
             className="border-brand-black/40 h-[100px] rounded-xl border border-solid"
           />
         </SectionContainer> */}
-        <Button
-          size={"lg"}
-          disabled={mutation.isPending}
-          // className="bg-primary rounded-[6px]"
-        >
-          {mutation.isPending ? "Submitting" : "Submit"}
-        </Button>
+        <div className="flex items-center justify-between gap-4">
+          <Button
+            size={"lg"}
+            // disabled={mutation.isPending}
+            disabled={isConnected || isSubmitting}
+            className="flex-1"
+          >
+            {mutation.isPending ? "Submitting" : "Submit"}
+          </Button>
+
+          {!isComplete && isConnected && (
+            <Button
+              size={"lg"}
+              onClick={(e) => {
+                e.preventDefault();
+                cancel();
+              }}
+              disabled={!isConnected && !isSubmitting}
+              className="bg-primary rounded px-4 text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
       </form>
+
+      <div className="flex flex-col gap-4">
+        {error && (
+          <div className="text-brand-red bg-brand-red/10 rounded p-4">
+            {error}
+          </div>
+        )}
+        {isConnected && (
+          <div className="text-brand-bright-green bg-brand-bright-green/10 rounded p-4">
+            Connected - Receiving data...
+          </div>
+        )}
+
+        {isComplete && finalResult && (
+          <div
+            className={`flex flex-col gap-2 border-l-4 p-4 transition-all duration-200 ${finalResult.pass ? "border-brand-bright-green bg-brand-bright-green/10" : "bg-brand-red/10 border-brand-red"}`}
+          >
+            <h3 className="text-lg font-bold">Final Result:</h3>
+            <p>
+              <strong>Pass:</strong> {finalResult.pass ? "Yes" : "No"}
+            </p>
+            <div>
+              <strong>Feedback:</strong>{" "}
+              <p className="italic">{finalResult.feedback}</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

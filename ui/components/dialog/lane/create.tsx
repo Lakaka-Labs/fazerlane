@@ -26,8 +26,6 @@ import YoutubeVideo from "@/components/video/youtube";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import appRoutes from "@/config/routes";
 import { createLane, LanesData } from "@/services/mutations/lane/create";
 
 interface CreateLaneDialogProps {
@@ -37,7 +35,6 @@ interface CreateLaneDialogProps {
 export default function CreateLaneDialog({
   customTrigger = false,
 }: CreateLaneDialogProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const queryClient = useQueryClient();
@@ -83,7 +80,7 @@ export default function CreateLaneDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div className="flex h-[250px] w-full flex-col items-center justify-center gap-4 rounded-xl lg:h-full">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-4 rounded-xl">
         {customTrigger ? (
           <DialogTrigger className="bg-primary flex h-16 w-16 cursor-pointer flex-col items-center justify-center rounded-full shadow-lg md:h-[75px] md:w-[75px]">
             <Plus size={28} color="white" />
@@ -101,7 +98,7 @@ export default function CreateLaneDialog({
           </DialogTrigger>
         )}
 
-        <DialogContent className="border-brand-border max-w-sm border-2 border-solid px-3 md:max-w-2xl lg:px-6">
+        <DialogContent className="border-brand-border flex h-screen max-w-sm items-center overflow-y-auto rounded-none border-2 border-solid px-3 md:max-w-2xl lg:block lg:h-fit lg:rounded-lg lg:px-6">
           <Form {...createLaneForm}>
             <form
               onSubmit={createLaneForm.handleSubmit(handleCreateLane)}
@@ -150,7 +147,7 @@ export default function CreateLaneDialog({
                       <FormItem className="gap-3">
                         <FormLabel>Start Time (e.g., 1m10s)</FormLabel>
                         <FormControl>
-                          <Input placeholder="1m10s" {...field} />
+                          <Input placeholder="30m10s" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -164,7 +161,7 @@ export default function CreateLaneDialog({
                       <FormItem className="gap-3">
                         <FormLabel>End Time (e.g., 2m30s)</FormLabel>
                         <FormControl>
-                          <Input placeholder="2m30s" {...field} />
+                          <Input placeholder="1h30m10s" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -211,7 +208,8 @@ export default function CreateLaneDialog({
   );
 }
 
-const timeRegex = /^(?:(\d+)m(?:([0-5]?\d)s)?|([0-5]?\d)s)$/;
+// const timeRegex = /^(?:(\d+)m(?:([0-5]?\d)s)?|([0-5]?\d)s)$/;
+const timeRegex = /^(?:(\d+)h)?(?:(0|[1-5]?\d)m)?(?:(0|[1-5]?\d)s)?$/;
 
 // const TimeString = z.string().regex(timeRegex, {
 //   message: 'Expected format "XmYs", "Xm" or "Ys" (seconds 0-59).',
