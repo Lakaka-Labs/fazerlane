@@ -1,9 +1,9 @@
 import type Repository from "../../../domain/user/repository.ts";
 import {compareHash, encrypt} from "../../../../packages/utils/encryption.ts";
 import {BadRequestError, ForbiddenError} from "../../../../packages/errors";
-import type {User} from "../../../domain/user";
+import type {SetNullParameters, User} from "../../../domain/user";
 
-export default class UpdateProfile {
+export default class SetNull {
     accountRepository: Repository;
 
     constructor(
@@ -13,9 +13,8 @@ export default class UpdateProfile {
     }
 
 
-    handle = async (id: string, userParams: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>): Promise<void> => {
-        console.log(userParams)
-        await this.accountRepository.update(id, userParams)
+    handle = async (id: string, parameter: SetNullParameters): Promise<void> => {
+        await this.accountRepository.setNull(id, parameter)
     };
 }
 

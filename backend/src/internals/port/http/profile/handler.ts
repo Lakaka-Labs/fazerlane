@@ -29,20 +29,26 @@ export default class ProfileHandler {
             this.updateUsername
         );
 
-        this.router.put('/prompt',
+        this.router.route('/prompt').put(
             ValidationMiddleware(z.object({
                 prompt: z.string().min(1),
             }), "body"),
             Authorize(this.authenticationService),
             this.addCustomPrompt
+        ).delete(
+            Authorize(this.authenticationService),
+            this.removeCustomPrompt
         );
 
-        this.router.put('/key',
+        this.router.route('/key').put(
             ValidationMiddleware(z.object({
                 key: z.string().min(1),
             }), "body"),
             Authorize(this.authenticationService),
             this.addApiKey
+        ).delete(
+            Authorize(this.authenticationService),
+            this.removeApiKey
         );
 
         this.router.put('/password/change',
@@ -143,5 +149,16 @@ export default class ProfileHandler {
         if (!key) throw new BadRequestError("provide gemini api key")
         await this.authenticationService.commands.updateProfile.handle(user.id, {apiKey: key})
         new SuccessResponse(res, {message: "api key configured"}).send()
+    }
+    removeCustomPrompt = async (req: Request, res: Response) => {
+        let user = req.user as User;
+        await this.authenticationService.commands.setNull.handle(user.id, {customPrompt: true})
+        new SuccessResponse(res, {message: "custom prompt removed"}).send()
+    }
+
+    removeApiKey = async (req: Request, res: Response) => {
+        let user = req.user as User;
+        await this.authenticationService.commands.setNull.handle(user.id, {apiKey: true})
+        new SuccessResponse(res, {message: "api key removed"}).send()
     }
 }

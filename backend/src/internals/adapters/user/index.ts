@@ -1,4 +1,4 @@
-import type {GetUserParameters, User} from "../../domain/user/index.ts";
+import type {GetUserParameters, SetNullParameters, User} from "../../domain/user/index.ts";
 import type Repository from "../../domain/user/repository.ts";
 import {SQL} from "bun";
 import {NotFoundError} from "../../../packages/errors";
@@ -147,6 +147,15 @@ export default class UserRepositoryPG implements Repository {
 
         };
     };
+
+    async setNull(id: string, parameter: SetNullParameters): Promise<void> {
+        if (parameter.apiKey) {
+           await this.sql`Update users set api_key = NULL where id = ${id}`
+        }
+        if (parameter.customPrompt) {
+           await this.sql`Update users set custom_prompt = NULL where id = ${id}`
+        }
+    }
 
     async delete(id: string): Promise<void> {
         await this.sql`DELETE

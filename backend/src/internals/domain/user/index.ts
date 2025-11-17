@@ -19,3 +19,8 @@ export type GetUserParameters = {
     googleId?: string
     username?: string
 }
+
+export type SetNullParameters = {
+    customPrompt?: boolean
+    apiKey?: boolean
+}

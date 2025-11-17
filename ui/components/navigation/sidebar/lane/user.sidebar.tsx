@@ -122,7 +122,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
                 }}
                 className={`relative cursor-pointer transition-all duration-200 ${
                   challengeID === challenge.position
-                    ? "border-l-4 border-[#444440] bg-[#4444401A]"
+                    ? "border-l-4 border-[#444440] border-b-0 bg-[#4444401A]"
                     : "hover:bg-[#4444401A]"
                 }`}
               >
@@ -231,7 +231,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
                   }}
                   className={`relative cursor-pointer transition-all duration-200 ${
                     challengeID === challenge.position
-                      ? "border-l-4 border-[#444440] bg-[#4444401A]"
+                      ? "border-l-4 border-[#444440] border-b-0 bg-[#4444401A]"
                       : "hover:bg-[#4444401A]"
                   }`}
                 >

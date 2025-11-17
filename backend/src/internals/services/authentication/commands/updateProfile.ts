@@ -14,7 +14,6 @@ export default class UpdateProfile {
 
 
     handle = async (id: string, userParams: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>): Promise<void> => {
-        console.log(userParams)
         await this.accountRepository.update(id, userParams)
     };
 }
