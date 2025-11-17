@@ -45,20 +45,18 @@ jobs:
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          cat > ~/.ssh/deploy_key.pem << 'SSHKEY'
-          ${{ secrets.SSH_PEM }}
-          SSHKEY
-          chmod 600 ~/.ssh/deploy_key.pem
+          echo "${{ secrets.SSH_KEY }}" | tr -d '\r' >  ~/.ssh/key.pem
+          chmod 600 ~/.ssh/key.pem
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Copy Docker Images to Server
         run: |
-          scp -i ~/.ssh/deploy_key.pem backend-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
-          scp -i ~/.ssh/deploy_key.pem ui-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
+          scp -i ~/.ssh/key.pem backend-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
+          scp -i ~/.ssh/key.pem ui-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
 
       - name: Deploy to Server
         run: |
-          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          ssh -i ~/.ssh/key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             # Load Docker images
             docker load < /tmp/backend-image.tar.gz
             docker load < /tmp/ui-image.tar.gz
@@ -188,7 +186,7 @@ jobs:
 
       - name: Verify Deployment
         run: |
-          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          ssh -i ~/.ssh/key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             echo "=== Redis Container Status ==="
             docker ps -f name=redis-container
             echo ""
@@ -217,4 +215,4 @@ jobs:
       - name: Cleanup SSH Key
         if: always()
         run: |
-          rm -f ~/.ssh/deploy_key.pem
+          rm -f ~/.ssh/key.pem
