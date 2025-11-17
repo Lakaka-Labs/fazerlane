@@ -1,0 +1,9 @@
+services:
+  ui:
+    build: .
+    container_name: fazerlane_ui
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"

@@ -1,0 +1,240 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+    pull_request:
+        branches:
+            - main
+            - develop
+
+env:
+    DOCKER_BACKEND_IMAGE: backend-app
+    DOCKER_UI_IMAGE: ui-app
+    BACKEND_CONTAINER_NAME: backend-container
+    UI_CONTAINER_NAME: ui-container
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Setup SSH
+              uses: webfactory/ssh-agent@v0.9.0
+              with:
+                  ssh-private-key: ${{ secrets.SSH_PEM }}
+
+            - name: Add SSH known hosts
+              run: |
+                  mkdir -p ~/.ssh
+                  chmod 700 ~/.ssh
+                  ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>&1 || true
+                  chmod 644 ~/.ssh/known_hosts
+                  echo "Known hosts updated:"
+                  cat ~/.ssh/known_hosts
+
+            - name: Test SSH Connection
+              run: |
+                  echo "Testing SSH connection to server..."
+                  ssh -i ~/.ssh/key.pem -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+                    echo "✓ SSH connection successful!"
+                    echo "Server hostname: $(hostname)"
+                    echo "Server uptime: $(uptime -p)"
+                    echo "Docker version: $(docker --version)"
+                    echo "Available disk space:"
+                    df -h / | tail -1
+                    echo "Memory usage:"
+                    free -h | grep Mem
+                  EOF
+                  echo "SSH test completed successfully!"
+
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Backend Docker Image
+              run: |
+                  docker build -t ${{ env.DOCKER_BACKEND_IMAGE }}:latest ./backend
+
+            - name: Build UI Docker Image
+              run: |
+                  docker build -t ${{ env.DOCKER_UI_IMAGE }}:latest \
+                    --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
+                    ./ui
+
+            - name: Save Docker Images
+              run: |
+                  docker save ${{ env.DOCKER_BACKEND_IMAGE }}:latest | gzip > backend-image.tar.gz
+                  docker save ${{ env.DOCKER_UI_IMAGE }}:latest | gzip > ui-image.tar.gz
+
+            - name: Copy Docker Images to Server
+              run: |
+                  scp -i ~/.ssh/key.pem backend-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
+                  scp -i ~/.ssh/key.pem ui-image.tar.gz ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/
+
+            - name: Deploy to Server
+              run: |
+                  ssh -i ~/.ssh/key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+                    # Load Docker images
+                    docker load < /tmp/backend-image.tar.gz
+                    docker load < /tmp/ui-image.tar.gz
+
+                    # Clean up transferred files
+                    rm /tmp/backend-image.tar.gz /tmp/ui-image.tar.gz
+
+                    # Create network if it doesn't exist
+                    docker network create app-network || true
+
+                    # Setup Redis Container
+                    echo "Setting up Redis..."
+                    docker stop redis-container || true
+                    docker rm redis-container || true
+
+                    docker run -d \
+                      --name redis-container \
+                      --network app-network \
+                      -p ${{ secrets.REDIS_PORT }}:6379 \
+                      -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" \
+                      --restart unless-stopped \
+                      redis:7-alpine \
+                      redis-server --requirepass "${{ secrets.REDIS_PASSWORD }}"
+
+                    # Setup Qdrant Container
+                    echo "Setting up Qdrant..."
+                    docker stop qdrant-container || true
+                    docker rm qdrant-container || true
+
+                    # Create Qdrant data directory
+                    sudo mkdir -p /var/lib/qdrant/storage
+
+                    docker run -d \
+                      --name qdrant-container \
+                      --network app-network \
+                      -p ${{ secrets.QDRANT_PORT }}:6333 \
+                      -p 6334:6334 \
+                      -v /var/lib/qdrant/storage:/qdrant/storage \
+                      --restart unless-stopped \
+                      qdrant/qdrant:latest
+
+                    # Wait for services to be ready
+                    echo "Waiting for Redis to be ready..."
+                    sleep 5
+                    docker exec redis-container redis-cli -a "${{ secrets.REDIS_PASSWORD }}" ping || echo "Redis not ready yet"
+
+                    echo "Waiting for Qdrant to be ready..."
+                    sleep 5
+
+                    # Stop and remove old application containers
+                    docker stop ${{ env.BACKEND_CONTAINER_NAME }} || true
+                    docker rm ${{ env.BACKEND_CONTAINER_NAME }} || true
+                    docker stop ${{ env.UI_CONTAINER_NAME }} || true
+                    docker rm ${{ env.UI_CONTAINER_NAME }} || true
+
+                    # Run Backend Container
+                    docker run -d \
+                      --name ${{ env.BACKEND_CONTAINER_NAME }} \
+                      --network app-network \
+                      -p 5000:5000 \
+                      -e TEST_SECRET="${{ secrets.TEST_SECRET }}" \
+                      -e PORT="${{ secrets.PORT }}" \
+                      -e CLIENT_ORIGIN="${{ secrets.CLIENT_ORIGIN }}" \
+                      -e COOKIE_EXPIRES="${{ secrets.COOKIE_EXPIRES }}" \
+                      -e COOKIE_SECRET="${{ secrets.COOKIE_SECRET }}" \
+                      -e EMAIL_JWT_EXPIRES="${{ secrets.EMAIL_JWT_EXPIRES }}" \
+                      -e EMAIL_JWT_SECRET="${{ secrets.EMAIL_JWT_SECRET }}" \
+                      -e JWT_EXPIRES="${{ secrets.JWT_EXPIRES }}" \
+                      -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+                      -e REFRESH_JWT_EXPIRES="${{ secrets.REFRESH_JWT_EXPIRES }}" \
+                      -e REFRESH_JWT_SECRET="${{ secrets.REFRESH_JWT_SECRET }}" \
+                      -e WS_URL="${{ secrets.WS_URL }}" \
+                      -e POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
+                      -e POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
+                      -e POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+                      -e POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+                      -e POSTGRES_PORT="${{ secrets.POSTGRES_PORT }}" \
+                      -e POSTGRES_SSL="${{ secrets.POSTGRES_SSL }}" \
+                      -e POSTGRES_URL="${{ secrets.POSTGRES_URL }}" \
+                      -e REDIS_USER="${{ secrets.REDIS_USER }}" \
+                      -e REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}" \
+                      -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+                      -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+                      -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+                      -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+                      -e GOOGLE_CLIENT_CALLBACK_URL="${{ secrets.GOOGLE_CLIENT_CALLBACK_URL }}" \
+                      -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+                      -e GEMINI_MODEL="${{ secrets.GEMINI_MODEL }}" \
+                      -e MAX_VIDEO_LENGTH="${{ secrets.MAX_VIDEO_LENGTH }}" \
+                      -e MAX_YOUTUBE_LENGTH="${{ secrets.MAX_YOUTUBE_LENGTH }}" \
+                      -e BASE_YOUTUBE_API_URL="${{ secrets.BASE_YOUTUBE_API_URL }}" \
+                      -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+                      -e SMTP_FROM_ADDRESS="${{ secrets.SMTP_FROM_ADDRESS }}" \
+                      -e SMTP_HOST="${{ secrets.SMTP_HOST }}" \
+                      -e SMTP_PASSWORD="${{ secrets.SMTP_PASSWORD }}" \
+                      -e SMTP_PORT="${{ secrets.SMTP_PORT }}" \
+                      -e SMTP_USERNAME="${{ secrets.SMTP_USERNAME }}" \
+                      -e VERIFICATION_EMAIL_URL="${{ secrets.VERIFICATION_EMAIL_URL }}" \
+                      -e RESET_PASSWORD_EMAIL_URL="${{ secrets.RESET_PASSWORD_EMAIL_URL }}" \
+                      -e UI_LOGIN_URL="${{ secrets.UI_LOGIN_URL }}" \
+                      -e UI_DASHBOARD_URL="${{ secrets.UI_DASHBOARD_URL }}" \
+                      -e LOGO_URL="${{ secrets.LOGO_URL }}" \
+                      -e STORAGE_ACCOUNT_ID="${{ secrets.STORAGE_ACCOUNT_ID }}" \
+                      -e STORAGE_ACCESS_KEY_ID="${{ secrets.STORAGE_ACCESS_KEY_ID }}" \
+                      -e STORAGE_SECRET_ACCESS_KEY="${{ secrets.STORAGE_SECRET_ACCESS_KEY }}" \
+                      -e STORAGE_BUCKET_NAME="${{ secrets.STORAGE_BUCKET_NAME }}" \
+                      -e STORAGE_BUCKET_PUBLIC_DOMAIN="${{ secrets.STORAGE_BUCKET_PUBLIC_DOMAIN }}" \
+                      -e QDRANT_PORT="${{ secrets.QDRANT_PORT }}" \
+                      -e QDRANT_HOST="${{ secrets.QDRANT_HOST }}" \
+                      --restart unless-stopped \
+                      ${{ env.DOCKER_BACKEND_IMAGE }}:latest
+
+                    # Run UI Container
+                    docker run -d \
+                      --name ${{ env.UI_CONTAINER_NAME }} \
+                      --network app-network \
+                      -p 3000:3000 \
+                      -e NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
+                      --restart unless-stopped \
+                      ${{ env.DOCKER_UI_IMAGE }}:latest
+
+                    # Clean up old images
+                    docker image prune -af --filter "until=48h"
+
+                    echo "Deployment completed successfully!"
+                  EOF
+
+            - name: Verify Deployment
+              run: |
+                  ssh -i ~/.ssh/key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+                    echo "=== Redis Container Status ==="
+                    docker ps -f name=redis-container
+                    echo ""
+                    echo "=== Redis Health Check ==="
+                    docker exec redis-container redis-cli -a "${{ secrets.REDIS_PASSWORD }}" ping || echo "Redis connection failed"
+                    echo ""
+                    echo "=== Qdrant Container Status ==="
+                    docker ps -f name=qdrant-container
+                    echo ""
+                    echo "=== Qdrant Health Check ==="
+                    curl -f http://localhost:${{ secrets.QDRANT_PORT }}/healthz || echo "Qdrant health check failed"
+                    echo ""
+                    echo "=== Backend Container Status ==="
+                    docker ps -f name=${{ env.BACKEND_CONTAINER_NAME }}
+                    echo ""
+                    echo "=== UI Container Status ==="
+                    docker ps -f name=${{ env.UI_CONTAINER_NAME }}
+                    echo ""
+                    echo "=== Backend Logs (last 20 lines) ==="
+                    docker logs --tail 20 ${{ env.BACKEND_CONTAINER_NAME }} || echo "Container not running"
+                    echo ""
+                    echo "=== UI Logs (last 20 lines) ==="
+                    docker logs --tail 20 ${{ env.UI_CONTAINER_NAME }} || echo "Container not running"
+                  EOF
+
+            - name: Cleanup SSH Key
+              if: always()
+              run: |
+                  rm -f ~/.ssh/key.pem
