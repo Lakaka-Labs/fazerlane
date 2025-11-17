@@ -21,6 +21,28 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" | tr -d '\r' >  ~/.ssh/key.pem
+          chmod 600 ~/.ssh/key.pem
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH Connection
+        run: |
+          echo "Testing SSH connection to server..."
+          ssh -i ~/.ssh/key.pem -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            echo "✓ SSH connection successful!"
+            echo "Server hostname: $(hostname)"
+            echo "Server uptime: $(uptime -p)"
+            echo "Docker version: $(docker --version)"
+            echo "Available disk space:"
+            df -h / | tail -1
+            echo "Memory usage:"
+            free -h | grep Mem
+          EOF
+          echo "SSH test completed successfully!"
+          
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -41,13 +63,6 @@ jobs:
         run: |
           docker save ${{ env.DOCKER_BACKEND_IMAGE }}:latest | gzip > backend-image.tar.gz
           docker save ${{ env.DOCKER_UI_IMAGE }}:latest | gzip > ui-image.tar.gz
-
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" | tr -d '\r' >  ~/.ssh/key.pem
-          chmod 600 ~/.ssh/key.pem
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Copy Docker Images to Server
         run: |
