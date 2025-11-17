@@ -24,7 +24,9 @@ jobs:
             - name: Setup SSH Key
               run: |
                   mkdir -p ~/.ssh
-                  echo "${{ secrets.SSH_PEM }}" | base64 -d > ~/.ssh/key.pem
+                  cat > ~/.ssh/key.pem <<'EOF'
+                  ${{ secrets.SSH_PEM }}
+                  EOF
                   chmod 600 ~/.ssh/key.pem
                   ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
