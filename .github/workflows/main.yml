@@ -45,7 +45,9 @@ jobs:
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PEM }}" > ~/.ssh/deploy_key.pem
+          cat > ~/.ssh/deploy_key.pem << 'SSHKEY'
+          ${{ secrets.SSH_PEM }}
+          SSHKEY
           chmod 600 ~/.ssh/deploy_key.pem
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
@@ -187,6 +189,18 @@ jobs:
       - name: Verify Deployment
         run: |
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            echo "=== Redis Container Status ==="
+            docker ps -f name=redis-container
+            echo ""
+            echo "=== Redis Health Check ==="
+            docker exec redis-container redis-cli -a "${{ secrets.REDIS_PASSWORD }}" ping || echo "Redis connection failed"
+            echo ""
+            echo "=== Qdrant Container Status ==="
+            docker ps -f name=qdrant-container
+            echo ""
+            echo "=== Qdrant Health Check ==="
+            curl -f http://localhost:${{ secrets.QDRANT_PORT }}/healthz || echo "Qdrant health check failed"
+            echo ""
             echo "=== Backend Container Status ==="
             docker ps -f name=${{ env.BACKEND_CONTAINER_NAME }}
             echo ""
