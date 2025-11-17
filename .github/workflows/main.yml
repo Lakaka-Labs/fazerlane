@@ -19,19 +19,21 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" | tr -d '\r' >  ~/.ssh/key.pem
+          echo "${{ secrets.SSH_PEM }}" > ~/.ssh/key.pem
           chmod 600 ~/.ssh/key.pem
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+        env:
+          SSH_PEM: ${{ secrets.SSH_PEM }}
 
       - name: Test SSH Connection
         run: |
           echo "Testing SSH connection to server..."
-          ssh -i ~/.ssh/key.pem -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          ssh -i ~/.ssh/key.pem -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             echo "✓ SSH connection successful!"
             echo "Server hostname: $(hostname)"
             echo "Server uptime: $(uptime -p)"
@@ -42,7 +44,7 @@ jobs:
             free -h | grep Mem
           EOF
           echo "SSH test completed successfully!"
-          
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -75,18 +77,18 @@ jobs:
             # Load Docker images
             docker load < /tmp/backend-image.tar.gz
             docker load < /tmp/ui-image.tar.gz
-            
+          
             # Clean up transferred files
             rm /tmp/backend-image.tar.gz /tmp/ui-image.tar.gz
-            
+          
             # Create network if it doesn't exist
             docker network create app-network || true
-            
+          
             # Setup Redis Container
             echo "Setting up Redis..."
             docker stop redis-container || true
             docker rm redis-container || true
-            
+          
             docker run -d \
               --name redis-container \
               --network app-network \
@@ -95,15 +97,15 @@ jobs:
               --restart unless-stopped \
               redis:7-alpine \
               redis-server --requirepass "${{ secrets.REDIS_PASSWORD }}"
-            
+          
             # Setup Qdrant Container
             echo "Setting up Qdrant..."
             docker stop qdrant-container || true
             docker rm qdrant-container || true
-            
+          
             # Create Qdrant data directory
             mkdir -p /var/lib/qdrant/storage
-            
+          
             docker run -d \
               --name qdrant-container \
               --network app-network \
@@ -112,21 +114,21 @@ jobs:
               -v /var/lib/qdrant/storage:/qdrant/storage \
               --restart unless-stopped \
               qdrant/qdrant:latest
-            
+          
             # Wait for services to be ready
             echo "Waiting for Redis to be ready..."
             sleep 5
             docker exec redis-container redis-cli -a "${{ secrets.REDIS_PASSWORD }}" ping || echo "Redis not ready yet"
-            
+          
             echo "Waiting for Qdrant to be ready..."
             sleep 5
-            
+          
             # Stop and remove old application containers
             docker stop ${{ env.BACKEND_CONTAINER_NAME }} || true
             docker rm ${{ env.BACKEND_CONTAINER_NAME }} || true
             docker stop ${{ env.UI_CONTAINER_NAME }} || true
             docker rm ${{ env.UI_CONTAINER_NAME }} || true
-            
+          
             # Run Backend Container
             docker run -d \
               --name ${{ env.BACKEND_CONTAINER_NAME }} \
@@ -183,7 +185,7 @@ jobs:
               -e QDRANT_HOST="${{ secrets.QDRANT_HOST }}" \
               --restart unless-stopped \
               ${{ env.DOCKER_BACKEND_IMAGE }}:latest
-            
+          
             # Run UI Container
             docker run -d \
               --name ${{ env.UI_CONTAINER_NAME }} \
@@ -192,10 +194,10 @@ jobs:
               -e NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
               --restart unless-stopped \
               ${{ env.DOCKER_UI_IMAGE }}:latest
-            
+          
             # Clean up old images
             docker image prune -af --filter "until=48h"
-            
+          
             echo "Deployment completed successfully!"
           EOF
 
