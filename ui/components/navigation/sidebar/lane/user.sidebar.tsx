@@ -193,7 +193,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
           initial={{ height: 0, opacity: 1 }}
           animate={
             openChallengeSB
-              ? { height: "calc(100vh - 164px)", opacity: 1 }
+              ? { height: "calc(100dvh - 164px)", opacity: 1 }
               : { height: 0, opacity: 1 }
           }
           transition={{ duration: 0.3, ease: "easeInOut" }}
