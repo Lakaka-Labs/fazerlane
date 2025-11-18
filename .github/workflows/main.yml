@@ -58,18 +58,18 @@ jobs:
 
             - name: Build Backend Docker Image
               run: |
-                  docker build -t ${{ env.DOCKER_BACKEND_IMAGE }}:latest ./backend
+                  docker build -t ${{ env.DOCKER_BACKEND_IMAGE }}:${{ github.sha }} ./backend
 
             - name: Build UI Docker Image
               run: |
-                  docker build -t ${{ env.DOCKER_UI_IMAGE }}:latest \
+                  docker build -t ${{ env.DOCKER_UI_IMAGE }}:${{ github.sha }} \
                     --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
                     ./ui
 
             - name: Save Docker Images
               run: |
-                  docker save ${{ env.DOCKER_BACKEND_IMAGE }}:latest | gzip > backend-image.tar.gz
-                  docker save ${{ env.DOCKER_UI_IMAGE }}:latest | gzip > ui-image.tar.gz
+                  docker save ${{ env.DOCKER_BACKEND_IMAGE }}:${{ github.sha }} | gzip > backend-image.tar.gz
+                  docker save ${{ env.DOCKER_UI_IMAGE }}:${{ github.sha }} | gzip > ui-image.tar.gz
 
             - name: Copy Docker Images to Server
               run: |
@@ -134,7 +134,7 @@ jobs:
                     docker stop ${{ env.UI_CONTAINER_NAME }} || true
                     docker rm ${{ env.UI_CONTAINER_NAME }} || true
 
-                    # Run Backend Container
+                    # Run Backend Container with SHA tag
                     docker run -d \
                       --name ${{ env.BACKEND_CONTAINER_NAME }} \
                       --network app-network \
@@ -189,18 +189,24 @@ jobs:
                       -e QDRANT_PORT="${{ secrets.QDRANT_PORT }}" \
                       -e QDRANT_HOST="${{ secrets.QDRANT_HOST }}" \
                       --restart unless-stopped \
-                      ${{ env.DOCKER_BACKEND_IMAGE }}:latest
+                      ${{ env.DOCKER_BACKEND_IMAGE }}:${{ github.sha }}
 
-                    # Run UI Container
+                    # Run UI Container with SHA tag
                     docker run -d \
                      --name ${{ env.UI_CONTAINER_NAME }} \
                      --network app-network \
                      -p 3000:3000 \
                      --restart unless-stopped \
-                     ${{ env.DOCKER_UI_IMAGE }}:latest
+                     ${{ env.DOCKER_UI_IMAGE }}:${{ github.sha }}
 
-                    # Clean up old images
-                    docker image prune -af --filter "until=48h"
+                    # Clean up old images (keep last 3 versions)
+                    echo "Cleaning up old images..."
+                    # Remove backend images older than the last 3
+                    docker images ${{ env.DOCKER_BACKEND_IMAGE }} --format "{{.Tag}}" | grep -v "latest" | tail -n +4 | xargs -r -I {} docker rmi ${{ env.DOCKER_BACKEND_IMAGE }}:{} || true
+                    # Remove UI images older than the last 3
+                    docker images ${{ env.DOCKER_UI_IMAGE }} --format "{{.Tag}}" | grep -v "latest" | tail -n +4 | xargs -r -I {} docker rmi ${{ env.DOCKER_UI_IMAGE }}:{} || true
+                    # Clean up dangling images
+                    docker image prune -f
 
                     echo "Deployment completed successfully!"
                   EOF
@@ -231,10 +237,13 @@ jobs:
                     echo ""
                     echo "=== UI Logs (last 20 lines) ==="
                     docker logs --tail 20 ${{ env.UI_CONTAINER_NAME }} || echo "Container not running"
+                    echo ""
+                    echo "=== Deployed Image Tags ==="
+                    docker inspect ${{ env.BACKEND_CONTAINER_NAME }} --format='{{.Config.Image}}' || echo "Backend container not found"
+                    docker inspect ${{ env.UI_CONTAINER_NAME }} --format='{{.Config.Image}}' || echo "UI container not found"
                   EOF
 
             - name: Cleanup SSH Key
               if: always()
               run: |
                   rm -f ~/.ssh/key.pem
-                  
