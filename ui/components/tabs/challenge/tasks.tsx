@@ -4,20 +4,16 @@ import { SectionContainer, SectionContent } from "./components";
 import FileUpload from "@/components/input/file";
 import { useEffect, useRef, useState } from "react";
 import { usePersistStore } from "@/store/persist.store";
-import {
-  submitTask,
-  SubmitTaskData,
-  SubmitTaskQuery,
-} from "@/services/mutations/tasks/submit.task";
+import { SubmitTaskData } from "@/services/mutations/tasks/submit.task";
 import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/config/routes";
 import axios, { CancelTokenSource } from "axios";
-import { getCurrentToken } from "@/config/axios";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface TasksFormValues {
   text: string;
   comments: string;
+  useMemory: boolean;
 }
 
 interface SSEStarted {
@@ -67,22 +63,12 @@ export const TasksTab = () => {
     cancelTokenRef.current = axios.CancelToken.source();
 
     try {
-      const tkObj = getCurrentToken();
-
-      if (!tkObj) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("auth:logout"));
-        }
-
-        throw new Error("No authentication token found");
-      }
-
       const response = await axios.post(url, data, {
         headers: {
           "Content-Type": "application/json",
           Accept: "text/event-stream",
-          Authorization: `Bearer ${tkObj.token}`,
         },
+        withCredentials: true,
         responseType: "stream",
         cancelToken: cancelTokenRef.current.token,
         adapter: "fetch",
@@ -177,31 +163,15 @@ export const TasksTab = () => {
     };
   }, []);
 
-  // const queryClient = useQueryClient();
-
-  // const [, setTab] = useQueryState(queryStateParams.tab, {
-  //   defaultValue: challegeTabs[0].value,
-  // });
-
-  const {
-    currentChallenge,
-    //  setCurrentChallengeTab
-  } = usePersistStore((store) => store);
+  const { currentChallenge } = usePersistStore((store) => store);
 
   const [formValues, setFormValues] = useState<TasksFormValues>({
     text: "",
     comments: "",
+    useMemory: false,
   });
 
   const [files, setFiles] = useState<string[]>([]);
-
-  const mutation = useMutation({
-    mutationFn: (submissionData: SubmitTaskData & SubmitTaskQuery) =>
-      submitTask(submissionData),
-    onError: (error) => {
-      toast.error((error.message as string) || "Failed to submit task");
-    },
-  });
 
   function handleInputChange(
     e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -223,7 +193,6 @@ export const TasksTab = () => {
 
     const submissionData = {
       ...formValues,
-      useMemory: true,
       files: files,
       challenge_id: currentChallenge.id,
     };
@@ -278,23 +247,52 @@ export const TasksTab = () => {
           </SectionContainer>
         )}
 
-        {/* <SectionContainer>
-          <h2 className="text-base font-semibold">Comment</h2>
-          <Textarea
-            placeholder="Additional comments..."
-            value={formValues.comments}
-            onChange={(e) => handleInputChange(e, "comments")}
-            className="border-brand-black/40 h-[100px] rounded-xl border border-solid"
-          />
-        </SectionContainer> */}
+        <SectionContainer>
+          <div>
+            <h2 className="text-base font-semibold">Memory</h2>
+            <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
+              <div className="text-base font-normal">
+                Enable this if you want the model to use stored context from
+                earlier interactions when evaluating your submission.
+              </div>
+
+              <ToggleGroup
+                value={formValues.useMemory ? "true" : "false"}
+                onValueChange={(value) => {
+                  if (value) {
+                    setFormValues((prev) => ({
+                      ...prev,
+                      useMemory: value === "true",
+                    }));
+                  }
+                }}
+                type="single"
+                className="w-full border border-solid border-black lg:w-fit"
+              >
+                <ToggleGroupItem
+                  value="true"
+                  className="w-1/2 cursor-pointer lg:w-auto lg:px-4"
+                >
+                  Yes
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="false"
+                  className="w-1/2 cursor-pointer lg:w-auto lg:px-4"
+                >
+                  No
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+          </div>
+        </SectionContainer>
+
         <div className="flex items-center justify-between gap-4">
           <Button
             size={"lg"}
-            // disabled={mutation.isPending}
             disabled={isConnected || isSubmitting}
             className="flex-1"
           >
-            {mutation.isPending ? "Submitting" : "Submit"}
+            {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
 
           {!isComplete && isConnected && (
@@ -319,11 +317,6 @@ export const TasksTab = () => {
             {error}
           </div>
         )}
-        {/* {isConnected && (
-          <div className="text-brand-bright-green bg-brand-bright-green/10 rounded p-4">
-            Connected - Receiving data...
-          </div>
-        )} */}
 
         {isConnected && !isComplete && (
           <div className="flex animate-pulse flex-col gap-2 border-l-4 border-gray-300 bg-gray-500/10 px-4 py-6">

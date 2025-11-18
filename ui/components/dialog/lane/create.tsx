@@ -98,11 +98,11 @@ export default function CreateLaneDialog({
           </DialogTrigger>
         )}
 
-        <DialogContent className="border-brand-border flex max-h-[90dvh] max-w-[90%] rounded-lg border-2 border-solid md:block md:max-w-2xl !px-0 py-6">
+        <DialogContent className="border-brand-border flex max-h-[90dvh] max-w-[90%] rounded-lg border-2 border-solid !px-0 py-6 md:max-w-2xl">
           <Form {...createLaneForm}>
             <form
               onSubmit={createLaneForm.handleSubmit(handleCreateLane)}
-              className="flex flex-col gap-3 w-full overflow-y-auto pb-2 px-6"
+              className="flex w-full flex-col gap-3 overflow-y-auto px-6 pb-2"
             >
               <DialogHeader>
                 <DialogTitle className="text-2xl font-semibold">
@@ -110,11 +110,11 @@ export default function CreateLaneDialog({
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="flex flex-col gap-3 lg:pr-2">
+              <div className="flex flex-col gap-4">
                 <div className="grid gap-6">
                   {youtubeLink && isValidYouTubeUrl(youtubeLink) && (
                     <div className="aspect-video w-full overflow-hidden rounded-[12px]">
-                      <YoutubeVideo url={youtubeLink} playing={false}/>
+                      <YoutubeVideo url={youtubeLink} playing={false} />
                     </div>
                   )}
                   <div>
@@ -166,7 +166,7 @@ export default function CreateLaneDialog({
                       )}
                     />
                   </div>
-                  <div className="text-sm font-light md:text-base">
+                  <div className="-mt-2 text-sm font-light md:text-base">
                     <h3 className="flex items-center gap-1">
                       <Asterisk size={12} />
                       Notes
@@ -191,7 +191,6 @@ export default function CreateLaneDialog({
                   <Button
                     disabled={mutate.isPending}
                     type="submit"
-                    className="mt-4"
                     // className="h-9 rounded-[6px] bg-black px-4 hover:bg-black/50"
                   >
                     {mutate.isPending ? "Creating..." : "Create Lane"}

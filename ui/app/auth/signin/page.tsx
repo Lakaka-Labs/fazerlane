@@ -14,9 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { SignInFields, signInSchema } from "@/schemas/auth";
-import Image from "next/image";
 import appRoutes, { queryStateParams } from "@/config/routes";
-import TextSeperator from "@/components/seperator/seperator-with-text";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import AuthTitle from "@/components/title/auth.title";
@@ -28,7 +26,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { googleLoginQ } from "@/services/queries/auth/auth";
 import { parseAsString, useQueryState } from "nuqs";
-import { setTokensToCookies } from "@/config/axios";
 
 export default function Signin() {
   const router = useRouter();
@@ -44,7 +41,7 @@ export default function Signin() {
     defaultValues: { email: "", password: "" },
   });
 
-  const { setSession, setToken, setUser } = usePersistStore((state) => state);
+  const { setSession, setUser } = usePersistStore((state) => state);
 
   const { isPending, mutateAsync } = useMutation({
     mutationFn: signInM,
@@ -54,11 +51,6 @@ export default function Signin() {
         signInForm.reset();
         if (data.data) {
           setUser(data.data.user);
-          setToken({
-            jwt: data.data.jwt,
-            refreshToken: data.data.refreshToken,
-          });
-          setTokensToCookies(data.data.jwt, data.data.refreshToken);
           setSession({
             jwt: data.data.jwt,
             refreshToken: data.data.refreshToken,
@@ -86,7 +78,7 @@ export default function Signin() {
     await mutateAsync(payload);
   }
 
-  function googleOAuth() {
+  function _googleOAuth() {
     try {
       googleLoginQ();
     } catch (error) {

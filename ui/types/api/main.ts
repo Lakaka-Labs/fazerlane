@@ -6,6 +6,8 @@ export interface User {
   emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  apiKey: string | null;
+  customPrompt: string | null;
 }
 
 export interface LoginCredentials {
@@ -25,8 +27,25 @@ export interface LoginResponse {
 }
 
 export interface RefreshResponse {
-  jwt: string;
-  refreshToken?: string;
+  data: {
+    jwt: string;
+    user: {
+      apiKey: string | null;
+      createdAt: string;
+      customPrompt: string;
+      email: string;
+      emailVerified: boolean;
+      googleId: string | null;
+      id: string;
+      password: string;
+      streak: number;
+      updatedAt: string;
+      username: string;
+      xp: number;
+    };
+  };
+  message: string;
+  statusCode: number;
 }
 
 export interface AuthContextType {
