@@ -13,6 +13,7 @@ const appRoutes = {
     user: {
       lanes: "/u/lanes",
       progress: "/u/lanes/progress",
+      settings: "/u/settings",
       challanges: (laneId: string) => `/u/challanges/${laneId}`,
     },
   },
