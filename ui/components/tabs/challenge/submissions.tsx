@@ -8,7 +8,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSubmissions } from "@/services/queries/challenge/submissions/get";
 import { InlineLoader } from "@/components/loader";
 import { dateToNow } from "@/utils/date-to-now";
-import Image from "next/image";
 import { usePersistStore } from "@/store/persist.store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -266,11 +265,11 @@ function FileDisplay({ url, className }: FileDisplayProps) {
   if (fileType.startsWith("image/")) {
     return (
       <>
-        <Image
+        <img
           src={url}
           alt="Submission"
-          width={800}
-          height={600}
+          width={200}
+          height={200}
           className={`h-full w-full object-cover`}
         />
 
@@ -292,7 +291,7 @@ function FileDisplay({ url, className }: FileDisplayProps) {
             >
               <X className="h-8 w-8" />
             </button>
-            <Image
+            <img
               src={url}
               alt="Submission"
               width={1920}

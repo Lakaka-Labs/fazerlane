@@ -17,7 +17,7 @@ export interface Challenge {
   objective: string;
   instruction: string;
   assignment: string;
-  submissionFormat: "video" | "images" | string;
+  submissionFormat: string[];
   references: ChallengeReference[];
   difficulty: string;
   isCompleted: boolean;

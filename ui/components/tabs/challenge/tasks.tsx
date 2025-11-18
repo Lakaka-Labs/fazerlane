@@ -9,6 +9,14 @@ import toast from "react-hot-toast";
 import { API_BASE_URL } from "@/config/routes";
 import axios, { CancelTokenSource } from "axios";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  CodeXml,
+  FileMinus,
+  Image,
+  TextInitial,
+  Video,
+  Volume2,
+} from "lucide-react";
 
 interface TasksFormValues {
   text: string;
@@ -191,6 +199,21 @@ export const TasksTab = () => {
       return;
     }
 
+    if (
+      (currentChallenge.submissionFormat.includes("text") &&
+        !formValues.text) ||
+      (currentChallenge.submissionFormat.includes("code") &&
+        files.length < 1) ||
+      (currentChallenge.submissionFormat.includes("image") &&
+        files.length < 1) ||
+      (currentChallenge.submissionFormat.includes("video") &&
+        files.length < 1) ||
+      (currentChallenge.submissionFormat.includes("audio") && files.length < 1)
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     const submissionData = {
       ...formValues,
       files: files,
@@ -199,6 +222,70 @@ export const TasksTab = () => {
 
     submitWithSSE(API_BASE_URL, currentChallenge.id, submissionData);
   }
+
+  const submissionFormatIcons: Record<
+    string,
+    { icon: React.ReactNode; tooltip: string }
+  > = {
+    video: { icon: <Video className="h-4 w-4" />, tooltip: "video" },
+    image: { icon: <Image className="h-4 w-4" />, tooltip: "image" },
+    text: { icon: <TextInitial className="h-4 w-4" />, tooltip: "text" },
+    document: { icon: <FileMinus className="h-4 w-4" />, tooltip: "document" },
+    audio: { icon: <Volume2 className="h-4 w-4" />, tooltip: "audio" },
+    code: { icon: <CodeXml className="h-4 w-4" />, tooltip: "code" },
+  };
+
+  // this is for scrolling to the bottom when these kini are available
+  const errorRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (isConnected && !isComplete && loadingRef.current) {
+      loadingRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [isConnected, isComplete]);
+
+  useEffect(() => {
+    if (isComplete && finalResult && resultRef.current) {
+      resultRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [isComplete, finalResult]);
+  // end
+
+  const [isDisabled, setIsDisabled] = useState(true);
+
+  useEffect(() => {
+    if (
+      currentChallenge &&
+      ((currentChallenge.submissionFormat.includes("text") &&
+        !formValues.text) ||
+        (currentChallenge.submissionFormat.includes("code") &&
+          files.length < 1) ||
+        (currentChallenge.submissionFormat.includes("image") &&
+          files.length < 1) ||
+        (currentChallenge.submissionFormat.includes("video") &&
+          files.length < 1) ||
+        (currentChallenge.submissionFormat.includes("audio") &&
+          files.length < 1))
+    ) {
+      setIsDisabled(true);
+    } else {
+      setIsDisabled(false);
+    }
+  }, [currentChallenge, formValues.text, files.length]);
 
   if (!currentChallenge) {
     return (
@@ -216,13 +303,30 @@ export const TasksTab = () => {
 
       {(currentChallenge.submissionFormat.includes("video") ||
         currentChallenge.submissionFormat.includes("image") ||
+        currentChallenge.submissionFormat.includes("code") ||
         currentChallenge.submissionFormat.includes("audio")) && (
         <SectionContainer>
           <div className="flex w-full items-center justify-between">
             <h2 className="text-base font-semibold">Upload</h2>
-            <span className="uppercase">
-              [{currentChallenge.submissionFormat}]
-            </span>
+
+            <div className="flex items-center gap-2">
+              {currentChallenge.submissionFormat.map((format) => {
+                if (format.toLowerCase() === "text") return null;
+
+                const iconData = submissionFormatIcons[format];
+
+                return iconData ? (
+                  <div
+                    key={format}
+                    className="flex items-center gap-1"
+                    title={iconData.tooltip}
+                  >
+                    {iconData.icon}
+                    <span className="text-xs uppercase">{format}</span>
+                  </div>
+                ) : null;
+              })}
+            </div>
           </div>
 
           <FileUpload fileLink={files} setFileLink={setFiles} />
@@ -230,13 +334,29 @@ export const TasksTab = () => {
       )}
 
       <form onSubmit={(e) => handleSubmit(e)} className="flex flex-col gap-6">
-        {(currentChallenge.submissionFormat.includes("text") ||
-          currentChallenge.submissionFormat.includes("code")) && (
+        {currentChallenge.submissionFormat.includes("text") && (
           <SectionContainer>
             <div className="flex w-full items-center justify-between">
               <h2 className="text-base font-semibold">Text</h2>
 
-              <span>[{currentChallenge.submissionFormat}]</span>
+              <div className="flex items-center gap-2">
+                {currentChallenge.submissionFormat.map((format) => {
+                  if (format.toLowerCase() !== "text") return null;
+
+                  const iconData = submissionFormatIcons[format];
+
+                  return iconData ? (
+                    <div
+                      key={format}
+                      className="flex items-center gap-1"
+                      title={iconData.tooltip}
+                    >
+                      {iconData.icon}
+                      <span className="text-xs uppercase">{format}</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
             </div>
             <Textarea
               placeholder="Code and text submission here..."
@@ -289,7 +409,7 @@ export const TasksTab = () => {
         <div className="flex items-center justify-between gap-4">
           <Button
             size={"lg"}
-            disabled={isConnected || isSubmitting}
+            disabled={isDisabled || isConnected || isSubmitting}
             className="flex-1"
           >
             {isSubmitting ? "Submitting..." : "Submit"}
@@ -313,13 +433,19 @@ export const TasksTab = () => {
 
       <div className="flex flex-col gap-4">
         {error && (
-          <div className="text-brand-red bg-brand-red/10 rounded p-4">
+          <div
+            ref={errorRef}
+            className="text-brand-red bg-brand-red/10 rounded p-4"
+          >
             {error}
           </div>
         )}
 
         {isConnected && !isComplete && (
-          <div className="flex animate-pulse flex-col gap-2 border-l-4 border-gray-300 bg-gray-500/10 px-4 py-6">
+          <div
+            ref={loadingRef}
+            className="flex animate-pulse flex-col gap-2 border-l-4 border-gray-300 bg-gray-500/10 px-4 py-6"
+          >
             <div className="h-7 w-32 rounded bg-gray-300"></div>
             <div className="flex items-center gap-2">
               <div className="h-5 w-16 rounded bg-gray-300"></div>
@@ -339,6 +465,7 @@ export const TasksTab = () => {
 
         {isComplete && finalResult && (
           <div
+            ref={resultRef}
             className={`flex flex-col gap-2 border-l-4 p-4 transition-all duration-200 ${finalResult.pass ? "border-brand-bright-green bg-brand-bright-green/10" : "bg-brand-red/10 border-brand-red"}`}
           >
             <h3 className="text-lg font-bold">Final Result:</h3>

@@ -41,16 +41,40 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
     setIsDragging(false);
 
     const droppedFiles = Array.from(e.dataTransfer.files);
-    addFiles(droppedFiles);
 
-    handleUploadFiles(droppedFiles);
+    if (droppedFiles.length > 1) {
+      toast.error("Please upload only one file at a time");
+      return;
+    }
+
+    if (droppedFiles.length === 0) return;
+
+    addFiles([droppedFiles[0]]);
+
+    handleUploadFiles([droppedFiles[0]]);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
-    addFiles(selectedFiles);
 
-    handleUploadFiles(selectedFiles);
+    if (selectedFiles.length > 1) {
+      toast.error("Please upload only one file at a time");
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
+    if (selectedFiles.length === 0) return;
+
+    addFiles([selectedFiles[0]]);
+    handleUploadFiles([selectedFiles[0]]);
+
+    // Reset input so same file can be selected again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const addFiles = (newFiles: File[]): void => {
@@ -71,8 +95,9 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
-  const removeFile = (fileData: string): void => {
+  const removeFile = (fileData: string, randomId: string): void => {
     setFileLink((prev) => prev.filter((file) => file !== fileData));
+    setFiles((prev) => prev.filter((file) => file.id !== randomId));
   };
 
   const handleBrowseClick = (): void => {
@@ -93,8 +118,13 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
     console.log("res from handleUploadFiles", res);
 
     if (res) {
-      toast.success("Files uploaded successfully!");
+      toast.success("File upload successful!");
       setFileLink((prev) => [...prev, ...res]);
+    } else {
+      toast.error("Failed to upload file");
+      setFiles((prev) =>
+        prev.filter((file) => !filesToUpload.includes(file.file))
+      );
     }
   }
 
@@ -137,34 +167,38 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
         </div>
       )}
 
-      {fileLink.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <div className="mt-6 rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-200 p-4">
-              <h3 className="font-medium text-gray-900">Uploaded Files</h3>
-            </div>
-            <div className="divide-y divide-gray-200">
-              {fileLink.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50"
-                >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{file}</p>
-                  </div>
-
-                  <button
-                    onClick={() => removeFile(file)}
-                    className="ml-4 rounded bg-black p-1 transition-colors hover:bg-black/50"
+      {fileLink.length > 0 &&
+        files.length > 0 &&
+        fileLink.length === files.length && (
+          <div className="flex flex-col gap-4">
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white shadow-sm">
+              <div className="border-b border-gray-200 p-4">
+                <h3 className="font-medium text-gray-900">Uploaded Files</h3>
+              </div>
+              <div className="divide-y divide-gray-200">
+                {files.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50"
                   >
-                    <X className="h-5 w-5 text-white" />
-                  </button>
-                </div>
-              ))}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {file.name}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => removeFile(fileLink[index], file.id)}
+                      className="ml-4 rounded bg-black p-1 transition-colors hover:bg-black/50"
+                    >
+                      <X className="h-5 w-5 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
