@@ -276,20 +276,18 @@ function FileDisplay({ url, className }: FileDisplayProps) {
         <button
           onClick={() => setIsOverlayOpen(true)}
           className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/30"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90"></div>
-        </button>
+        ></button>
 
         {isOverlayOpen && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
             onClick={() => setIsOverlayOpen(false)}
           >
             <button
               onClick={() => setIsOverlayOpen(false)}
-              className="absolute top-4 right-4 z-10 text-white hover:text-gray-300"
+              className="bg-brand-grey hover:bg-brand-grey/50 absolute top-4 right-4 z-10 aspect-square cursor-pointer rounded-full p-1.5 text-white hover:text-gray-300"
             >
-              <X className="h-8 w-8" />
+              <X className="h-6 w-6" />
             </button>
             <img
               src={url}
@@ -332,7 +330,7 @@ function FileDisplay({ url, className }: FileDisplayProps) {
           >
             <button
               onClick={() => setIsOverlayOpen(false)}
-              className="absolute top-4 right-4 z-10 text-white hover:text-gray-300"
+              className="bg-brand-grey hover:bg-brand-grey/50 absolute top-4 right-4 z-10 aspect-square cursor-pointer rounded-full p-1.5 text-white hover:text-gray-300"
             >
               <X className="h-8 w-8" />
             </button>
@@ -359,9 +357,7 @@ function FileDisplay({ url, className }: FileDisplayProps) {
         <a
           href={url}
           className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90"></div>
-        </a>
+        ></a>
       </>
     );
   }

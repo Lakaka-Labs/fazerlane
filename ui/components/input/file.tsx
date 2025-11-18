@@ -179,9 +179,9 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
                 {files.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 transition-colors hover:bg-gray-50"
+                    className="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-gray-50"
                   >
-                    <div className="flex-1">
+                    <div className="line-clamp-1 flex-1">
                       <p className="text-sm font-medium text-gray-900">
                         {file.name}
                       </p>
@@ -189,7 +189,7 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
 
                     <button
                       onClick={() => removeFile(fileLink[index], file.id)}
-                      className="ml-4 rounded bg-black p-1 transition-colors hover:bg-black/50"
+                      className="rounded bg-black p-1 transition-colors hover:bg-black/50"
                     >
                       <X className="h-5 w-5 text-white" />
                     </button>

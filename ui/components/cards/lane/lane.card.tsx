@@ -52,11 +52,11 @@ export default function LearnCard({ lane }: LearnCardProps) {
                   alt="img"
                   width={1280}
                   height={720}
-                  className="h-[250px] w-full transform rounded-md object-cover object-center opacity-20 brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                  className="h-[250px] w-full transform rounded-md object-cover object-center opacity-70 blur-xs brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
                   quality={100}
                   priority
                 />
-                <div className="bg-brand-deep-black/60 absolute top-1/2 left-1/2 flex h-[250px] w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md group-hover:rounded-t-md group-hover:rounded-b-none">
+                <div className="border-brand-grey/60 absolute top-1/2 left-1/2 flex h-[250px] w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md border border-solid group-hover:rounded-t-md group-hover:rounded-b-none">
                   <LoaderCircle size={64} className="animate-spin text-white" />
                 </div>
               </div>
@@ -76,11 +76,11 @@ export default function LearnCard({ lane }: LearnCardProps) {
                   alt="img"
                   width={1280}
                   height={720}
-                  className="h-[250px] w-full transform rounded-md object-cover object-center opacity-20 brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                  className="h-[250px] w-full transform rounded-md object-cover object-center opacity-70 blur-xs brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
                   quality={100}
                   priority
                 />
-                <div className="bg-brand-deep-black/60 absolute top-1/2 left-1/2 flex h-[250px] w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md group-hover:rounded-t-md group-hover:rounded-b-none">
+                <div className="border-brand-grey/60 absolute top-1/2 left-1/2 flex h-[250px] w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md border border-solid group-hover:rounded-t-md group-hover:rounded-b-none">
                   <OctagonAlert
                     size={64}
                     className="text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse"
