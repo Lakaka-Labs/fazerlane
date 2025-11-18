@@ -70,13 +70,13 @@ export const getCurrentToken = (): {
   token: string;
   refreshToken?: string;
 } | null => {
-  const cookieTokens = getTokenFromCookies();
-  if (cookieTokens) {
-    return {
-      token: cookieTokens.token,
-      refreshToken: cookieTokens.refreshToken,
-    };
-  }
+  // const cookieTokens = getTokenFromCookies();
+  // if (cookieTokens) {
+  //   return {
+  //     token: cookieTokens.token,
+  //     refreshToken: cookieTokens.refreshToken,
+  //   };
+  // }
 
   const storeTokens = getTokenFromStore();
   if (storeTokens) {
@@ -89,13 +89,13 @@ export const getCurrentToken = (): {
 const updateTokens = (jwt: string, refreshToken?: string): void => {
   // const cookieTokens = getTokenFromCookies();
 
-  console.log("update tokens from cookies", { jwt, refreshToken });
+  // console.log("update tokens from cookies", { jwt, refreshToken });
 
-  // if (cookieTokens) {
-  setCookie("token", jwt);
-  if (refreshToken) {
-    setCookie("refreshToken", refreshToken);
-  }
+  // // if (cookieTokens) {
+  // setCookie("token", jwt);
+  // if (refreshToken) {
+  //   setCookie("refreshToken", refreshToken);
+  // }
   // } else {
   try {
     persistStore.setState({
@@ -127,6 +127,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 let isRefreshing = false;
@@ -141,18 +142,18 @@ const onRefreshed = (token: string): void => {
   refreshSubscribers = [];
 };
 
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const tokenData = getCurrentToken();
+// api.interceptors.request.use(
+//   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+//     const tokenData = getCurrentToken();
 
-    if (tokenData?.token) {
-      config.headers.Authorization = `Bearer ${tokenData.token}`;
-    }
+//     if (tokenData?.token) {
+//       config.headers.Authorization = `Bearer ${tokenData.token}`;
+//     }
 
-    return config;
-  },
-  (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
-);
+//     return config;
+//   },
+//   (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
+// );
 
 api.interceptors.response.use(
   (response: AxiosResponse): AxiosResponse => response,
@@ -164,26 +165,30 @@ api.interceptors.response.use(
     };
 
     if (
-      error.response?.status === 401 ||
-      (error.response?.status === 403 && !originalRequest._retry)
+      (error.response?.status === 401 || error.response?.status === 403) &&
+      !originalRequest._retry
     ) {
-      if (isRefreshing) {
-        return new Promise<AxiosResponse>((resolve) => {
-          subscribeTokenRefresh((token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          });
-        });
-      }
+      // if (isRefreshing) {
+      //   return new Promise<AxiosResponse>((resolve) => {
+      //     subscribeTokenRefresh((token: string) => {
+      //       originalRequest.headers.Authorization = `Bearer ${token}`;
+      //       resolve(api(originalRequest));
+      //     });
+      //   });
+      // }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        const tokenData = getCurrentToken();
-        const refreshToken = tokenData?.refreshToken;
+        // const tokenData = getCurrentToken();
+        // const refreshToken = tokenData?.refreshToken;
 
-        console.log("token and refresh from retry/refreshing", tokenData);
+        // console.log("token and refresh from retry/refreshing", tokenData);
+
+        // new
+        const cookieTokens = getTokenFromCookies();
+        const refreshToken = cookieTokens?.refreshToken;
 
         if (!refreshToken) {
           throw new Error("No refresh token available");
@@ -198,13 +203,13 @@ api.interceptors.response.use(
           }
         );
 
-        const { jwt, refreshToken: newRefreshToken } = response.data;
+        const { jwt } = response.data;
 
         console.log("token and refresh after refreshing", {
           tokenData: response.data,
         });
 
-        updateTokens(jwt, newRefreshToken);
+        updateTokens(jwt);
 
         isRefreshing = false;
         onRefreshed(jwt);
