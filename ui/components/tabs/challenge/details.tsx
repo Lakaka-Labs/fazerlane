@@ -120,17 +120,18 @@ const ReferencesDropdown = ({
         {isOpen && videoLink && (
           <motion.div
             // key="video-wrapper"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="bg-brand-background-dashboard px-2 py-6 md:px-8"
+            initial={{ height: 0}}
+            animate={{ height: "auto"}}
+            exit={{ height: 0}}
+            transition={{ duration: 0.05, ease: "linear" }}
+            className="bg-brand-background-dashboard px-2 py-6 md:px-8 overflow-hidden"
           >
             <div className="aspect-video w-full overflow-hidden rounded-[12px]">
               <YoutubeVideo
                 url={videoLink}
                 startTime={location.startTime}
                 endTime={location.endTime}
+                playing={false}
               />
             </div>
 

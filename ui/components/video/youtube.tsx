@@ -17,6 +17,7 @@ interface YoutubeVideoProps {
   controls?: boolean;
   startTime?: string;
   endTime?: string;
+  playing?: boolean;
 }
 
 export default function YoutubeVideo({
@@ -24,6 +25,7 @@ export default function YoutubeVideo({
   controls = true,
   startTime,
   endTime,
+    playing=true
 }: YoutubeVideoProps) {
   const start = parseTime(startTime);
   const end = parseTime(endTime);
@@ -31,7 +33,7 @@ export default function YoutubeVideo({
   return (
     <ReactPlayer
       src={url + `?start=${start}&end=${end}`}
-      playing={true}
+      playing={playing}
       controls={controls}
       config={{
         youtube: {

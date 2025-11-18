@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useMutation} from "@tanstack/react-query";
@@ -36,6 +36,14 @@ export function ApiKeyTab() {
             apiKey: initialApiKey,
         },
     });
+
+    useEffect(() => {
+        if (store.session?.user) {
+            apiKeyForm.reset({
+                apiKey: store.session.user.apiKey || "",
+            });
+        }
+    }, [store.session?.user?.apiKey, apiKeyForm]);
 
     const currentApiKey = apiKeyForm.watch("apiKey");
     const isUnchanged = currentApiKey === initialApiKey;

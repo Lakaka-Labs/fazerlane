@@ -130,7 +130,7 @@ const SubmissionsDropdown = ({
       <div
         onClick={handleToggleResourcesDropdown}
         className={cn(
-          "border-brand-black/20 flex h-20 items-center justify-between rounded-t-xl px-4",
+          "border-brand-black/20 flex h-20 items-center justify-between rounded-t-xl px-4 cursor-pointer",
           isOpen && "border-b"
         )}
       >
@@ -159,11 +159,11 @@ const SubmissionsDropdown = ({
             initial={{ height: 0 }}
             animate={{ height: "auto" }}
             exit={{ height: 0 }}
-            transition={{ duration: 0.15, ease: "linear" }}
-            className="flex flex-col gap-6 overflow-hidden rounded-xl bg-white px-4 py-6"
+            transition={{ duration: 0.05, ease: "linear" }}
+            className="flex flex-col gap-6 overflow-hidden rounded-xl bg-white px-4 py-6 cursor-default"
           >
             <div
-              className={`border-brand-green bg-brand-lite-green flex transform cursor-pointer flex-col gap-3 border-l-4 border-solid p-4 transition-all duration-200 ease-linear`}
+              className={`border-brand-green bg-brand-lite-green flex transform cursor-text flex-col gap-3 border-l-4 border-solid p-4 transition-all duration-200 ease-linear`}
               style={{
                 background: status === "Passed" ? "#e8f5e9" : "#fd005415",
                 borderColor: status === "Passed" ? "#2e7d32" : "#ff112a",
@@ -205,7 +205,7 @@ const SubmissionsDropdown = ({
             )}
 
             {text && (
-              <div className="text-brand-black flex flex-col gap-2">
+              <div className="text-brand-black flex flex-col gap-2 cursor-text">
                 <h4 className="text-base font-semibold">Text Submission</h4>
 
                 {text ? (

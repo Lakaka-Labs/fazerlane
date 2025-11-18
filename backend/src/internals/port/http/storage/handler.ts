@@ -6,6 +6,7 @@ import * as fs from "node:fs/promises";
 import type {FileParameter} from "../../../domain/objects";
 import multer from "multer";
 import path from 'path';
+import {BadRequestError} from "../../../../packages/errors";
 
 export default class StorageHandler {
     storageService: StorageService
@@ -100,7 +101,6 @@ export default class StorageHandler {
     upload = async (req: Request, res: Response) => {
         const creator = (req.user as User).id;
         const files: FileParameter[] = []
-
         if (req.files) {
             for (const file of req.files as Express.Multer.File[]) {
                 files.push({
@@ -109,6 +109,7 @@ export default class StorageHandler {
                 })
             }
         }
+        if (files.length < 1) throw new BadRequestError("send at least one file")
         const ids = await this.storageService.commands.upload.handle(files, creator)
         new SuccessResponse(res, {ids}).send();
     }

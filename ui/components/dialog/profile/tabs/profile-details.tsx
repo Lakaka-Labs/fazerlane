@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import {ProfileFields, profileSchema} from "@/schemas/profile";
 import {updateProfileM} from "@/services/mutations/profile/update.profile";
+import {useEffect} from "react";
 
 export function ProfileDetailsTab() {
     const {setSession, session, setUser} = usePersistStore((state) => state);
@@ -27,13 +28,21 @@ export function ProfileDetailsTab() {
     const profileForm = useForm<ProfileFields>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            // email: session?.user?.email || "",
             username: initialUsername,
         },
     });
 
+    // Reset form when session loads
+    useEffect(() => {
+        if (session?.user?.username) {
+            profileForm.reset({
+                username: session.user.username,
+            });
+        }
+    }, [session?.user?.username, profileForm]);
+
     const currentUsername = profileForm.watch("username");
-    const isUnchanged = currentUsername === initialUsername;
+    const isUnchanged = currentUsername === (session?.user?.username || "");
     const isEmpty = !currentUsername || currentUsername.trim() === "";
 
     const {isPending, mutateAsync: updateProfile} = useMutation({
@@ -88,24 +97,6 @@ export function ProfileDetailsTab() {
                             </FormItem>
                         )}
                     />
-
-                    {/* <FormField
-            control={profileForm.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
 
                     <div className="flex justify-end pt-2">
                         <Button

@@ -22,11 +22,12 @@ import {
     updateCustomPromptM,
 } from "@/services/mutations/profile/update.profile";
 import {usePersistStore} from "@/store/persist.store";
+import {useEffect} from "react";
 
 export function CustomPromptTab() {
     const store = usePersistStore((state) => state);
 
-    const initialCustomPrompt = store.session.user.customPrompt || "";
+    const initialCustomPrompt = store.session?.user?.customPrompt || "";
 
     const customPromptForm = useForm<CustomPromptFields>({
         resolver: zodResolver(customPromptSchema),
@@ -35,8 +36,17 @@ export function CustomPromptTab() {
         },
     });
 
+    // Reset form when session loads
+    useEffect(() => {
+        if (store.session?.user) {
+            customPromptForm.reset({
+                customPrompt: store.session.user.customPrompt || "",
+            });
+        }
+    }, [store.session?.user?.customPrompt, customPromptForm]);
+
     const currentCustomPrompt = customPromptForm.watch("customPrompt");
-    const isUnchanged = currentCustomPrompt === initialCustomPrompt;
+    const isUnchanged = currentCustomPrompt === (store.session?.user?.customPrompt || "");
     const isEmpty = !currentCustomPrompt || currentCustomPrompt.trim() === "";
 
     const {isPending, mutateAsync: updateCustomPrompt} = useMutation({
@@ -67,7 +77,7 @@ export function CustomPromptTab() {
                 if (data.message) {
                     store.setSession({...store.session, user: {...store.session.user, customPrompt: ""}})
                     store.setUser({...store.session.user, customPrompt: ""})
-                    customPromptForm.setValue(  "customPrompt", "")
+                    customPromptForm.setValue("customPrompt", "")
                     toast.success(
                         data.message ||
                         "Custom prompt deleted successfully, please login again to see changes!"

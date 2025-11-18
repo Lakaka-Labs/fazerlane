@@ -98,11 +98,11 @@ export default function CreateLaneDialog({
           </DialogTrigger>
         )}
 
-        <DialogContent className="border-brand-border flex max-h-[80dvh] max-w-[90%] rounded-lg border-2 border-solid px-4 md:block md:max-w-2xl md:px-6">
+        <DialogContent className="border-brand-border flex max-h-[90dvh] max-w-[90%] rounded-lg border-2 border-solid md:block md:max-w-2xl !px-0 py-6">
           <Form {...createLaneForm}>
             <form
               onSubmit={createLaneForm.handleSubmit(handleCreateLane)}
-              className="flex flex-col gap-3"
+              className="flex flex-col gap-3 w-full overflow-y-auto pb-2 px-6"
             >
               <DialogHeader>
                 <DialogTitle className="text-2xl font-semibold">
@@ -110,11 +110,11 @@ export default function CreateLaneDialog({
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="flex flex-col gap-3 overflow-y-auto lg:pr-2">
+              <div className="flex flex-col gap-3 lg:pr-2">
                 <div className="grid gap-6">
                   {youtubeLink && isValidYouTubeUrl(youtubeLink) && (
-                    <div className="h-[330px] w-full overflow-hidden rounded-[12px]">
-                      <YoutubeVideo url={youtubeLink} />
+                    <div className="aspect-video w-full overflow-hidden rounded-[12px]">
+                      <YoutubeVideo url={youtubeLink} playing={false}/>
                     </div>
                   )}
                   <div>
