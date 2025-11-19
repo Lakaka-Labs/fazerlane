@@ -4,18 +4,7 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
-import Cookies from "js-cookie";
 import { API_BARE_URL, API_BASE_URL } from "./routes";
-
-const getRefreshTokenFromCookie = (): string | undefined => {
-  const cookie = Cookies.get("refreshToken");
-
-  if (cookie && cookie.startsWith("s%3A")) {
-    // Decode signed cookie format: s%3A<value>.<signature>
-    return decodeURIComponent(cookie).split(".")[0].substring(4);
-  }
-  return cookie;
-};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -73,23 +62,17 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = getRefreshTokenFromCookie();
+        const res = await axios.get<RefreshResponse>(
+          `${API_BARE_URL}/auth/token/refresh`,
+          {
+            withCredentials: true,
+          }
+        );
 
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-
-        await axios.get<RefreshResponse>(`${API_BARE_URL}/auth/token/refresh`, {
-          headers: {
-            Authorization: `Bearer ${refreshToken}`,
-          },
-          withCredentials: true,
-        });
-
-        console.log("refreshed token");
+        console.log("refreshed token", res);
 
         isRefreshing = false;
-        onRefreshed("refreshed"); // Notify queued requests
+        onRefreshed("refreshed");
 
         return api(originalRequest);
       } catch (refreshError) {
