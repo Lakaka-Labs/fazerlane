@@ -36,14 +36,14 @@ const nextConfig: NextConfig = {
       ];
     }
     return [
-      // {
-      //   source: "/auth/:path*",
-      //   destination: "https://api.fazerlane.com/auth/:path*",
-      // },
-      // {
-      //   source: "/api/:path*",
-      //   destination: "https://api.fazerlane.com/api/:path*",
-      // },
+      {
+        source: "/auth/:path*",
+        destination: "https://api.fazerlane.com/auth/:path*",
+      },
+      {
+        source: "/api/:path*",
+        destination: "https://api.fazerlane.com/api/:path*",
+      },
     ];
   },
 };
