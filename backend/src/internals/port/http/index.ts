@@ -43,6 +43,7 @@ export default class ExpressHTTP {
         this.websocketServer = new WebSocketServer({server: this.bareServer})  // Single server
 
         // Middlewares
+        this.server.set('trust proxy', 1)
         this.server.use(express.json());
         this.server.use(express.urlencoded({extended: true}));
         this.server.use(helmet())

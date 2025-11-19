@@ -81,10 +81,11 @@ export class SuccessResponseWithCookies {
                 .cookie(cookieElement.key, cookieElement.value, {
                     signed: true,
                     maxAge: this.appSecret.cookieExpires,
-                    httpOnly: false,
+                    httpOnly: true,
                     secure: true, // Required for cross-origin
                     sameSite: 'none', // Required for cross-origin
                     domain: '.fazerlane.com', // Allows cookie across subdomains
+                    path: '/'
                 })
         }
 
