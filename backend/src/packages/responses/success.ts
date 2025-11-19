@@ -84,7 +84,7 @@ export class SuccessResponseWithCookies {
                     httpOnly: true,
                     secure: true, // Required for cross-origin
                     sameSite: 'none', // Required for cross-origin
-                    domain: '.fazerlane.com', // Allows cookie across subdomains
+                    // domain: '.fazerlane.com', // Allows cookie across subdomains
                     path: '/'
                 })
         }
