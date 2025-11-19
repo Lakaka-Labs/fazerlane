@@ -35,7 +35,16 @@ const nextConfig: NextConfig = {
         },
       ];
     }
-    return [];
+    return [
+      // {
+      //   source: "/auth/:path*",
+      //   destination: "https://api.fazerlane.com/auth/:path*",
+      // },
+      // {
+      //   source: "/api/:path*",
+      //   destination: "https://api.fazerlane.com/api/:path*",
+      // },
+    ];
   },
 };
 

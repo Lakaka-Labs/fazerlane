@@ -8,7 +8,13 @@ import Cookies from "js-cookie";
 import { API_BARE_URL, API_BASE_URL } from "./routes";
 
 const getRefreshTokenFromCookie = (): string | undefined => {
-  return Cookies.get("refreshToken");
+  const cookie = Cookies.get("refreshToken");
+
+  if (cookie && cookie.startsWith("s%3A")) {
+    // Decode signed cookie format: s%3A<value>.<signature>
+    return decodeURIComponent(cookie).split(".")[0].substring(4);
+  }
+  return cookie;
 };
 
 const api = axios.create({

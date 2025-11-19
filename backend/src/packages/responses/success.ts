@@ -74,14 +74,24 @@ export class SuccessResponseWithCookies {
                 .cookie(this.cookie[0].key, this.cookie[0].value, {
                     signed: true,
                     maxAge: this.appSecret.cookieExpires,
-                    httpOnly: false,
+                    // httpOnly: false,
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'none',
+                    domain: '.fazerlane.com',
+                    path: '/',
                 })
         }
         if (this.cookie[1]) {
             this.response.cookie(this.cookie[1].key, this.cookie[1].value, {
                 signed: true,
                 maxAge: this.appSecret.cookieExpires,
-                httpOnly: false,
+                // httpOnly: false,
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                domain: '.fazerlane.com',
+                path: '/',
             })
 
         }
