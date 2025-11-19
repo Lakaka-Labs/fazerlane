@@ -3,6 +3,13 @@ import {StatusCodes} from "http-status-codes";
 import type Cookie from "../types/cookies";
 import AppSecrets from "../secret";
 
+type Success = {
+    statusCode: number;
+    message: string;
+    data?: any;
+    metadata?: any;
+};
+
 export class SuccessResponse {
     success: Success;
     response: Response;
@@ -69,22 +76,18 @@ export class SuccessResponseWithCookies {
     }
 
     sendCookie = () => {
-        if (this.cookie[0]) {
+        for (const cookieElement of this.cookie) {
             this.response
-                .cookie(this.cookie[0].key, this.cookie[0].value, {
+                .cookie(cookieElement.key, cookieElement.value, {
                     signed: true,
                     maxAge: this.appSecret.cookieExpires,
                     httpOnly: false,
+                    secure: true, // Required for cross-origin
+                    sameSite: 'none', // Required for cross-origin
+                    domain: '.fazerlane.com', // Allows cookie across subdomains
                 })
         }
-        if (this.cookie[1]) {
-            this.response.cookie(this.cookie[1].key, this.cookie[1].value, {
-                signed: true,
-                maxAge: this.appSecret.cookieExpires,
-                httpOnly: false,
-            })
 
-        }
     }
     send = () => {
         this.sendCookie()
@@ -132,9 +135,3 @@ export class FileDownloadResponse {
 }
 
 
-type Success = {
-    statusCode: number;
-    message: string;
-    data?: any;
-    metadata?: any;
-};
