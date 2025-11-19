@@ -1,18 +1,14 @@
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
-import {
-    BadRequestError,
-    InvalidAssessmentsError,
-} from "../../../../packages/errors";
+import {InvalidAssessmentsError,} from "../../../../packages/errors";
 import type LLMRepository from "../../../domain/llm/repository.ts";
-import type {Message, ModelResponse} from "../../../domain/llm";
+import type {Message} from "../../../domain/llm";
 import {submissionPrompt} from "../../../../packages/prompts/submission.ts";
-import type {Attempt, Challenge, SubmissionFormat} from "../../../domain/challenge";
+import type {Challenge, SubmissionFormat} from "../../../domain/challenge";
 import type XPRepository from "../../../domain/xp/repository.ts";
 import type AppSecrets from "../../../../packages/secret";
 import {XPType} from "../../../domain/xp";
 import type {StorageObject} from "../../../domain/objects";
 import type {ObjectRepository} from "../../../domain/objects/repository.ts";
-import {isValidSubmissionType} from "../../../../packages/utils/mime.ts";
 import type {MemoriesRepository} from "../../../domain/memories/repository.ts";
 import {formatHumanReadableTimestamp} from "../../../../packages/utils/time.ts";
 import type UserRepository from "../../../domain/user/repository.ts";
@@ -74,13 +70,12 @@ export default class MarkChallenge {
     }
 
     private async getStorageObjects(files: string[], submissionFormat: SubmissionFormat[]): Promise<StorageObject[]> {
-        const storageObjects = await this.objectRepository.get(files);
         // for (const storageObject of storageObjects) {
         //     if (!isValidSubmissionType(storageObject.mimeType, submissionFormat)) {
         //         throw new BadRequestError(`invalid submission, only upload ${submissionFormat.join(", ")}`)
         //     }
         // }
-        return storageObjects
+        return await this.objectRepository.get(files)
     }
 
     private async* streamMark(

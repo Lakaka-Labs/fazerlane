@@ -76,7 +76,7 @@ export default class LaneHandler extends LaneSchema {
     }
 
     createLane = async (req: Request, res: Response) => {
-        const creator = (req.user as User).id;
+        const creator = req.user as User;
         const lane = {
             ...req.body,
             creator
