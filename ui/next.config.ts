@@ -22,6 +22,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    if (process.env.NODE_ENV === "development") {
+      return [
+        {
+          source: "/auth/:path*",
+          destination: "https://api.fazerlane.com/auth/:path*",
+        },
+        {
+          source: "/api/:path*",
+          destination: "https://api.fazerlane.com/api/:path*",
+        },
+      ];
+    }
+    return [];
+  },
 };
 
 export default nextConfig;

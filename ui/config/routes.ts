@@ -21,8 +21,16 @@ const appRoutes = {
 
 export default appRoutes;
 
-export const API_BARE_URL = process.env.NEXT_PUBLIC_API_URL || "";
-export const API_BASE_URL = API_BARE_URL ? `${API_BARE_URL}/api/v1` : "";
+export const API_BARE_URL =
+  process.env.NODE_ENV === "development"
+    ? ""
+    : process.env.NEXT_PUBLIC_API_URL || "";
+export const API_BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "/api/v1"
+    : API_BARE_URL
+      ? `${API_BARE_URL}/api/v1`
+      : "";
 
 export const WS_BARE_URL = process.env.NEXT_PUBLIC_WS_URL || "";
 export const WS_BASE_URL = WS_BARE_URL ? `ws://${WS_BARE_URL}` : "";

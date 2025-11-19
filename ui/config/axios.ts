@@ -1,4 +1,3 @@
-import { persistStore } from "@/store/persist.store";
 import { ApiError, RefreshResponse } from "@/types/api";
 import axios, {
   AxiosResponse,
@@ -8,117 +7,8 @@ import axios, {
 import Cookies from "js-cookie";
 import { API_BARE_URL, API_BASE_URL } from "./routes";
 
-const getCookie = (name: string): string | undefined => {
-  return Cookies.get(name);
-};
-
-const setCookie = (
-  name: string,
-  value: string,
-  options: {
-    expires?: number;
-    path?: string;
-    secure?: boolean;
-    sameSite?: "strict" | "lax" | "none";
-  } = {}
-): void => {
-  const defaultOptions = {
-    expires: 7,
-    path: "/",
-    secure: true,
-    sameSite: "strict" as const,
-    ...options,
-  };
-
-  Cookies.set(name, value, defaultOptions);
-};
-
-const deleteCookie = (name: string, path: string = "/"): void => {
-  Cookies.remove(name, { path });
-};
-
-const getTokenFromCookies = (): {
-  token: string;
-  refreshToken?: string;
-} | null => {
-  const token = getCookie("token");
-  const refreshToken = getCookie("refreshToken");
-
-  // if (token && refreshToken) {
-  if (token) {
-    return { token, ...(refreshToken && { refreshToken: refreshToken }) };
-  }
-
-  return null;
-};
-
-const getTokenFromStore = () => {
-  try {
-    const tkObj = persistStore.getState().token;
-    console.log("token from store", tkObj);
-
-    return tkObj?.jwt
-      ? { token: tkObj.jwt, refreshToken: tkObj.refreshToken }
-      : null;
-  } catch (error) {
-    console.warn("Failed to access store tokens:", error);
-    return null;
-  }
-};
-
-export const getCurrentToken = (): {
-  token: string;
-  refreshToken?: string;
-} | null => {
-  const cookieTokens = getTokenFromCookies();
-  if (cookieTokens) {
-    return {
-      token: cookieTokens.token,
-      refreshToken: cookieTokens.refreshToken,
-    };
-  }
-
-  const storeTokens = getTokenFromStore();
-  if (storeTokens) {
-    return { token: storeTokens.token, refreshToken: storeTokens.refreshToken };
-  }
-
-  return null;
-};
-
-const updateTokens = (jwt: string, refreshToken?: string): void => {
-  // const cookieTokens = getTokenFromCookies();
-
-  console.log("update tokens from cookies", { jwt, refreshToken });
-
-  // if (cookieTokens) {
-  setCookie("token", jwt);
-  if (refreshToken) {
-    setCookie("refreshToken", refreshToken);
-  }
-  // } else {
-  try {
-    persistStore.setState({
-      token: {
-        jwt,
-        ...(refreshToken && { refreshToken }),
-      },
-    });
-  } catch (error) {
-    console.warn("Failed to update store tokens:", error);
-  }
-  // }
-};
-
-const clearTokens = (): void => {
-  deleteCookie("token");
-  deleteCookie("refreshToken");
-
-  try {
-    persistStore.setState({ token: { jwt: "", refreshToken: undefined } });
-  } catch (error) {
-    console.warn("Failed to clear store tokens:", error);
-  }
+const getRefreshTokenFromCookie = (): string | undefined => {
+  return Cookies.get("refreshToken");
 };
 
 const api = axios.create({
@@ -127,6 +17,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 let isRefreshing = false;
@@ -143,12 +34,7 @@ const onRefreshed = (token: string): void => {
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const tokenData = getCurrentToken();
-
-    if (tokenData?.token) {
-      config.headers.Authorization = `Bearer ${tokenData.token}`;
-    }
-
+    config.withCredentials = true;
     return config;
   },
   (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
@@ -164,13 +50,14 @@ api.interceptors.response.use(
     };
 
     if (
-      error.response?.status === 401 ||
-      (error.response?.status === 403 && !originalRequest._retry)
+      (error.response?.status === 401 || error.response?.status === 403) &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/token/refresh")
     ) {
+      // If already refreshing, queue this request
       if (isRefreshing) {
         return new Promise<AxiosResponse>((resolve) => {
-          subscribeTokenRefresh((token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+          subscribeTokenRefresh(() => {
             resolve(api(originalRequest));
           });
         });
@@ -180,43 +67,29 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const tokenData = getCurrentToken();
-        const refreshToken = tokenData?.refreshToken;
-
-        console.log("token and refresh from retry/refreshing", tokenData);
+        const refreshToken = getRefreshTokenFromCookie();
 
         if (!refreshToken) {
           throw new Error("No refresh token available");
         }
 
-        const response = await axios.get<RefreshResponse>(
-          `${API_BARE_URL}/auth/token/refresh`,
-          {
-            headers: {
-              Authorization: `Bearer ${refreshToken}`,
-            },
-          }
-        );
-
-        const { jwt, refreshToken: newRefreshToken } = response.data;
-
-        console.log("token and refresh after refreshing", {
-          tokenData: response.data,
+        await axios.get<RefreshResponse>(`${API_BARE_URL}/auth/token/refresh`, {
+          headers: {
+            Authorization: `Bearer ${refreshToken}`,
+          },
+          withCredentials: true,
         });
 
-        updateTokens(jwt, newRefreshToken);
+        console.log("refreshed token");
 
         isRefreshing = false;
-        onRefreshed(jwt);
-
-        originalRequest.headers.Authorization = `Bearer ${jwt}`;
+        onRefreshed("refreshed"); // Notify queued requests
 
         return api(originalRequest);
       } catch (refreshError) {
-        console.log("failed to fetch refresh token");
+        console.error("Failed to refresh token:", refreshError);
 
         isRefreshing = false;
-        clearTokens();
 
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("auth:logout"));
@@ -268,18 +141,6 @@ const apiClient = {
     config?: InternalAxiosRequestConfig
   ): Promise<T> =>
     api.patch<T>(url, data, config).then((response) => response.data),
-};
-
-export const setTokensToCookies = (
-  token: string,
-  refreshToken: string
-): void => {
-  setCookie("token", token, { expires: 7 });
-  setCookie("refreshToken", refreshToken, { expires: 30 });
-};
-
-export const clearAllTokens = (): void => {
-  clearTokens();
 };
 
 export default apiClient;

@@ -4,20 +4,24 @@ import { SectionContainer, SectionContent } from "./components";
 import FileUpload from "@/components/input/file";
 import { useEffect, useRef, useState } from "react";
 import { usePersistStore } from "@/store/persist.store";
-import {
-  submitTask,
-  SubmitTaskData,
-  SubmitTaskQuery,
-} from "@/services/mutations/tasks/submit.task";
+import { SubmitTaskData } from "@/services/mutations/tasks/submit.task";
 import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/config/routes";
 import axios, { CancelTokenSource } from "axios";
-import { getCurrentToken } from "@/config/axios";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  CodeXml,
+  FileMinus,
+  Image,
+  TextInitial,
+  Video,
+  Volume2,
+} from "lucide-react";
 
 interface TasksFormValues {
   text: string;
   comments: string;
+  useMemory: boolean;
 }
 
 interface SSEStarted {
@@ -67,22 +71,12 @@ export const TasksTab = () => {
     cancelTokenRef.current = axios.CancelToken.source();
 
     try {
-      const tkObj = getCurrentToken();
-
-      if (!tkObj) {
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("auth:logout"));
-        }
-
-        throw new Error("No authentication token found");
-      }
-
       const response = await axios.post(url, data, {
         headers: {
           "Content-Type": "application/json",
           Accept: "text/event-stream",
-          Authorization: `Bearer ${tkObj.token}`,
         },
+        withCredentials: true,
         responseType: "stream",
         cancelToken: cancelTokenRef.current.token,
         adapter: "fetch",
@@ -177,31 +171,15 @@ export const TasksTab = () => {
     };
   }, []);
 
-  // const queryClient = useQueryClient();
-
-  // const [, setTab] = useQueryState(queryStateParams.tab, {
-  //   defaultValue: challegeTabs[0].value,
-  // });
-
-  const {
-    currentChallenge,
-    //  setCurrentChallengeTab
-  } = usePersistStore((store) => store);
+  const { currentChallenge } = usePersistStore((store) => store);
 
   const [formValues, setFormValues] = useState<TasksFormValues>({
     text: "",
     comments: "",
+    useMemory: false,
   });
 
   const [files, setFiles] = useState<string[]>([]);
-
-  const mutation = useMutation({
-    mutationFn: (submissionData: SubmitTaskData & SubmitTaskQuery) =>
-      submitTask(submissionData),
-    onError: (error) => {
-      toast.error((error.message as string) || "Failed to submit task");
-    },
-  });
 
   function handleInputChange(
     e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -221,15 +199,93 @@ export const TasksTab = () => {
       return;
     }
 
+    if (
+      (currentChallenge.submissionFormat.includes("text") &&
+        !formValues.text) ||
+      (currentChallenge.submissionFormat.includes("code") &&
+        files.length < 1) ||
+      (currentChallenge.submissionFormat.includes("image") &&
+        files.length < 1) ||
+      (currentChallenge.submissionFormat.includes("video") &&
+        files.length < 1) ||
+      (currentChallenge.submissionFormat.includes("audio") && files.length < 1)
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     const submissionData = {
       ...formValues,
-      useMemory: true,
       files: files,
       challenge_id: currentChallenge.id,
     };
 
     submitWithSSE(API_BASE_URL, currentChallenge.id, submissionData);
   }
+
+  const submissionFormatIcons: Record<
+    string,
+    { icon: React.ReactNode; tooltip: string }
+  > = {
+    video: { icon: <Video className="h-4 w-4" />, tooltip: "video" },
+    image: { icon: <Image className="h-4 w-4" />, tooltip: "image" },
+    text: { icon: <TextInitial className="h-4 w-4" />, tooltip: "text" },
+    document: { icon: <FileMinus className="h-4 w-4" />, tooltip: "document" },
+    audio: { icon: <Volume2 className="h-4 w-4" />, tooltip: "audio" },
+    code: { icon: <CodeXml className="h-4 w-4" />, tooltip: "code" },
+  };
+
+  // this is for scrolling to the bottom when these kini are available
+  const errorRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (isConnected && !isComplete && loadingRef.current) {
+      loadingRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [isConnected, isComplete]);
+
+  useEffect(() => {
+    if (isComplete && finalResult && resultRef.current) {
+      resultRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [isComplete, finalResult]);
+  // end
+
+  const [isDisabled, setIsDisabled] = useState(true);
+
+  useEffect(() => {
+    if (
+      currentChallenge &&
+      ((currentChallenge.submissionFormat.includes("text") &&
+        !formValues.text) ||
+        (currentChallenge.submissionFormat.includes("code") &&
+          files.length < 1) ||
+        (currentChallenge.submissionFormat.includes("image") &&
+          files.length < 1) ||
+        (currentChallenge.submissionFormat.includes("video") &&
+          files.length < 1) ||
+        (currentChallenge.submissionFormat.includes("audio") &&
+          files.length < 1))
+    ) {
+      setIsDisabled(true);
+    } else {
+      setIsDisabled(false);
+    }
+  }, [currentChallenge, formValues.text, files.length]);
 
   if (!currentChallenge) {
     return (
@@ -247,13 +303,30 @@ export const TasksTab = () => {
 
       {(currentChallenge.submissionFormat.includes("video") ||
         currentChallenge.submissionFormat.includes("image") ||
+        currentChallenge.submissionFormat.includes("code") ||
         currentChallenge.submissionFormat.includes("audio")) && (
         <SectionContainer>
           <div className="flex w-full items-center justify-between">
             <h2 className="text-base font-semibold">Upload</h2>
-            <span className="uppercase">
-              [{currentChallenge.submissionFormat}]
-            </span>
+
+            <div className="flex items-center gap-2">
+              {currentChallenge.submissionFormat.map((format) => {
+                if (format.toLowerCase() === "text") return null;
+
+                const iconData = submissionFormatIcons[format];
+
+                return iconData ? (
+                  <div
+                    key={format}
+                    className="flex items-center gap-1"
+                    title={iconData.tooltip}
+                  >
+                    {iconData.icon}
+                    <span className="text-xs uppercase">{format}</span>
+                  </div>
+                ) : null;
+              })}
+            </div>
           </div>
 
           <FileUpload fileLink={files} setFileLink={setFiles} />
@@ -261,13 +334,29 @@ export const TasksTab = () => {
       )}
 
       <form onSubmit={(e) => handleSubmit(e)} className="flex flex-col gap-6">
-        {(currentChallenge.submissionFormat.includes("text") ||
-          currentChallenge.submissionFormat.includes("code")) && (
+        {currentChallenge.submissionFormat.includes("text") && (
           <SectionContainer>
             <div className="flex w-full items-center justify-between">
               <h2 className="text-base font-semibold">Text</h2>
 
-              <span>[{currentChallenge.submissionFormat}]</span>
+              <div className="flex items-center gap-2">
+                {currentChallenge.submissionFormat.map((format) => {
+                  if (format.toLowerCase() !== "text") return null;
+
+                  const iconData = submissionFormatIcons[format];
+
+                  return iconData ? (
+                    <div
+                      key={format}
+                      className="flex items-center gap-1"
+                      title={iconData.tooltip}
+                    >
+                      {iconData.icon}
+                      <span className="text-xs uppercase">{format}</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
             </div>
             <Textarea
               placeholder="Code and text submission here..."
@@ -278,23 +367,52 @@ export const TasksTab = () => {
           </SectionContainer>
         )}
 
-        {/* <SectionContainer>
-          <h2 className="text-base font-semibold">Comment</h2>
-          <Textarea
-            placeholder="Additional comments..."
-            value={formValues.comments}
-            onChange={(e) => handleInputChange(e, "comments")}
-            className="border-brand-black/40 h-[100px] rounded-xl border border-solid"
-          />
-        </SectionContainer> */}
+        <SectionContainer>
+          <div>
+            <h2 className="text-base font-semibold">Memory</h2>
+            <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
+              <div className="text-base font-normal">
+                Enable this if you want the model to use stored context from
+                earlier interactions when evaluating your submission.
+              </div>
+
+              <ToggleGroup
+                value={formValues.useMemory ? "true" : "false"}
+                onValueChange={(value) => {
+                  if (value) {
+                    setFormValues((prev) => ({
+                      ...prev,
+                      useMemory: value === "true",
+                    }));
+                  }
+                }}
+                type="single"
+                className="w-full border border-solid border-black lg:w-fit"
+              >
+                <ToggleGroupItem
+                  value="true"
+                  className="w-1/2 cursor-pointer lg:w-auto lg:px-4"
+                >
+                  Yes
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="false"
+                  className="w-1/2 cursor-pointer lg:w-auto lg:px-4"
+                >
+                  No
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+          </div>
+        </SectionContainer>
+
         <div className="flex items-center justify-between gap-4">
           <Button
             size={"lg"}
-            // disabled={mutation.isPending}
-            disabled={isConnected || isSubmitting}
+            disabled={isDisabled || isConnected || isSubmitting}
             className="flex-1"
           >
-            {mutation.isPending ? "Submitting" : "Submit"}
+            {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
 
           {!isComplete && isConnected && (
@@ -315,18 +433,19 @@ export const TasksTab = () => {
 
       <div className="flex flex-col gap-4">
         {error && (
-          <div className="text-brand-red bg-brand-red/10 rounded p-4">
+          <div
+            ref={errorRef}
+            className="text-brand-red bg-brand-red/10 rounded p-4"
+          >
             {error}
           </div>
         )}
-        {/* {isConnected && (
-          <div className="text-brand-bright-green bg-brand-bright-green/10 rounded p-4">
-            Connected - Receiving data...
-          </div>
-        )} */}
 
         {isConnected && !isComplete && (
-          <div className="flex animate-pulse flex-col gap-2 border-l-4 border-gray-300 bg-gray-500/10 px-4 py-6">
+          <div
+            ref={loadingRef}
+            className="flex animate-pulse flex-col gap-2 border-l-4 border-gray-300 bg-gray-500/10 px-4 py-6"
+          >
             <div className="h-7 w-32 rounded bg-gray-300"></div>
             <div className="flex items-center gap-2">
               <div className="h-5 w-16 rounded bg-gray-300"></div>
@@ -346,6 +465,7 @@ export const TasksTab = () => {
 
         {isComplete && finalResult && (
           <div
+            ref={resultRef}
             className={`flex flex-col gap-2 border-l-4 p-4 transition-all duration-200 ${finalResult.pass ? "border-brand-bright-green bg-brand-bright-green/10" : "bg-brand-red/10 border-brand-red"}`}
           >
             <h3 className="text-lg font-bold">Final Result:</h3>

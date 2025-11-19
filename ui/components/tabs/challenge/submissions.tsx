@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowDownToLine, ChevronDown, Play } from "lucide-react";
+import { ArrowDownToLine, ChevronDown, Play, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { SectionContainer } from "./components";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSubmissions } from "@/services/queries/challenge/submissions/get";
 import { InlineLoader } from "@/components/loader";
 import { dateToNow } from "@/utils/date-to-now";
-import Image from "next/image";
 import { usePersistStore } from "@/store/persist.store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -130,7 +129,7 @@ const SubmissionsDropdown = ({
       <div
         onClick={handleToggleResourcesDropdown}
         className={cn(
-          "border-brand-black/20 flex h-20 items-center justify-between rounded-t-xl px-4 cursor-pointer",
+          "border-brand-black/20 flex h-20 cursor-pointer items-center justify-between rounded-t-xl px-4",
           isOpen && "border-b"
         )}
       >
@@ -160,7 +159,7 @@ const SubmissionsDropdown = ({
             animate={{ height: "auto" }}
             exit={{ height: 0 }}
             transition={{ duration: 0.05, ease: "linear" }}
-            className="flex flex-col gap-6 overflow-hidden rounded-xl bg-white px-4 py-6 cursor-default"
+            className="flex cursor-default flex-col gap-6 overflow-hidden rounded-xl bg-white px-4 py-6"
           >
             <div
               className={`border-brand-green bg-brand-lite-green flex transform cursor-text flex-col gap-3 border-l-4 border-solid p-4 transition-all duration-200 ease-linear`}
@@ -184,39 +183,27 @@ const SubmissionsDropdown = ({
               <div className="text-brand-black flex flex-col gap-2">
                 <h4 className="text-base font-semibold">Submitted Files</h4>
 
-                {files.length > 0 ? (
-                  <div className="bg-brand-background-dashboard flex flex-wrap gap-4 rounded-xl p-4">
-                    {files.map((file, index) => (
-                      <div
-                        key={index}
-                        className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-lg"
-                      >
-                        <FileDisplay url={file} />
-                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-                      </div>
-                    ))}{" "}
-                  </div>
-                ) : (
-                  <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-                    No submitted files.
-                  </p>
-                )}
+                <div className="bg-brand-background-dashboard flex flex-wrap gap-4 rounded-xl p-4">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-lg"
+                    >
+                      <FileDisplay url={file} />
+                      <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
             {text && (
-              <div className="text-brand-black flex flex-col gap-2 cursor-text">
+              <div className="text-brand-black flex cursor-text flex-col gap-2">
                 <h4 className="text-base font-semibold">Text Submission</h4>
 
-                {text ? (
-                  <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
-                    {text}
-                  </p>
-                ) : (
-                  <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-                    No text submission provided.
-                  </p>
-                )}
+                <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
+                  {text}
+                </p>
               </div>
             )}
 
@@ -224,15 +211,9 @@ const SubmissionsDropdown = ({
               <div className="text-brand-black flex flex-col gap-2">
                 <h4 className="text-base font-semibold">Comments</h4>
 
-                {comments ? (
-                  <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
-                    {comments}
-                  </p>
-                ) : (
-                  <p className="bg-brand-background-dashboard flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-                    No comments provided.
-                  </p>
-                )}
+                <p className="bg-brand-background-dashboard rounded-xl p-4 text-base font-normal">
+                  {comments}
+                </p>
               </div>
             )}
           </motion.div>
@@ -250,6 +231,7 @@ interface FileDisplayProps {
 function FileDisplay({ url, className }: FileDisplayProps) {
   const [fileType, setFileType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
 
   useEffect(() => {
     async function detectFileType() {
@@ -272,26 +254,51 @@ function FileDisplay({ url, className }: FileDisplayProps) {
   }
 
   if (!fileType) {
-    return <div>Unable to load file</div>;
+    return (
+      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 px-1 text-center text-sm">
+        Unable to load file
+      </div>
+    );
   }
 
   // Image files
   if (fileType.startsWith("image/")) {
     return (
       <>
-        <Image
+        <img
           src={url}
           alt="Submission"
-          width={800}
-          height={600}
+          width={200}
+          height={200}
           className={`h-full w-full object-cover`}
         />
-        <a
-          href={url}
-          className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90"></div>
-        </a>
+
+        <button
+          onClick={() => setIsOverlayOpen(true)}
+          className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/30"
+        ></button>
+
+        {isOverlayOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            onClick={() => setIsOverlayOpen(false)}
+          >
+            <button
+              onClick={() => setIsOverlayOpen(false)}
+              className="bg-brand-grey hover:bg-brand-grey/50 absolute top-4 right-4 z-10 aspect-square cursor-pointer rounded-full p-1.5 text-white hover:text-gray-300"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <img
+              src={url}
+              alt="Submission"
+              width={1920}
+              height={1080}
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
       </>
     );
   }
@@ -304,9 +311,9 @@ function FileDisplay({ url, className }: FileDisplayProps) {
           Your browser does not support video playback.
         </video>
 
-        <a
-          href={url}
-          className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
+        <button
+          onClick={() => setIsOverlayOpen(true)}
+          className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center bg-black/30"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90">
             <Play
@@ -314,7 +321,30 @@ function FileDisplay({ url, className }: FileDisplayProps) {
               fill="currentColor"
             />
           </div>
-        </a>
+        </button>
+
+        {isOverlayOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+            onClick={() => setIsOverlayOpen(false)}
+          >
+            <button
+              onClick={() => setIsOverlayOpen(false)}
+              className="bg-brand-grey hover:bg-brand-grey/50 absolute top-4 right-4 z-10 aspect-square cursor-pointer rounded-full p-1.5 text-white hover:text-gray-300"
+            >
+              <X className="h-8 w-8" />
+            </button>
+            <video
+              src={url}
+              controls
+              autoPlay
+              className="max-h-[90vh] max-w-[90vw]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Your browser does not support video playback.
+            </video>
+          </div>
+        )}
       </>
     );
   }
@@ -327,9 +357,7 @@ function FileDisplay({ url, className }: FileDisplayProps) {
         <a
           href={url}
           className="absolute inset-0 z-20 flex items-center justify-center bg-black/30"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90"></div>
-        </a>
+        ></a>
       </>
     );
   }

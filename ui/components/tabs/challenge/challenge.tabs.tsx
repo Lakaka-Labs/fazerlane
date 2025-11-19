@@ -1,6 +1,5 @@
 "use client";
 
-// import { usePersistStore } from "@/store/persist.store";
 import { motion } from "motion/react";
 import { challegeTabs } from "./components";
 import { useQueryState } from "nuqs";
@@ -11,13 +10,7 @@ export default function ChallengeTabs() {
     defaultValue: challegeTabs[0].value,
   });
 
-  // const {
-  //   // currentChallengeTab,
-  //   //  setCurrentChallengeTab
-  // } = usePersistStore((store) => store);
-
   function handleTabClick(value: string) {
-    // setCurrentChallengeTab(value);
     setTab(value);
   }
 
