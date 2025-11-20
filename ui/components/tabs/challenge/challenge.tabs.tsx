@@ -24,7 +24,7 @@ export default function ChallengeTabs() {
               <div key={cTab.value} onClick={() => handleTabClick(cTab.value)}>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  className={`transform px-3 py-2 text-base font-normal transition-all duration-200 ease-linear ${isActive ? "text-brand-text" : "text-brand-text/40"}`}
+                  className={`transform cursor-pointer px-3 py-2 text-base font-normal transition-all duration-200 ease-linear ${isActive ? "text-brand-text" : "text-brand-text/40"}`}
                 >
                   {cTab.label}
                 </motion.button>
@@ -42,9 +42,17 @@ export default function ChallengeTabs() {
       </div>
 
       <div>
+        {/* {challegeTabs.find((cTab) => cTab.value === tab)?.component && (
+          <Fragment key={tab}>
+            {createElement(
+              challegeTabs.find((cTab) => cTab.value === tab)!.component
+            )}
+          </Fragment>
+        )} */}
+
         {challegeTabs.map((cTab) => {
           if (cTab.value === tab) {
-            return <cTab.component key={cTab.value} />;
+            return <cTab.component key={`${cTab.value}-${tab}`} />;
           }
           return null;
         })}

@@ -13,18 +13,26 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { unmarkChallenge } from "@/services/mutations/challenge/unmark";
 import toast from "react-hot-toast";
-import { queryKeys } from "@/config/routes";
+import { queryKeys, queryStateParams } from "@/config/routes";
+import { useQueryState } from "nuqs";
 
 export const SubmissionsTab = () => {
   const queryClient = useQueryClient();
   const { currentChallenge } = usePersistStore((store) => store);
+  const [tab] = useQueryState(queryStateParams.tab);
 
   if (!currentChallenge?.id) {
     return <div>No challenge ID provided</div>;
   }
 
-  const { data: submissions, isLoading } = useQuery({
-    queryKey: ["get-challenge-submissions"],
+  const {
+    data: submissions,
+    isLoading,
+    isRefetching,
+    isFetching,
+    isPending: isSubmissionPending,
+  } = useQuery({
+    queryKey: ["get-challenge-submissions", tab],
     queryFn: () =>
       getSubmissions({ challenge_id: currentChallenge.id as string }),
   });
@@ -51,19 +59,28 @@ export const SubmissionsTab = () => {
     await mutateAsync({ challenge_id: currentChallenge.id });
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <SectionContainer>
-        <div className="flex flex-col gap-6">
-          {isLoading &&
-            Array.from({ length: 3 }).map((_, index) => (
+  if (isLoading || isRefetching || isFetching || isSubmissionPending) {
+    return (
+      <div className="flex flex-col gap-6">
+        <SectionContainer>
+          <div className="flex flex-col gap-6">
+            {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
                 className="h-20 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700"
               />
             ))}
+          </div>
+        </SectionContainer>
+      </div>
+    );
+  }
 
-          {submissions && submissions.length < 1 && (
+  return (
+    <div className="flex flex-col gap-6">
+      <SectionContainer>
+        <div className="flex flex-col gap-6">
+          {!isLoading && submissions && submissions.length < 1 && (
             <p className="bg-brand-background-dashboard text-brand-black flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
               No tasks submitted.
             </p>
