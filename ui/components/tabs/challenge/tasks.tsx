@@ -53,6 +53,8 @@ export const TasksTab = () => {
 
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
+  const token = usePersistStore((state) => state.session.jwt);
+
   const submitWithSSE = async (
     apiBaseUrl: string,
     challengeId: string,
@@ -75,6 +77,7 @@ export const TasksTab = () => {
         headers: {
           "Content-Type": "application/json",
           Accept: "text/event-stream",
+          Authorization: `Bearer ${token}`,
         },
         withCredentials: true,
         responseType: "stream",

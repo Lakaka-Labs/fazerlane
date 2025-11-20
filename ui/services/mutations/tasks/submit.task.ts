@@ -1,5 +1,6 @@
 // import { getCurrentToken } from "@/config/axios";
 import { API_BASE_URL } from "@/config/routes";
+import { persistStore } from "@/store/persist.store";
 import { LaneCreationResponse } from "@/types/api/lane";
 import { buildQuery } from "@/utils/api";
 import axios, { AxiosError } from "axios";
@@ -28,11 +29,14 @@ export async function submitTask(data: SubmitTaskQuery & SubmitTaskData) {
     //   throw new Error("No authentication token found");
     // }
 
-    console.log({ data });
+    const token = persistStore.getState().session.jwt;
+
+    console.log({ data, token });
 
     const res = await axios.post<LaneCreationResponse>(query, data, {
       headers: {
         // Authorization: `Bearer ${tkObj.token}`,
+        Authorization: `Bearer ${token}`,
       },
       withCredentials: true,
     });

@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@/config/routes";
+import { persistStore } from "@/store/persist.store";
 import { buildQuery } from "@/utils/api";
 import axios, { AxiosError } from "axios";
 
@@ -13,11 +14,13 @@ interface ApiResponse {
 export async function uploadFile(files: FormData) {
   try {
     const query = buildQuery(`${API_BASE_URL}/storage`);
+    const token = persistStore.getState().session.jwt;
 
     const res = await axios.post<ApiResponse>(query, files, {
-      // headers: {
-      //   "Content-Type": "multipart/form-data",
-      // },
+      headers: {
+        // "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
       withCredentials: true,
     });
 

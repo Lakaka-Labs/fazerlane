@@ -5,12 +5,16 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { API_BARE_URL, API_BASE_URL } from "./routes";
+import { persistStore } from "@/store/persist.store";
+
+const token = persistStore.getState().session.jwt;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 50000,
   headers: {
     "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
   },
   withCredentials: true,
 });
@@ -62,9 +66,14 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        const refreshToken = persistStore.getState().session.refreshToken;
         const res = await axios.get<RefreshResponse>(
           `${API_BARE_URL}/auth/token/refresh`,
+
           {
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
             withCredentials: true,
           }
         );
