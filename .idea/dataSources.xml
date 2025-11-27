@@ -19,7 +19,7 @@
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5433/fazerlane</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5431/fazerlane</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="neondb@ep-empty-sea-a4a7x566-pooler.us-east-1.aws.neon.tech" uuid="0695bf50-8122-4c0b-bf70-0d18a51618e6">
