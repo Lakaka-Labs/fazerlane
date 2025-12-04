@@ -31,8 +31,21 @@ type MarkResult = {
     feedback: string;
 }
 
+type RetryConfig = {
+    maxRetries: number;
+    baseDelayMs: number;
+    maxDelayMs: number;
+    retryableErrors?: string[];
+}
+
 const ATTEMPTS_FETCH_LIMIT = 20;
 const RECENT_CHALLENGES_LIMIT = 10;
+
+const DEFAULT_RETRY_CONFIG: RetryConfig = {
+    maxRetries: 3,
+    baseDelayMs: 3000,
+    maxDelayMs: 10000,
+};
 
 export default class MarkChallenge {
     constructor(
@@ -44,6 +57,7 @@ export default class MarkChallenge {
         private readonly attemptMemoriesRepository: MemoriesRepository,
         private readonly userRepository: UserRepository,
         private readonly appSecrets: AppSecrets,
+        private readonly retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG,
     ) {
     }
 
@@ -77,7 +91,80 @@ export default class MarkChallenge {
                 throw new BadRequestError(`invalid submission, only upload ${submissionFormat.join(", ")}`)
             }
         }
-        return  storageObjects
+        return storageObjects
+    }
+
+    private calculateBackoffDelay(attempt: number): number {
+        const exponentialDelay = this.retryConfig.baseDelayMs * Math.pow(2, attempt);
+        const jitter = Math.random() * 0.3 * exponentialDelay; // Add up to 30% jitter
+        return Math.min(exponentialDelay + jitter, this.retryConfig.maxDelayMs);
+    }
+
+    private async sleep(ms: number, signal?: AbortSignal): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(resolve, ms);
+            signal?.addEventListener('abort', () => {
+                clearTimeout(timeout);
+                reject(new DOMException());
+            });
+        });
+    }
+
+    private async* streamWithRetry(
+        promptMessage: Message[],
+        signal?: AbortSignal
+    ): AsyncGenerator<{ response: string; tokenCount: number }> {
+        let lastError: Error | null = null;
+
+        for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
+            try {
+                if (attempt > 0) {
+                    const delay = this.calculateBackoffDelay(attempt - 1);
+                    console.log(`Retry attempt ${attempt}/${this.retryConfig.maxRetries} after ${delay}ms delay`);
+                    await this.sleep(delay, signal);
+                }
+
+                const streamResult = this.llmRepository.getTextStream(
+                    [{role: "user", messages: promptMessage}],
+                    signal
+                );
+
+                for await (const chunk of streamResult) {
+                    yield chunk;
+                }
+
+                // Stream completed successfully
+                return;
+
+            } catch (error) {
+                lastError = error instanceof Error ? error : new Error(String(error));
+
+                // Don't retry on abort
+                if (lastError.name === 'AbortError') {
+                    throw lastError;
+                }
+
+                // Check if error is retryable
+                // if (!this.isRetryableError(error)) {
+                //     console.error('Non-retryable error encountered:', lastError.message);
+                //     throw lastError;
+                // }
+
+                console.warn(
+                    `Stream error on attempt ${attempt + 1}/${this.retryConfig.maxRetries + 1}:`,
+                    lastError.message
+                );
+
+                // If this was the last attempt, throw the error
+                if (attempt === this.retryConfig.maxRetries) {
+                    console.error(`All ${this.retryConfig.maxRetries + 1} attempts failed`);
+                    throw lastError;
+                }
+            }
+        }
+
+        // This should never be reached, but just in case
+        throw lastError ?? new Error('Stream failed after all retries');
     }
 
     private async* streamMark(
@@ -123,14 +210,11 @@ export default class MarkChallenge {
                 this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
             }
 
-            // Start streaming
-            const streamResult = this.llmRepository.getTextStream([{role: "user", messages: promptMessage}], signal);
-
             let fullResponse = '';
             let lastTokenCount = 0;
 
-            // Stream chunks to client
-            for await (const chunk of streamResult) {
+            // Stream chunks to client with retry logic
+            for await (const chunk of this.streamWithRetry(promptMessage, signal)) {
                 const text = chunk.response;
                 fullResponse += text;
                 lastTokenCount = chunk.tokenCount;
@@ -185,7 +269,7 @@ export default class MarkChallenge {
                     error: error instanceof Error ? error.message : 'Unknown error',
                     challengeId: id
                 });
-                throw error; // Re-throw to let caller handle if needed
+                throw error;
             }
         }
     }
