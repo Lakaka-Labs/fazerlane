@@ -1,5 +1,5 @@
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
-import {InvalidAssessmentsError,} from "../../../../packages/errors";
+import {BadRequestError, InvalidAssessmentsError,} from "../../../../packages/errors";
 import type LLMRepository from "../../../domain/llm/repository.ts";
 import type {Message} from "../../../domain/llm";
 import {submissionPrompt} from "../../../../packages/prompts/submission.ts";
@@ -14,6 +14,7 @@ import {formatHumanReadableTimestamp} from "../../../../packages/utils/time.ts";
 import type UserRepository from "../../../domain/user/repository.ts";
 import Gemini from "../../../adapters/llm";
 import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
+import {isValidSubmissionType} from "../../../../packages/utils/mime.ts";
 
 export type MarkChallengeParameters = {
     id: string;
@@ -70,12 +71,13 @@ export default class MarkChallenge {
     }
 
     private async getStorageObjects(files: string[], submissionFormat: SubmissionFormat[]): Promise<StorageObject[]> {
-        // for (const storageObject of storageObjects) {
-        //     if (!isValidSubmissionType(storageObject.mimeType, submissionFormat)) {
-        //         throw new BadRequestError(`invalid submission, only upload ${submissionFormat.join(", ")}`)
-        //     }
-        // }
-        return await this.objectRepository.get(files)
+        let storageObjects = await this.objectRepository.get(files)
+        for (const storageObject of storageObjects) {
+            if (!isValidSubmissionType(storageObject.mimeType, submissionFormat)) {
+                throw new BadRequestError(`invalid submission, only upload ${submissionFormat.join(", ")}`)
+            }
+        }
+        return  storageObjects
     }
 
     private async* streamMark(

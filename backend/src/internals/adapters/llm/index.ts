@@ -1,6 +1,6 @@
 import type LLMRepository from "../../domain/llm/repository.ts";
 import type {Message, MessagesWithRole, ModelResponse} from "../../domain/llm";
-import {type Content, createPartFromUri, type GoogleGenAI, type Part} from "@google/genai";
+import {type Content, createPartFromUri, type GoogleGenAI, type Part, ApiError as GenAiError} from "@google/genai";
 import type AppSecrets from "../../../packages/secret";
 import {ApiError} from "../../../packages/errors";
 
@@ -67,7 +67,7 @@ export default class Gemini implements LLMRepository {
         //     cachedContentTokenCount: response.usageMetadata?.cachedContentTokenCount
         // })
         const outputTokens = (response.usageMetadata?.totalTokenCount || 0) -
-            (response.usageMetadata?.promptTokenCount  || 0)
+            (response.usageMetadata?.promptTokenCount || 0)
 
         return {response: response.text, tokenCount: outputTokens}
     }
@@ -76,33 +76,38 @@ export default class Gemini implements LLMRepository {
         messages: MessagesWithRole[],
         signal?: AbortSignal
     ): AsyncGenerator<ModelResponse> {
-        const contents: Content[] = messages.map(({role, messages}) => {
-            return {role, parts: this.getPartsFromMessage(messages)}
-        });
+        try {
+            const contents: Content[] = messages.map(({role, messages}) => {
+                return {role, parts: this.getPartsFromMessage(messages)}
+            });
 
-        const response = await this.ai.models.generateContentStream({
-            model: this.appSecrets.geminiConfiguration.model,
-            config: {
-                abortSignal: signal,
-                thinkingConfig: {
-                    thinkingBudget: -1,
+            const response = await this.ai.models.generateContentStream({
+                model: this.appSecrets.geminiConfiguration.model,
+                config: {
+                    abortSignal: signal,
+                    thinkingConfig: {
+                        thinkingBudget: -1,
+                    }
+                },
+                contents: contents,
+            });
+
+            for await (const chunk of response) {
+                // Check if aborted before yielding
+                if (signal?.aborted) {
+                    break;
                 }
-            },
-            contents: contents,
-        });
+                const outputTokens = (chunk.usageMetadata?.totalTokenCount || 0) -
+                    (chunk.usageMetadata?.promptTokenCount || 0)
 
-        for await (const chunk of response) {
-            // Check if aborted before yielding
-            if (signal?.aborted) {
-                break;
+                yield {
+                    response: chunk.text || "",
+                    tokenCount: outputTokens
+                }
             }
-            const outputTokens = (chunk.usageMetadata?.totalTokenCount || 0) -
-                (chunk.usageMetadata?.promptTokenCount  || 0)
-
-            yield {
-                response: chunk.text || "",
-                tokenCount: outputTokens
-            }
+        } catch (e) {
+            console.log(e)
+            throw new Error("model overload, try again")
         }
     }
 

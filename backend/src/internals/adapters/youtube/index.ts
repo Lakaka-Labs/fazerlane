@@ -1,7 +1,7 @@
 import type {Video} from "../../domain/youtube";
 import type YoutubeRepository from "../../domain/youtube/repository.ts";
 import {BadRequestError} from "../../../packages/errors";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 
 export default class Youtube implements YoutubeRepository {
     apiKey: string
@@ -13,28 +13,36 @@ export default class Youtube implements YoutubeRepository {
     }
 
     getDetails = async (url: string): Promise<Video> => {
-        const id = this.extractVideoId(url);
+        try {
 
-        const {data} = await axios.get(this.baseUrl, {
-            params: {
-                key: this.apiKey,
-                part: 'snippet,contentDetails,statistics,status',
-                id,
-            },
-        });
+            const id = this.extractVideoId(url);
 
-        if (!data.items?.length) throw new Error('Video not found');
+            const {data} = await axios.get(this.baseUrl, {
+                params: {
+                    key: this.apiKey,
+                    part: 'snippet,contentDetails,statistics,status',
+                    id,
+                },
+            });
 
-        const v = data.items[0];
-        const s = v.snippet;
-        const c = v.contentDetails;
+            if (!data.items?.length) throw new Error('Video not found');
 
-        return {
-            id: v.id,
-            title: s.title,
-            duration: this.iso8601ToSeconds(c.duration),
-            thumbnail: s.thumbnails?.maxres?.url || s.thumbnails?.standard?.url || s.thumbnails?.high?.url ||s.thumbnails?.medium?.url || s.thumbnails?.default?.url || ""
-        };
+            const v = data.items[0];
+            const s = v.snippet;
+            const c = v.contentDetails;
+
+            return {
+                id: v.id,
+                title: s.title,
+                duration: this.iso8601ToSeconds(c.duration),
+                thumbnail: s.thumbnails?.maxres?.url || s.thumbnails?.standard?.url || s.thumbnails?.high?.url ||s.thumbnails?.medium?.url || s.thumbnails?.default?.url || ""
+            };
+        } catch (e) {
+            if (e instanceof AxiosError) {
+                console.log({error: e?.response?.data,errors: e?.response?.data?.err})
+            }
+            throw e
+        }
     };
 
     extractVideoId = (url: string): string => {

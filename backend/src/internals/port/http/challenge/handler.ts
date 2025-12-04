@@ -139,26 +139,26 @@ export default class ChallengeHandler extends ChallengeSchema {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
-        res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+        res.setHeader('X-Accel-Buffering', 'no');
 
-        // Create abort controller for this request
+        // Force headers to be sent immediately
+        res.flushHeaders();
+
         const abortController = new AbortController();
 
-        // Handle client disconnect
         req.on('close', () => {
             abortController.abort();
         });
+
         try {
             const {generator, challengeId} =
                 await this.challengeService.commands.markChallenge.handle(parameters)
 
-            // Send initial metadata
             res.write(`data: ${JSON.stringify({
                 type: 'started',
                 challengeId,
             })}\n\n`);
 
-            // Stream the response
             for await (const chunk of generator) {
                 if (abortController.signal.aborted) {
                     break;
@@ -166,19 +166,22 @@ export default class ChallengeHandler extends ChallengeSchema {
                 res.write(`data: ${chunk}\n\n`);
             }
 
-            // End the stream
             res.end();
 
         } catch (error) {
             console.error('SSE streaming error:', error);
 
-            // Send error event
-            res.write(`data: ${JSON.stringify({
-                type: 'error',
-                error: error instanceof Error ? error.message : 'Unknown error'
-            })}\n\n`);
+            // Check if we can still write to the response
+            if (!res.writableEnded && !res.destroyed) {
+                res.write(`data: ${JSON.stringify({
+                    type: 'error',
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                })}\n\n`);
+            }
 
-            res.end();
+            if (!res.writableEnded) {
+                res.end();
+            }
         }
     }
 }

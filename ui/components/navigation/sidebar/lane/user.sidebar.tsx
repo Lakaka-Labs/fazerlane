@@ -159,17 +159,17 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
 
       {/* Mobile Sidebar */}
       <div className="lg:hidden">
-        {/* Menu Button */}
-        <div className="fixed top-[52px] left-0 z-30 p-4">
+        {/* Menu Button - Bottom Left */}
+        <div className="fixed bottom-4 left-4 z-40">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => setOpenChallengeSB((o) => !o)}
-                className={`${
-                  openChallengeSB
-                    ? "bg-brand-white text-brand-black shadow-lg"
-                    : "bg-brand-black text-brand-white"
-                } rounded-full p-2.5 backdrop-blur-sm transition-all duration-100 hover:scale-105`}
+                  onClick={() => setOpenChallengeSB((o) => !o)}
+                  className={`${
+                      openChallengeSB
+                          ? "bg-brand-white text-brand-black shadow-lg"
+                          : "bg-brand-black text-brand-white"
+                  } cursor-pointer rounded-full p-2.5 backdrop-blur-sm transition-all duration-100 hover:scale-105`}
               >
                 {openChallengeSB ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -182,87 +182,88 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
 
         {/* Backdrop Overlay */}
         {openChallengeSB && (
-          <div
-            className="fixed inset-0 top-0 z-20 bg-black/50 backdrop-blur-sm"
-            onClick={() => setOpenChallengeSB(false)}
-          />
+            <div
+                className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm"
+                onClick={() => setOpenChallengeSB(false)}
+            />
         )}
 
-        {/* Sidebar Panel */}
+        {/* Sidebar Panel - Opens from bottom to top */}
         <motion.div
-          initial={{ height: 0, opacity: 1 }}
-          animate={
-            openChallengeSB
-              ? { height: "calc(100dvh - 164px)", opacity: 1 }
-              : { height: 0, opacity: 1 }
-          }
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={`fixed top-[122px] left-1/2 z-30 flex w-[90%] max-w-md -translate-x-1/2 flex-col overflow-hidden rounded-2xl bg-white pb-4 shadow-2xl sm:left-2.5 sm:max-w-sm sm:translate-0 ${
-            openChallengeSB ? "flex" : "hidden"
-          }`}
+            initial={{ height: 0, opacity: 1 }}
+            animate={
+              openChallengeSB
+                  ? { height: "calc(100dvh - 156px)", opacity: 1 }
+                  : { height: 0, opacity: 1 }
+            }
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className={`fixed bottom-20 left-4 z-30 flex w-[90%] max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:max-w-sm pb-4 ${
+                openChallengeSB ? "flex" : "hidden"
+            }`}
+            style={{ originY: 1 }}
         >
           {/* Header */}
           {laneData && (
-            <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
-              <h1 className="flex items-center gap-3 text-base font-extrabold">
-                <div className="bg-brand-red flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
-                  <Image
-                    src={"/icons/yt-white.png"}
-                    alt={"youtube icon"}
-                    height={20}
-                    width={20}
-                    className="text-primary"
-                  />
-                </div>
-                <span className="line-clamp-2">
+              <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
+                <h1 className="flex items-center gap-3 text-base font-extrabold">
+                  <div className="bg-brand-red flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                    <Image
+                        src={"/icons/yt-white.png"}
+                        alt={"youtube icon"}
+                        height={20}
+                        width={20}
+                        className="text-primary"
+                    />
+                  </div>
+                  <span className="line-clamp-2">
                   {laneData.youtubeDetails.title}
                 </span>
-              </h1>
-            </div>
+                </h1>
+              </div>
           )}
 
           {/* Loading State */}
           {loadingLaneData && (
-            <div className="flex w-full justify-center py-8">
-              <InlineLoader fill />
-            </div>
+              <div className="flex w-full justify-center py-8">
+                <InlineLoader fill />
+              </div>
           )}
 
           {/* Challenges List */}
           <ul className="divide-brand-divider flex-1 divide-y overflow-y-auto">
             {!loadingLaneData &&
-              challenges.map((challenge) => (
-                <li
-                  key={challenge.id}
-                  ref={(el) => {
-                    challengeRefs.current[challenge.id] = el;
-                  }}
-                  onClick={() => {
-                    handleChallengeClick(challenge);
-                    setTab(challegeTabs[0].value);
-                    setOpenChallengeSB(false);
-                  }}
-                  className={`relative cursor-pointer transition-all duration-200 ${
-                    challengeID === challenge.position
-                      ? "border-b-0 border-l-4 border-[#444440] bg-[#4444401A]"
-                      : "hover:bg-[#4444401A]"
-                  }`}
-                >
-                  <div className="flex flex-col gap-2 px-4 py-4 pr-12 sm:px-6">
-                    <h3 className="text-sm leading-snug font-semibold sm:text-base">
-                      {challenge.title}
-                    </h3>
-                    <p className="text-xs leading-relaxed font-normal text-gray-600">
-                      {challenge.objective}
-                    </p>
-                  </div>
-                  {challenge.isCompleted && (
-                    <div className="bg-brand-bright-green absolute top-4 right-4 rounded-full p-0.5">
-                      <CircleCheck size={16} color="white" strokeWidth={2.5} />
-                    </div>
-                  )}
-                </li>
-              ))}
+                challenges.map((challenge) => (
+                    <li
+                        key={challenge.id}
+                        ref={(el) => {
+                          challengeRefs.current[challenge.id] = el;
+                        }}
+                        onClick={() => {
+                          handleChallengeClick(challenge);
+                          setTab(challegeTabs[0].value);
+                          setOpenChallengeSB(false);
+                        }}
+                        className={`relative cursor-pointer transition-all duration-200 ${
+                            challengeID === challenge.position
+                                ? "border-b-0 border-l-4 border-[#444440] bg-[#4444401A]"
+                                : "hover:bg-[#4444401A]"
+                        }`}
+                    >
+                      <div className="flex flex-col gap-2 px-4 py-4 pr-12 sm:px-6">
+                        <h3 className="text-sm leading-snug font-semibold sm:text-base">
+                          {challenge.title}
+                        </h3>
+                        <p className="text-xs leading-relaxed font-normal text-gray-600">
+                          {challenge.objective}
+                        </p>
+                      </div>
+                      {challenge.isCompleted && (
+                          <div className="bg-brand-bright-green absolute top-4 right-4 rounded-full p-0.5">
+                            <CircleCheck size={16} color="white" strokeWidth={2.5} />
+                          </div>
+                      )}
+                    </li>
+                ))}
           </ul>
         </motion.div>
       </div>

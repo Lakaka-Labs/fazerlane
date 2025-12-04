@@ -67,6 +67,7 @@
   --color-brand-green: #2e7d32;
   --color-brand-bright-green: #4bed30;
   --color-brand-lite-green: #e8f5e9;
+  --animate-shimmer: shimmer 2s infinite;
 }
 
 @theme inline {
@@ -211,4 +212,10 @@
 .animate-gradient {
   animation: gradientMove 3s ease infinite;
   background-size: 200% 200%;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
