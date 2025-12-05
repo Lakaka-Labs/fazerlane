@@ -80,7 +80,20 @@ export default class Gemini implements LLMRepository {
             const contents: Content[] = messages.map(({role, messages}) => {
                 return {role, parts: this.getPartsFromMessage(messages)}
             });
-
+            for (const content of contents) {
+                content.parts?.forEach((c) => {
+                    if (c.fileData) {
+                        console.log({part: c.fileData})
+                    }
+                })
+            }
+            for (const message of messages) {
+                message.messages?.forEach((c) => {
+                    if (c.uploadedData) {
+                        console.log({upload: c.uploadedData})
+                    }
+                })
+            }
             const response = await this.ai.models.generateContentStream({
                 model: this.appSecrets.geminiConfiguration.model,
                 config: {

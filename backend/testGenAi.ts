@@ -18,6 +18,7 @@ const question = (query: string): Promise<string> => new Promise((resolve) => rl
     const uri = await question('Enter URI: ');
     const mimeType = await question('Enter MIME type: ');
 
+    // Regular getText call
     let response = await llmRepo.getText([{
         uploadedData: {
             uri: uri.trim(),
@@ -26,5 +27,24 @@ const question = (query: string): Promise<string> => new Promise((resolve) => rl
     }])
     let fileStatus = await llmRepo.getFile(uri)
     console.log({response: response.response, fileStatus})
+
+    // Stream response
+    console.log('\n--- Streaming Response ---');
+    const streamResponse = llmRepo.getTextStream([{
+        role: "user",
+        messages: [{
+            uploadedData: {
+                uri: uri.trim(),
+                mimeType: mimeType.trim()
+            }
+        }]
+    }])
+
+    for await (const chunk of streamResponse) {
+        process.stdout.write(chunk.response || '');
+    }
+
+    console.log('\n--- Stream Complete ---');
+
     rl.close();
 })();
