@@ -2,7 +2,7 @@ import type LLMRepository from "../../domain/llm/repository.ts";
 import type {Message, MessagesWithRole, ModelResponse} from "../../domain/llm";
 import {type Content, createPartFromUri, type GoogleGenAI, type Part, ApiError as GenAiError} from "@google/genai";
 import type AppSecrets from "../../../packages/secret";
-import {ApiError} from "../../../packages/errors";
+import {AIRateLimitError, ApiError, BadRequestError} from "../../../packages/errors";
 
 export default class Gemini implements LLMRepository {
     ai: GoogleGenAI
@@ -45,57 +45,48 @@ export default class Gemini implements LLMRepository {
         throw new Error(`Failed after ${maxRetries} attempts: ${lastError?.message}`);
     }
 
-    getText = async (messages: Message[]): Promise<ModelResponse> => {
-        const chat = this.ai.chats.create({
-            model: this.appSecrets.geminiConfiguration.model,
-            config: {
-                thinkingConfig: {
-                    thinkingBudget: -1,
+    getText = async (messages: Message[], useFastModel: boolean = false,): Promise<ModelResponse> => {
+        try {
+            const chat = this.ai.chats.create({
+                model: useFastModel ? this.appSecrets.geminiConfiguration.fastModel : this.appSecrets.geminiConfiguration.model,
+                config: {
+                    thinkingConfig: {
+                        thinkingBudget: -1,
+                    }
                 }
-            }
-        });
-        const parts: Part[] = this.getPartsFromMessage(messages)
-        const response = await chat.sendMessage({
-            message: parts
-        });
-        if (!response.text) throw new ApiError("could not generate response")
-        // console.log({
-        //     promptTokenCount: response.usageMetadata?.promptTokenCount,
-        //     thoughtsTokenCount: response.usageMetadata?.thoughtsTokenCount,
-        //     candidatesTokenCount: response.usageMetadata?.candidatesTokenCount,
-        //     totalTokenCount: response.usageMetadata?.totalTokenCount,
-        //     cachedContentTokenCount: response.usageMetadata?.cachedContentTokenCount
-        // })
-        const outputTokens = (response.usageMetadata?.totalTokenCount || 0) -
-            (response.usageMetadata?.promptTokenCount || 0)
+            });
+            const parts: Part[] = this.getPartsFromMessage(messages)
+            const response = await chat.sendMessage({
+                message: parts
+            });
+            if (!response.text) throw new ApiError("could not generate response")
+            const outputTokens = (response.usageMetadata?.totalTokenCount || 0) -
+                (response.usageMetadata?.promptTokenCount || 0)
 
-        return {response: response.text, tokenCount: outputTokens}
+            return {response: response.text, tokenCount: outputTokens}
+        } catch (e: any) {
+            console.log(e)
+            if (e.status === 429) {
+                throw new AIRateLimitError("You've exceeded your rate limit")
+            } else if (e.status === 403) {
+                throw new BadRequestError("You do not have required permissions")
+            }
+            throw new Error("model overload, try again")
+        }
+
     }
 
     async* getTextStream(
         messages: MessagesWithRole[],
+        useFastModel: boolean = false,
         signal?: AbortSignal
     ): AsyncGenerator<ModelResponse> {
         try {
             const contents: Content[] = messages.map(({role, messages}) => {
                 return {role, parts: this.getPartsFromMessage(messages)}
             });
-            for (const content of contents) {
-                content.parts?.forEach((c) => {
-                    if (c.fileData) {
-                        console.log({part: c.fileData})
-                    }
-                })
-            }
-            for (const message of messages) {
-                message.messages?.forEach((c) => {
-                    if (c.uploadedData) {
-                        console.log({upload: c.uploadedData})
-                    }
-                })
-            }
             const response = await this.ai.models.generateContentStream({
-                model: this.appSecrets.geminiConfiguration.model,
+                model: useFastModel ? this.appSecrets.geminiConfiguration.fastModel : this.appSecrets.geminiConfiguration.model,
                 config: {
                     abortSignal: signal,
                     thinkingConfig: {
@@ -118,8 +109,13 @@ export default class Gemini implements LLMRepository {
                     tokenCount: outputTokens
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             console.log(e)
+            if (e.status === 429) {
+                throw new AIRateLimitError("You've exceeded your rate limit")
+            } else if (e.status === 403) {
+                throw new BadRequestError("You do not have required permissions")
+            }
             throw new Error("model overload, try again")
         }
     }
@@ -156,14 +152,12 @@ export default class Gemini implements LLMRepository {
     };
 
     getFile = async (name: string): Promise<{ state: string; }> => {
-        console.log({name})
         const file = await this.ai.files.get({
             name: name,
         });
         if (!file.state) {
             throw new Error("failed to analyse content")
         }
-        console.log({file})
         return {state: file.state}
     };
 

@@ -1,7 +1,7 @@
 import AppSecrets from "../../../../packages/secret";
 import type LaneRepository from "../../../domain/lane/repository.ts";
 import type ResourceRepository from "../../../domain/resource/repository.ts";
-import {InvalidChallengesError} from "../../../../packages/errors";
+import {AIRateLimitError, InvalidChallengesError} from "../../../../packages/errors";
 import type {Message} from "../../../domain/llm";
 import type ProgressRepository from "../../../domain/progress/repository.ts";
 import type {ProgressWebsocketRepository} from "../../../domain/websocket/repository.ts";
@@ -45,7 +45,10 @@ export default class GenerateChallenge {
             let splits = lane.youtubeDetails?.duration ? this.splitDuration(lane.youtubeDetails?.duration) : []
             for await (const split of splits
                 ) {
-                const {inputToken, outputToken} = await this.withRetry(() => this.generate(split, lane, user));
+                const {
+                    inputToken,
+                    outputToken
+                } = await this.withRetry((useFastModel: boolean) => this.generate(split, lane, user, useFastModel));
                 totalOutput += outputToken
                 totalInput += inputToken
             }
@@ -73,22 +76,20 @@ export default class GenerateChallenge {
         }
     }
 
-    async withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, baseDelay: number = 61000): Promise<T> {
-        let lastError
-            :
-            Error;
+    async withRetry<T>(fn: (useFastModel: boolean) => Promise<T>, maxAttempts: number = 3, baseDelay: number = 61000): Promise<T> {
+        let lastError: Error;
+        let useFastModel = false
 
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             try {
-                return await fn();
+                return await fn(useFastModel);
             } catch (e) {
                 lastError = e instanceof Error ? e : new Error(String(e));
                 const isLastAttempt = attempt === maxAttempts - 1;
 
-                console.log(
-                    `Attempt ${attempt + 1}/${maxAttempts} failed:`,
-                    lastError.message
-                );
+                if (lastError instanceof AIRateLimitError) {
+                    useFastModel = true
+                }
 
                 if (isLastAttempt) throw lastError;
 
@@ -102,7 +103,7 @@ export default class GenerateChallenge {
         throw lastError!;
     }
 
-    private generate = async (split: Split, lane: Lane, user: User): Promise<{
+    private generate = async (split: Split, lane: Lane, user: User, useFastModel: boolean): Promise<{
         inputToken: number,
         outputToken: number
     }> => {
@@ -123,7 +124,7 @@ export default class GenerateChallenge {
         if (user.apiKey) {
             this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
         }
-        const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages);
+        const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages, useFastModel);
         const challenges = this.extractChallenges(llmResult);
         const embeddings = await this.llmRepository.generateEmbedding(challenges.map((c) => {
             return convertChallengeToString(c)

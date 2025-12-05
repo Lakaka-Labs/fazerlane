@@ -37,6 +37,13 @@ export class ForbiddenError extends ApiError {
     }
 }
 
+export class AIRateLimitError extends ApiError {
+    constructor(message: string) {
+        super(message);
+        this.statusCode = StatusCodes.FORBIDDEN;
+    }
+}
+
 export class DuplicateError extends Error {
     constructor(message: string) {
         super(message);

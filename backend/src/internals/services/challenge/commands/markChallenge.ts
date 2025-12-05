@@ -1,5 +1,5 @@
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
-import {BadRequestError, InvalidAssessmentsError,} from "../../../../packages/errors";
+import {AIRateLimitError, BadRequestError, InvalidAssessmentsError,} from "../../../../packages/errors";
 import type LLMRepository from "../../../domain/llm/repository.ts";
 import type {Message} from "../../../domain/llm";
 import {submissionPrompt} from "../../../../packages/prompts/submission.ts";
@@ -43,7 +43,7 @@ const RECENT_CHALLENGES_LIMIT = 10;
 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
     maxRetries: 3,
-    baseDelayMs: 3000,
+    baseDelayMs: 1000,
     maxDelayMs: 10000,
 };
 
@@ -115,17 +115,18 @@ export default class MarkChallenge {
         signal?: AbortSignal
     ): AsyncGenerator<{ response: string; tokenCount: number }> {
         let lastError: Error | null = null;
+        let useFastModel = false
 
         for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
             try {
                 if (attempt > 0) {
                     const delay = this.calculateBackoffDelay(attempt - 1);
-                    console.log(`Retry attempt ${attempt}/${this.retryConfig.maxRetries} after ${delay}ms delay`);
                     await this.sleep(delay, signal);
                 }
 
                 const streamResult = this.llmRepository.getTextStream(
                     [{role: "user", messages: promptMessage}],
+                    useFastModel,
                     signal
                 );
 
@@ -142,6 +143,10 @@ export default class MarkChallenge {
                 // Don't retry on abort
                 if (lastError.name === 'AbortError') {
                     throw lastError;
+                }
+
+                if (lastError instanceof AIRateLimitError) {
+                    useFastModel = true
                 }
 
                 // Check if error is retryable
@@ -205,9 +210,7 @@ export default class MarkChallenge {
 
             // Get input token count
             const inputCount = await this.llmRepository.getTokens(promptMessage);
-            console.log({inputCount});
             if (user.apiKey) {
-                console.log("using user api key")
                 this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
             }
 
@@ -226,9 +229,7 @@ export default class MarkChallenge {
                     challengeId: id
                 });
             }
-
-            console.log({outputToken: lastTokenCount});
-
+            
             // Extract assessment from complete response
             const {pass, feedback} = this.extractAssessment(fullResponse);
 

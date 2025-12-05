@@ -167,6 +167,7 @@ jobs:
                       -e GOOGLE_CLIENT_CALLBACK_URL="${{ secrets.GOOGLE_CLIENT_CALLBACK_URL }}" \
                       -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
                       -e GEMINI_MODEL="${{ secrets.GEMINI_MODEL }}" \
+                      -e GEMINI_FAST_MODEL="${{ secrets.GEMINI_FAST_MODEL }}" \
                       -e MAX_VIDEO_LENGTH="${{ secrets.MAX_VIDEO_LENGTH }}" \
                       -e MAX_YOUTUBE_LENGTH="${{ secrets.MAX_YOUTUBE_LENGTH }}" \
                       -e BASE_YOUTUBE_API_URL="${{ secrets.BASE_YOUTUBE_API_URL }}" \

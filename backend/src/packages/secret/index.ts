@@ -23,6 +23,7 @@ export type GoogleOAuthCredentials = {
 export type GeminiConfiguration = {
     apiKey: string
     model: string
+    fastModel: string
 }
 
 export type SMTPCredentials = {
@@ -134,6 +135,7 @@ export default class AppSecrets {
         this.geminiConfiguration = {
             apiKey: this.getEnvironmentVariable("GEMINI_API_KEY"),
             model: this.getEnvironmentVariableOrFallback("GEMINI_MODEL", "gemini-2.5-flash"),
+            fastModel: this.getEnvironmentVariableOrFallback("GEMINI_FAST_MODEL", "gemini-2.5-flash"),
         }
 
         // this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
