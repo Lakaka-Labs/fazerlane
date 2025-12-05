@@ -143,12 +143,14 @@ export default class Gemini implements LLMRepository {
     };
 
     getFile = async (name: string): Promise<{ state: string; }> => {
+        console.log({name})
         const file = await this.ai.files.get({
             name: name,
         });
         if (!file.state) {
             throw new Error("failed to analyse content")
         }
+        console.log({file})
         return {state: file.state}
     };
 
