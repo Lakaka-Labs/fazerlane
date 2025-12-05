@@ -207,6 +207,7 @@ export default class MarkChallenge {
             const inputCount = await this.llmRepository.getTokens(promptMessage);
             console.log({inputCount});
             if (user.apiKey) {
+                console.log("using user api key")
                 this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
             }
 

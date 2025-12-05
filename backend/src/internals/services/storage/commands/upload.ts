@@ -2,13 +2,17 @@ import type {StorageRepository} from "../../../domain/storage/repository.ts";
 import type LLMRepository from "../../../domain/llm/repository.ts";
 import type {ObjectRepository} from "../../../domain/objects/repository.ts";
 import type {FileParameter, StorageObject} from "../../../domain/objects";
+import type Repository from "../../../domain/user/repository.ts";
+import Gemini from "../../../adapters/llm";
+import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
+import type AppSecrets from "../../../../packages/secret";
 
 export default class AddLane {
     storageRepository: StorageRepository
     llmRepository: LLMRepository
     objectRepository: ObjectRepository
 
-    constructor(storageRepository: StorageRepository, llmRepository: LLMRepository, objectRepository: ObjectRepository) {
+    constructor(storageRepository: StorageRepository, llmRepository: LLMRepository, objectRepository: ObjectRepository, private readonly userRepository: Repository, private readonly appSecrets: AppSecrets) {
         this.storageRepository = storageRepository
         this.llmRepository = llmRepository
         this.objectRepository = objectRepository
@@ -16,8 +20,13 @@ export default class AddLane {
 
     async handle(files: FileParameter[], userId: string): Promise<string[]> {
         let storageObjects: Omit<StorageObject, 'id' | 'createdAt' | 'lastAccessed'>[] = []
+        let user = await this.userRepository.get({id: userId})
 
         for (const file of files) {
+            if (user.apiKey) {
+                console.log("using user api key")
+                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
+            }
             const {uri: llmUrl} = await this.llmRepository.upload(file.path, file.mimeType);
             const isActive = await this.waitForFileActive(llmUrl);
             if (!isActive) {
