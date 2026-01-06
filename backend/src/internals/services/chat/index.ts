@@ -12,13 +12,11 @@ export class Commands {
     constructor(
         chatRepository: ChatRepository,
         llmRepository: LLMRepository,
-        chatMemoriesRepository: MemoriesRepository,
         challengeRepository: ChallengeRepository
     ) {
         this.chat = new Chat(
             chatRepository,
             llmRepository,
-            chatMemoriesRepository,
             challengeRepository,
         )
     }
@@ -44,13 +42,11 @@ export default class ChatService {
     constructor(
         chatRepository: ChatRepository,
         llmRepository: LLMRepository,
-        chatMemoriesRepository: MemoriesRepository,
         challengeRepository: ChallengeRepository
     ) {
         this.commands = new Commands(
             chatRepository,
             llmRepository,
-            chatMemoriesRepository,
             challengeRepository
         )
         this.queries = new Queries(chatRepository)

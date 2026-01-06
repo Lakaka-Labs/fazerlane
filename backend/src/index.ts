@@ -5,12 +5,9 @@ import {
   bunPostgresClientConnection,
   ioRedisClient,
   googleGeminiClient,
-  mem0ChatMemory,
   s3Client,
-  mem0AttemptMemory,
 } from "./packages/utils/connections.ts";
 import Services from "./internals/services";
-// import type {ModelResponse} from "./internals/domain/llm";
 
 class FazerlaneBackend {
   adapters: Adapters;
@@ -26,8 +23,6 @@ class FazerlaneBackend {
     const geminiClient = googleGeminiClient(
       appSecrets.geminiConfiguration.apiKey
     );
-    const mem0ChatClient = mem0ChatMemory(appSecrets.openaiAPIKey,appSecrets.qdrantCredentials);
-    const mem0AttemptClient = mem0AttemptMemory(appSecrets.openaiAPIKey,appSecrets.qdrantCredentials);
     const storageClient = s3Client(appSecrets.storageCredentials);
 
     this.adapters = new Adapters({
@@ -35,8 +30,6 @@ class FazerlaneBackend {
       postgresClient,
       redisClient,
       geminiClient,
-      mem0ChatClient,
-      mem0AttemptClient,
       storageClient,
     });
 

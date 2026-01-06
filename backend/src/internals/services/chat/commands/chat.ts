@@ -10,7 +10,6 @@ export default class Chat {
     constructor(
         private readonly chatRepository: ChatRepository,
         private readonly llmRepository: LLMRepository,
-        private readonly chatMemoriesRepository: MemoriesRepository,
         private readonly challengeRepository: ChallengeRepository
     ) {
     }
@@ -36,14 +35,13 @@ export default class Chat {
 
         try {
             // Parallel operations: add user message and fetch context data
-            const [userMessageId, relevantChallenges, memories, history] = await Promise.all([
+            const [userMessageId, relevantChallenges, history] = await Promise.all([
                 this.chatRepository.AddMessage({
                     conversationId,
                     content,
                     role: 'user'
                 }),
                 this.challengeRepository.get(laneId),
-                this.chatMemoriesRepository.search(content, userId),
                 this.chatRepository.GetConversationHistory({
                     conversationId,
                     limit: 50
@@ -58,7 +56,6 @@ export default class Chat {
                 ? relevantChallenges.map(challenge => JSON.stringify(challenge)).join('\n\n')
                 : '';
 
-            const memoryContext = memories.length > 0 ? memories.join('\n') : '';
 
             // Build conversation history context (excluding the newest message)
             const historyContext = history.length > 0
@@ -66,7 +63,7 @@ export default class Chat {
                 : '';
 
             // Build system prompt with all context including history
-            const systemPrompt = this.buildSystemPrompt(challengesContext, memoryContext, historyContext);
+            const systemPrompt = this.buildSystemPrompt(challengesContext, historyContext);
 
             // Build user messages array - only include the newest message as actual conversation
             const userMessages: MessagesWithRole[] = [
@@ -89,7 +86,7 @@ export default class Chat {
             this.chatRepository.AddChunkToMessage(userMessageId, '', userToken).catch(console.error);
 
             // Start streaming
-            const result = this.llmRepository.getTextStream(userMessages, signal);
+            const result = this.llmRepository.getTextStream(userMessages,true, signal);
             const generator = this.streamResponse(
                 result,
                 conversationId,
@@ -154,10 +151,6 @@ export default class Chat {
             // After successful completion, update conversation and save memory
             await Promise.all([
                 this.chatRepository.updateConversation(conversationId, {generating: false}),
-                this.chatMemoriesRepository.add(
-                    `User asked: ${userMessage}\nAssistant: ${fullResponse}`,
-                    userId,
-                )
             ]);
 
             yield JSON.stringify({
@@ -192,7 +185,7 @@ export default class Chat {
         }
     }
 
-    private buildSystemPrompt(relevantContext: string, memories: string, history: string): string {
+    private buildSystemPrompt(relevantContext: string, history: string): string {
         const parts = [
             '# Role',
             'You are an adaptive AI instructor designed to facilitate effective learning through natural conversation.',
@@ -211,10 +204,6 @@ export default class Chat {
 
         if (relevantContext) {
             parts.push(`\n\n## Relevant Learning Context:\n${relevantContext}`);
-        }
-
-        if (memories) {
-            parts.push(`\n\n## Student Background & Previous Interactions:\n${memories}`);
         }
 
         if (history) {

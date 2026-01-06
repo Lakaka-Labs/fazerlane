@@ -34,13 +34,12 @@ export default class Services {
             adapters.challengeRepository,
             adapters.xpRepository,
             adapters.objectRepository,
-            adapters.attemptMemoriesRepository,
             adapters.userRepository
         )
         this.xpService = new XPService(
             adapters.xpRepository,
         )
         this.storageService = new StorageService(adapters.storageRepository, adapters.llmRepository, adapters.objectRepository, adapters.userRepository, adapters.parameters.appSecrets)
-        this.chatService = new ChatService(adapters.chatRepository, adapters.llmRepository, adapters.chatMemoriesRepository, adapters.challengeRepository)
+        this.chatService = new ChatService(adapters.chatRepository, adapters.llmRepository, adapters.challengeRepository)
     }
 }

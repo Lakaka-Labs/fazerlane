@@ -40,8 +40,8 @@ export type AdapterParameters = {
     redisClient: Redis
     geminiClient: GoogleGenAI
     appSecrets: AppSecrets
-    mem0ChatClient: Memory
-    mem0AttemptClient: Memory
+    // mem0ChatClient: Memory
+    // mem0AttemptClient: Memory
     storageClient: S3Client
 }
 
@@ -56,8 +56,6 @@ export default class Adapters {
     progressRepository: ProgressRepository
     progressWebsocketRepository: ProgressWebsocketRepository
     challengeRepository: ChallengeRepository
-    chatMemoriesRepository: MemoriesRepository
-    attemptMemoriesRepository: MemoriesRepository
     emailRepository: EmailRepository
     xpRepository: XPRepository
     storageRepository: StorageRepository
@@ -75,8 +73,6 @@ export default class Adapters {
         this.progressRepository = new ProgressPG(parameters.postgresClient)
         this.progressWebsocketRepository = new ProgressWebsocket()
         this.challengeRepository = new ChallengePG(parameters.postgresClient)
-        this.chatMemoriesRepository = new MemoriesMem0(parameters.mem0ChatClient)
-        this.attemptMemoriesRepository = new MemoriesMem0(parameters.mem0AttemptClient)
         this.emailRepository = new SMTPClass(parameters.appSecrets.smtpCredential)
         this.xpRepository = new XPPG(parameters.postgresClient, parameters.appSecrets.xpPoints)
         this.storageRepository = new S3StorageClass(parameters.storageClient, parameters.appSecrets.storageCredentials)

@@ -9,8 +9,6 @@ import type AppSecrets from "../../../../packages/secret";
 import {XPType} from "../../../domain/xp";
 import type {StorageObject} from "../../../domain/objects";
 import type {ObjectRepository} from "../../../domain/objects/repository.ts";
-import type {MemoriesRepository} from "../../../domain/memories/repository.ts";
-import {formatHumanReadableTimestamp} from "../../../../packages/utils/time.ts";
 import type UserRepository from "../../../domain/user/repository.ts";
 import Gemini from "../../../adapters/llm";
 import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
@@ -56,7 +54,6 @@ export default class MarkChallenge {
         private readonly xpRepository: XPRepository,
         private readonly appSecret: AppSecrets,
         private readonly objectRepository: ObjectRepository,
-        private readonly attemptMemoriesRepository: MemoriesRepository,
         private readonly userRepository: UserRepository,
         private readonly appSecrets: AppSecrets,
         private readonly laneRepository: LaneRepository,
@@ -261,7 +258,6 @@ export default class MarkChallenge {
                     files: parameter.files,
                     textSubmission: text
                 }),
-                this.addToMemory(userId, challenge, feedback, pass)
             ]).catch(error => {
                 console.error('Background task error after streaming:', error);
             });
@@ -379,15 +375,6 @@ export default class MarkChallenge {
 
         return {pass, feedback};
     }
-
-    private async addToMemory(userId: string, challenge: Challenge, feedback: string, pass: boolean): Promise<void> {
-        const timestamp = formatHumanReadableTimestamp(new Date());
-
-        let message = `title: ${challenge.title} | objective: ${challenge.objective} | feedback: ${feedback} | pass: ${pass} | timestamp: ${timestamp}`;
-
-        await this.attemptMemoriesRepository.add(message, userId)
-    }
-
     private toSeconds = (timeStr: string): number => {
         const parts = timeStr.split(':').map(Number);
         return parts.length === 3
