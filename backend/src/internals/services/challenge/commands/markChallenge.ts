@@ -15,6 +15,8 @@ import type UserRepository from "../../../domain/user/repository.ts";
 import Gemini from "../../../adapters/llm";
 import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
 import {isValidSubmissionType} from "../../../../packages/utils/mime.ts";
+import type LaneRepository from "../../../domain/lane/repository.ts";
+import type {Lane} from "../../../domain/lane";
 
 export type MarkChallengeParameters = {
     id: string;
@@ -57,6 +59,7 @@ export default class MarkChallenge {
         private readonly attemptMemoriesRepository: MemoriesRepository,
         private readonly userRepository: UserRepository,
         private readonly appSecrets: AppSecrets,
+        private readonly laneRepository: LaneRepository,
         private readonly retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG,
     ) {
     }
@@ -74,12 +77,14 @@ export default class MarkChallenge {
         );
         const isCompleted = completedChallenges.includes(challenge.id);
 
+        const lane = await this.laneRepository.getById(challenge.lane)
+
         let storageObjects: StorageObject[] | undefined
         if (parameter.files?.length) {
             storageObjects = await this.getStorageObjects(parameter.files, challenge.submissionFormat)
         }
 
-        const generator = this.streamMark(parameter, challenge, isCompleted, storageObjects);
+        const generator = this.streamMark(parameter, challenge, isCompleted, lane, storageObjects,);
 
         return {generator, challengeId: id};
     }
@@ -176,6 +181,7 @@ export default class MarkChallenge {
         parameter: MarkChallengeParameters,
         challenge: Challenge,
         completed: boolean,
+        lane: Lane,
         storageObjects?: StorageObject[],
     ): AsyncGenerator<string> {
         const {id, userId, text, comment, signal} = parameter;
@@ -202,6 +208,7 @@ export default class MarkChallenge {
                 recentChallenges,
                 nextChallenge,
                 previousFeedbacks,
+                lane,
                 text,
                 comment,
                 storageObjects,
@@ -229,7 +236,7 @@ export default class MarkChallenge {
                     challengeId: id
                 });
             }
-            
+
             // Extract assessment from complete response
             const {pass, feedback} = this.extractAssessment(fullResponse);
 
@@ -281,6 +288,7 @@ export default class MarkChallenge {
         recentChallenges: Challenge[],
         nextChallenge: Challenge | null,
         previousFeedbacks: any[],
+        lane: Lane,
         text?: string,
         comment?: string,
         storageObjects?: StorageObject[],
@@ -288,9 +296,21 @@ export default class MarkChallenge {
     ): Promise<Message[]> {
         const messages: Message[] = [
             {
-                text: submissionPrompt(challenge, recentChallenges, nextChallenge, previousFeedbacks, text)
+                text: submissionPrompt(challenge, recentChallenges, nextChallenge, previousFeedbacks, text),
             }
         ];
+
+        if (challenge.references?.length > 0) {
+            messages.push(...challenge.references.map((ref) => {
+                return {
+                    data: {
+                        fileUri: `https://www.youtube.com/watch?v=${lane.youtube}`,
+                        ...(ref.location.startTime && {startOffset: this.toSeconds(ref.location.startTime)}),
+                        ...(ref.location.endTime && {endOffset: this.toSeconds(ref.location.endTime)}),
+                    }
+                }
+            }));
+        }
 
         if (storageObjects?.length) {
             messages.push(...storageObjects.map((object) => {
@@ -366,5 +386,12 @@ export default class MarkChallenge {
         let message = `title: ${challenge.title} | objective: ${challenge.objective} | feedback: ${feedback} | pass: ${pass} | timestamp: ${timestamp}`;
 
         await this.attemptMemoriesRepository.add(message, userId)
+    }
+
+    private toSeconds = (timeStr: string): number => {
+        const parts = timeStr.split(':').map(Number);
+        return parts.length === 3
+            ? parts[0]! * 3600 + parts[1]! * 60 + parts[2]!
+            : parts[0]! * 60 + parts[1]!;
     }
 }

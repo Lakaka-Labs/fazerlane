@@ -33,7 +33,7 @@ export class Commands {
         xpRepository: XPRepository,
         objectRepository: ObjectRepository,
         attemptMemoriesRepository: MemoriesRepository,
-        userRepository: UserRepository
+        userRepository: UserRepository,
     ) {
         this.generateChallenge = new GenerateChallenges(
             laneRepository,
@@ -45,7 +45,7 @@ export class Commands {
             userRepository
         )
         this.markChallenge = new MarkChallenge(
-            challengeRepository, llmRepository, xpRepository, appSecrets, objectRepository, attemptMemoriesRepository, userRepository, appSecrets
+            challengeRepository, llmRepository, xpRepository, appSecrets, objectRepository, attemptMemoriesRepository, userRepository, appSecrets, laneRepository
         )
         this.unmarkChallenge = new UnmarkChallenge(
             challengeRepository
@@ -95,7 +95,7 @@ export default class ChallengeService {
             xpRepository,
             objectRepository,
             attemptMemoriesRepository,
-            userRepository
+            userRepository,
         )
         this.queries = new Queries(challengeRepository)
     }
