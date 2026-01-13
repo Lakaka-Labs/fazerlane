@@ -138,7 +138,7 @@ jobs:
                     docker run -d \
                       --name ${{ env.BACKEND_CONTAINER_NAME }} \
                       --network app-network \
-                      -p 5000:5000 \
+                      -p 5001:5000 \
                       -e TEST_SECRET="${{ secrets.TEST_SECRET }}" \
                       -e PORT="${{ secrets.PORT }}" \
                       -e CLIENT_ORIGIN="${{ secrets.CLIENT_ORIGIN }}" \
@@ -196,7 +196,7 @@ jobs:
                     docker run -d \
                      --name ${{ env.UI_CONTAINER_NAME }} \
                      --network app-network \
-                     -p 3000:3000 \
+                     -p 3002:3000 \
                      --restart unless-stopped \
                      ${{ env.DOCKER_UI_IMAGE }}:${{ github.sha }}
 
