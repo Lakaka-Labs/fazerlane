@@ -296,17 +296,17 @@ export default class MarkChallenge {
             }
         ];
 
-        if (challenge.references?.length > 0) {
-            messages.push(...challenge.references.map((ref) => {
-                return {
-                    data: {
-                        fileUri: `https://www.youtube.com/watch?v=${lane.youtube}`,
-                        ...(ref.location.startTime && {startOffset: this.toSeconds(ref.location.startTime)}),
-                        ...(ref.location.endTime && {endOffset: this.toSeconds(ref.location.endTime)}),
-                    }
-                }
-            }));
-        }
+        // if (challenge.references?.length > 0) {
+        //     messages.push(...challenge.references.map((ref) => {
+        //         return {
+        //             data: {
+        //                 fileUri: `https://www.youtube.com/watch?v=${lane.youtube}`,
+        //                 ...(ref.location.startTime && {startOffset: this.toSeconds(ref.location.startTime)}),
+        //                 ...(ref.location.endTime && {endOffset: this.toSeconds(ref.location.endTime)}),
+        //             }
+        //         }
+        //     }));
+        // }
 
         if (storageObjects?.length) {
             messages.push(...storageObjects.map((object) => {
