@@ -9,9 +9,7 @@ require('sql-migrations').run({
     user: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     adapter: 'pg',
-    config: {
-        ssl: {
-            rejectUnauthorized: false
-        }
-    }
+    ssl: process.env.POSTGRES_SSL === 'true' ? {
+        rejectUnauthorized: false
+    } : false
 });
