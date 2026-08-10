@@ -11,7 +11,7 @@ export const bunPostgresClientConnection = (credentials: PostgresCredentials) =>
         database: credentials.db,
         username: credentials.user,
         password: credentials.password,
-        ssl: credentials.ssl,
+        ssl: credentials.ssl ? {serverName: credentials.host} : false, // SNI — most managed providers need this
 
         onconnect: client => {
         },
