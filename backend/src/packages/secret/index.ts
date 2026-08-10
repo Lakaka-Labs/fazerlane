@@ -93,7 +93,6 @@ export default class AppSecrets {
     urls: Urls
     xpPoints: XPPoints
     storageCredentials: StorageCredentials
-    qdrantCredentials: QDrantCredentials
 
     constructor() {
         this.port = this.getEnvironmentVariableAsNumber("PORT", 5000);
@@ -177,10 +176,6 @@ export default class AppSecrets {
             storageSecretAccessKey: this.getEnvironmentVariable("STORAGE_SECRET_ACCESS_KEY"),
             storageBucketName: this.getEnvironmentVariable("STORAGE_BUCKET_NAME"),
             storageBucketPublicDomain: this.getEnvironmentVariable("STORAGE_BUCKET_PUBLIC_DOMAIN"),
-        }
-        this.qdrantCredentials = {
-            port: this.getEnvironmentVariableAsNumber("QDRANT_PORT",6333),
-            host: this.getEnvironmentVariable("QDRANT_HOST"),
         }
     }
 

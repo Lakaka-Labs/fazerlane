@@ -1,10 +1,8 @@
 import {SQL} from "bun";
-import type {PostgresCredentials, QDrantCredentials, RedisCredentials, StorageCredentials} from "../secret";
+import type {PostgresCredentials, RedisCredentials, StorageCredentials} from "../secret";
 import Redis from "ioredis";
 import {GoogleGenAI} from '@google/genai';
-import {Memory} from "mem0ai/oss";
 import {S3Client} from "@aws-sdk/client-s3";
-import FeedbackFactPrompt from "../prompts/feedbackFact.ts";
 
 export const bunPostgresClientConnection = (credentials: PostgresCredentials) => {
     return new SQL({
@@ -28,69 +26,15 @@ export const ioRedisClient = (credentials: RedisCredentials) => {
         port: credentials.port,
         username: credentials.user,
         password: credentials.password,
-        maxRetriesPerRequest: credentials.maxRetriesPerRequest
+        maxRetriesPerRequest: credentials.maxRetriesPerRequest,
+        tls: {
+            servername: credentials.host, // SNI — most managed providers need this
+        },
     });
-}
+};
 
 export const googleGeminiClient = (geminiAPIKey: string) => {
     return new GoogleGenAI({apiKey: geminiAPIKey});
-}
-
-export const mem0AttemptMemory = (openaiAPIKey: string,qdrantCredentials: QDrantCredentials) => {
-    return new Memory({
-        llm: {
-            provider: 'openai',
-            config: {
-                apiKey: openaiAPIKey,
-                model: 'gpt-5-nano',
-            },
-        },
-        embedder: {
-            provider: 'openai',
-            config: {
-                apiKey: openaiAPIKey,
-                model: 'text-embedding-3-large',
-            },
-        },
-        vectorStore: {
-            provider: "qdrant",
-            config: {
-                collectionName: 'attempt_memories',
-                dimension: 3072,
-                host: qdrantCredentials.host,
-                port: qdrantCredentials.port,
-            },
-        },
-        customPrompt: FeedbackFactPrompt
-    });
-}
-
-export const mem0ChatMemory = (openaiAPIKey: string,qdrantCredentials: QDrantCredentials) => {
-    return new Memory({
-        llm: {
-            provider: 'openai',
-            config: {
-                apiKey: openaiAPIKey,
-                model: 'gpt-5-nano',
-            },
-        },
-        embedder: {
-            provider: 'openai',
-            config: {
-                apiKey: openaiAPIKey,
-                model: 'text-embedding-3-large',
-            },
-        },
-        vectorStore: {
-            provider: "qdrant",
-            config: {
-                collectionName: 'memories',
-                dimension: 3072,
-                host: qdrantCredentials.host,
-                port: qdrantCredentials.port,
-            },
-        },
-    });
 }
 
 export const s3Client = (credentials: StorageCredentials): S3Client => {
