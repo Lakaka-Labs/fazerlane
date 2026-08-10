@@ -78,7 +78,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
 
   return (
     <>
-      <div className="md:max-w-sidebarmw shadow-brand-shadow sticky hidden h-[90%] min-h-[500px] w-full max-w-full flex-col rounded-2xl bg-white pb-4 md:m-1 lg:flex">
+      <div className="md:max-w-sidebarmw shadow-brand-shadow sticky hidden h-fit max-h-[90%] w-full max-w-full flex-col rounded-2xl bg-white pb-4 md:m-1 lg:flex">
         {/* Header */}
         <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
           <h1 className="flex items-center gap-3 text-base font-extrabold">
@@ -120,7 +120,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
         )}
 
         {/* Challenges List */}
-        <ul className="divide-brand-divider flex-1 divide-y overflow-y-auto">
+        <ul className="divide-brand-divider flex-auto divide-y overflow-y-auto">
           {!loadingLaneData &&
             challenges.map((challenge) => (
               <li
