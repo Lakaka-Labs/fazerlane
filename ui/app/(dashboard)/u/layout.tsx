@@ -3,6 +3,7 @@
 import { UserHeader } from "@/components/navigation/header";
 import { UAuthProvider } from "@/providers/auth";
 import { SmoothScroll } from "@/providers/smoothscroll";
+import { RateLimitPromptDialog } from "@/components/dialog/rate-limit/rate-limit-prompt";
 import { PropsWithChildren, useRef } from "react";
 
 export default function DUserLayout({ children }: PropsWithChildren) {
@@ -26,6 +27,8 @@ export default function DUserLayout({ children }: PropsWithChildren) {
           </SmoothScroll>
         </div>
       </div>
+
+      <RateLimitPromptDialog />
     </UAuthProvider>
   );
 }

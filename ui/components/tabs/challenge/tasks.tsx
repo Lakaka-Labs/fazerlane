@@ -42,6 +42,7 @@ interface SSEChunk {
 interface SSEError {
   type: "error";
   error: string;
+  code?: string;
 }
 
 interface SSEComplete {
@@ -63,6 +64,9 @@ export const TasksTab = () => {
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
   const token = usePersistStore((state) => state.session.jwt);
+  const setShowRateLimitPrompt = usePersistStore(
+    (state) => state.setShowRateLimitPrompt
+  );
 
   const submitWithSSE = async (
       apiBaseUrl: string,
@@ -144,7 +148,11 @@ export const TasksTab = () => {
                   break;
 
                 case "error":
-                  toast.error(message.error)
+                  if (message.code === "AI_RATE_LIMIT") {
+                    setShowRateLimitPrompt(true);
+                  } else {
+                    toast.error(message.error);
+                  }
               }
             } catch (err) {
               console.error("Error parsing SSE message:", err);

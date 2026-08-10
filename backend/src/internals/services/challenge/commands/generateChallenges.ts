@@ -122,7 +122,7 @@ export default class GenerateChallenge {
         ];
         const inputToken = await this.llmRepository.getTokens(messages);
         if (user.apiKey) {
-            this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
+            this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets, true)
         }
         const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages, useFastModel);
         const challenges = this.extractChallenges(llmResult);

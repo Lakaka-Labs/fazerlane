@@ -10,7 +10,9 @@ export default function Settings() {
                 <hr/>
                 <CustomPromptTab />
                 <hr/>
-                <ApiKeyTab />
+                <div id="api-key">
+                    <ApiKeyTab />
+                </div>
             </div>
         </>
     )

@@ -1,7 +1,7 @@
 import ChatService from "../../../services/chat";
 import {type Request, type Response, Router} from "express";
 import ValidationMiddleware from "../middlewares/validation.ts";
-import {BadRequestError} from "../../../../packages/errors";
+import {ApiError, BadRequestError} from "../../../../packages/errors";
 import {z} from "zod";
 import type {User} from "../../../domain/user";
 import type BaseFilter from "../../../../packages/types/filter";
@@ -57,7 +57,8 @@ export default class ChatHandler {
     chat = async (req: Request, res: Response): Promise<void> => {
         const {content, conversationId} = req.body;
         if (!req.params.laneId) throw new BadRequestError("provide lane id")
-        const userId = (req.user as User).id;
+        const user = req.user as User;
+        const userId = user.id;
 
         if (!content || typeof content !== 'string') {
             res.status(400).json({error: 'Content is required'});
@@ -85,7 +86,8 @@ export default class ChatHandler {
                     req.params.laneId,
                     content,
                     conversationId,
-                    abortController.signal
+                    abortController.signal,
+                    user.apiKey
                 );
 
             // Send initial metadata
@@ -112,7 +114,8 @@ export default class ChatHandler {
             // Send error event
             res.write(`data: ${JSON.stringify({
                 type: 'error',
-                error: error instanceof Error ? error.message : 'Unknown error'
+                error: error instanceof Error ? error.message : 'Unknown error',
+                code: error instanceof ApiError ? error.code : undefined
             })}\n\n`);
 
             res.end();

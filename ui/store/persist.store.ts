@@ -40,6 +40,7 @@ export const defaultInitState: PersistMainStoreState = {
 
   currentChallenge: null,
   showChatbot: false,
+  showRateLimitPrompt: false,
   socketLaneId: null,
 };
 
@@ -54,6 +55,8 @@ export const persistStore = createStore<PersistMainStore>()(
         set({ currentChallenge: lane }),
       setClear: () => set(() => ({ ...defaultInitState })),
       setShowChatbot: (show: boolean) => set({ showChatbot: show }),
+      setShowRateLimitPrompt: (show: boolean) =>
+        set({ showRateLimitPrompt: show }),
 
       setSocketLaneId: (laneIds: string[] | null) =>
         set((state) => ({

@@ -25,7 +25,7 @@ export default class AddLane {
         for (const file of files) {
             if (user.apiKey) {
                 console.log("using user api key")
-                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
+                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets, true)
             }
             const {uri: llmUrl} = await this.llmRepository.upload(file.path, file.mimeType);
             const isActive = await this.waitForFileActive(llmUrl);

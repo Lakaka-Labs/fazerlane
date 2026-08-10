@@ -21,7 +21,7 @@ const ErrorHandlerMiddleware: ErrorRequestHandler = async (
         });
     }
     if (err instanceof ApiError) {
-        return new ErrorResponse(res, err.message, err.statusCode).send();
+        return new ErrorResponse(res, err.message, err.statusCode, undefined, err.code).send();
     }
 
     if (err instanceof ZodError) {

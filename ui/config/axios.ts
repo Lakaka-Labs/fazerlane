@@ -42,11 +42,23 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response: AxiosResponse): AxiosResponse => response,
   async (
-    error: AxiosError<{ message: string; status: number }>
+    error: AxiosError<{ message: string; status: number; code?: string }>
   ): Promise<any> => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
+
+    if (error.response?.data?.code === "AI_RATE_LIMIT") {
+      persistStore.getState().setShowRateLimitPrompt(true);
+
+      const apiError: ApiError = {
+        message: error.response.data.message,
+        status: error.response.status,
+        code: error.response.data.code,
+      };
+
+      return Promise.reject(apiError);
+    }
 
     if (
       (error.response?.status === 401 || error.response?.status === 403) &&

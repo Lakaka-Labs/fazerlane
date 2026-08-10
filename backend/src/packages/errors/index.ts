@@ -2,6 +2,7 @@ import {StatusCodes} from "http-status-codes";
 
 export class ApiError extends Error {
     statusCode: number;
+    code?: string;
 
     constructor(message: string) {
         super(message);
@@ -41,6 +42,7 @@ export class AIRateLimitError extends ApiError {
     constructor(message: string) {
         super(message);
         this.statusCode = StatusCodes.FORBIDDEN;
+        this.code = "AI_RATE_LIMIT";
     }
 }
 

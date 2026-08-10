@@ -108,6 +108,14 @@ export function ApiKeyTab() {
                 <p className="text-brand-text/60 text-sm">
                     Manage your API key for external integrations
                 </p>
+                <a
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-primary w-fit text-sm font-medium underline underline-offset-2 hover:opacity-80"
+                >
+                    Get a Gemini API key
+                </a>
             </div>
 
             <Form {...apiKeyForm}>

@@ -7,10 +7,17 @@ import {AIRateLimitError, ApiError, BadRequestError} from "../../../packages/err
 export default class Gemini implements LLMRepository {
     ai: GoogleGenAI
     appSecrets: AppSecrets
+    useUserProvidedKey: boolean
 
-    constructor(ai: GoogleGenAI, appSecrets: AppSecrets) {
+    constructor(ai: GoogleGenAI, appSecrets: AppSecrets, useUserProvidedKey: boolean = false) {
         this.ai = ai
         this.appSecrets = appSecrets
+        this.useUserProvidedKey = useUserProvidedKey
+    }
+
+    private getModel = (useFastModel: boolean): string => {
+        if (this.useUserProvidedKey) return this.appSecrets.geminiConfiguration.premiumModel
+        return useFastModel ? this.appSecrets.geminiConfiguration.fastModel : this.appSecrets.geminiConfiguration.model
     }
 
     async generateEmbedding(text: string[], maxRetries = 3): Promise<{ embedding: number[] }[]> {
@@ -48,7 +55,7 @@ export default class Gemini implements LLMRepository {
     getText = async (messages: Message[], useFastModel: boolean = false,): Promise<ModelResponse> => {
         try {
             const chat = this.ai.chats.create({
-                model: useFastModel ? this.appSecrets.geminiConfiguration.fastModel : this.appSecrets.geminiConfiguration.model,
+                model: this.getModel(useFastModel),
                 config: {
                     thinkingConfig: {
                         thinkingBudget: -1,
@@ -86,7 +93,7 @@ export default class Gemini implements LLMRepository {
                 return {role, parts: this.getPartsFromMessage(messages)}
             });
             const response = await this.ai.models.generateContentStream({
-                model: useFastModel ? this.appSecrets.geminiConfiguration.fastModel : this.appSecrets.geminiConfiguration.model,
+                model: this.getModel(useFastModel),
                 config: {
                     abortSignal: signal,
                     thinkingConfig: {

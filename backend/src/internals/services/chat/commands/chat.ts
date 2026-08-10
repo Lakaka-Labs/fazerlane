@@ -4,13 +4,17 @@ import type {MemoriesRepository} from "../../../domain/memories/repository.ts";
 import type {ChatRepository} from "../../../domain/chat/repository.ts";
 import type {MessagesWithRole, ModelResponse} from "../../../domain/llm";
 import type {Conversation} from "../../../domain/chat";
-import {BadRequestError} from "../../../../packages/errors";
+import {ApiError, BadRequestError} from "../../../../packages/errors";
+import Gemini from "../../../adapters/llm";
+import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
+import type AppSecrets from "../../../../packages/secret";
 
 export default class Chat {
     constructor(
         private readonly chatRepository: ChatRepository,
-        private readonly llmRepository: LLMRepository,
-        private readonly challengeRepository: ChallengeRepository
+        private llmRepository: LLMRepository,
+        private readonly challengeRepository: ChallengeRepository,
+        private readonly appSecrets: AppSecrets
     ) {
     }
 
@@ -19,8 +23,12 @@ export default class Chat {
         laneId: string,
         content: string,
         conversationId?: string,
-        signal?: AbortSignal
+        signal?: AbortSignal,
+        apiKey?: string
     ): Promise<{ generator: AsyncGenerator<string>; messageId: string; conversationId: string }> {
+        if (apiKey) {
+            this.llmRepository = new Gemini(googleGeminiClient(apiKey), this.appSecrets, true)
+        }
         // Create conversation if needed
         if (!conversationId) {
             conversationId = await this.chatRepository.createConversation(userId, laneId, content.slice(0, 50))
@@ -179,6 +187,7 @@ export default class Chat {
                 yield JSON.stringify({
                     type: 'error',
                     error: error instanceof Error ? error.message : 'Unknown error',
+                    code: error instanceof ApiError ? error.code : undefined,
                     messageId
                 });
             }

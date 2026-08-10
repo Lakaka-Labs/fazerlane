@@ -25,6 +25,7 @@ export type PersistMainStoreState = {
   session: Session;
   currentChallenge: Challenge | null;
   showChatbot: boolean;
+  showRateLimitPrompt: boolean;
   socketLaneId: string[] | null;
 };
 
@@ -35,6 +36,7 @@ export type PersistMainStoreActions = {
   setSession: (session: Session) => void;
   setCurrentChellenge: (lane: Challenge | null) => void;
   setShowChatbot: (show: boolean) => void;
+  setShowRateLimitPrompt: (show: boolean) => void;
   setSocketLaneId: (laneIds: string[] | null) => void;
   removeSocketLaneId: (laneId: string) => void;
 };

@@ -1,5 +1,5 @@
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
-import {AIRateLimitError, BadRequestError, InvalidAssessmentsError,} from "../../../../packages/errors";
+import {AIRateLimitError, ApiError, BadRequestError, InvalidAssessmentsError,} from "../../../../packages/errors";
 import type LLMRepository from "../../../domain/llm/repository.ts";
 import type {Message} from "../../../domain/llm";
 import {submissionPrompt} from "../../../../packages/prompts/submission.ts";
@@ -215,7 +215,7 @@ export default class MarkChallenge {
             // Get input token count
             const inputCount = await this.llmRepository.getTokens(promptMessage);
             if (user.apiKey) {
-                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets)
+                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets, true)
             }
 
             let fullResponse = '';
@@ -272,6 +272,7 @@ export default class MarkChallenge {
                 yield JSON.stringify({
                     type: 'error',
                     error: error instanceof Error ? error.message : 'Unknown error',
+                    code: error instanceof ApiError ? error.code : undefined,
                     challengeId: id
                 });
                 throw error;

@@ -8,7 +8,8 @@ export class ErrorResponse {
         res: Response,
         errorMessage?: string,
         statusCode?: number,
-        err?: any
+        err?: any,
+        code?: string
     ) {
         this.response = res;
         this.error = {
@@ -19,6 +20,9 @@ export class ErrorResponse {
         };
         if (err !== null && err !== undefined) {
             this.error.error = err;
+        }
+        if (code) {
+            this.error.code = code;
         }
     }
 
@@ -31,4 +35,5 @@ type Error = {
     statusCode: number;
     message: string;
     error?: any;
+    code?: string;
 };

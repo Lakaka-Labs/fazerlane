@@ -24,6 +24,7 @@ export type GeminiConfiguration = {
     apiKey: string
     model: string
     fastModel: string
+    premiumModel: string
 }
 
 export type SMTPCredentials = {
@@ -137,6 +138,7 @@ export default class AppSecrets {
             apiKey: this.getEnvironmentVariable("GEMINI_API_KEY"),
             model: this.getEnvironmentVariableOrFallback("GEMINI_MODEL", "gemini-2.5-flash"),
             fastModel: this.getEnvironmentVariableOrFallback("GEMINI_FAST_MODEL", "gemini-2.5-flash"),
+            premiumModel: this.getEnvironmentVariableOrFallback("GEMINI_PREMIUM_MODEL", "gemini-2.5-pro"),
         }
 
         this.googleAPIKey = this.getEnvironmentVariable("GOOGLE_API_KEY")
