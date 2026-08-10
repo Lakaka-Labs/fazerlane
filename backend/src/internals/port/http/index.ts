@@ -56,7 +56,13 @@ export default class ExpressHTTP {
         }))
         this.server.use(cookieParser(this.appSecrets.cookieSecret));
         const corsOptions = {
-            origin: this.appSecrets.clientOrigin,
+            origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+                if (!origin || this.appSecrets.clientOrigins.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error(`Origin "${origin}" is not allowed by CORS`));
+                }
+            },
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: [

@@ -70,7 +70,7 @@ export type QDrantCredentials = {
 
 export default class AppSecrets {
     port: number;
-    clientOrigin: string
+    clientOrigins: string[]
     cookieExpires: number
     cookieSecret: string
     emailJWTExpires: number
@@ -95,7 +95,10 @@ export default class AppSecrets {
 
     constructor() {
         this.port = this.getEnvironmentVariableAsNumber("PORT", 5000);
-        this.clientOrigin = this.getEnvironmentVariableOrFallback("CLIENT_ORIGIN", "localhost:3000")
+        this.clientOrigins = this.getEnvironmentVariableOrFallback("CLIENT_ORIGIN", "localhost:3000")
+            .split(",")
+            .map(origin => origin.trim())
+            .filter(origin => origin.length > 0)
         this.cookieExpires = this.getEnvironmentVariableAsNumber("COOKIE_EXPIRES", 604_800);
         this.cookieSecret = this.getEnvironmentVariable("COOKIE_SECRET")
         this.emailJWTExpires = this.getEnvironmentVariableAsNumber("EMAIL_JWT_EXPIRES", 604_800);
