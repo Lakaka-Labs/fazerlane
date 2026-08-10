@@ -88,7 +88,6 @@ export default class AppSecrets {
     maxYoutubeLength: number
     maxVideoLength: number
     baseYoutubeApiUrl: string
-    openaiAPIKey: string
     smtpCredential: SMTPCredentials
     urls: Urls
     xpPoints: XPPoints
@@ -142,7 +141,6 @@ export default class AppSecrets {
         this.maxYoutubeLength = this.getEnvironmentVariableAsNumber("MAX_YOUTUBE_LENGTH", 3000)
         this.maxVideoLength = this.getEnvironmentVariableAsNumber("MAX_VIDEO_LENGTH", 120)
         this.baseYoutubeApiUrl = this.getEnvironmentVariableOrFallback("BASE_YOUTUBE_API_URL", "https://www.googleapis.com/youtube/v3/videos")
-        this.openaiAPIKey = this.getEnvironmentVariable("OPENAI_API_KEY")
 
         this.smtpCredential = {
             fromAddress: this.getEnvironmentVariable("SMTP_FROM_ADDRESS"),
