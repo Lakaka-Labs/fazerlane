@@ -75,7 +75,7 @@ export default function HeaderAvatar() {
           </Avatar>
 
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-brand-text truncate text-sm font-semibold">
+            <span className="text-brand-text truncate text-sm font-semibold capitalize">
               {username || "Your account"}
             </span>
             {email && (
