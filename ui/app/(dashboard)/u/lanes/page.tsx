@@ -155,7 +155,7 @@ export default function DUserHome() {
                   Lanes
                 </h1>
                 <p className="text-brand-text/50 text-sm leading-relaxed">
-                  Every tutorial you have turned into a path, and the ones
+                  Every tutorial you have turned into a lane, and the ones
                   others are learning from.
                 </p>
               </div>
