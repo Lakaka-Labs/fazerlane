@@ -412,7 +412,7 @@ const LaneLauncher = ({
     type="button"
     aria-label="Open the challenge list for this lane"
     className={cn(
-      "border-brand-divider fixed inset-x-0 z-30 mx-auto flex max-w-lg items-center gap-3 rounded-t rounded-tl-2xl border border-solid bg-white/90 py-2 pr-3.5 pl-4 text-left backdrop-blur-md",
+      "border-brand-divider fixed inset-x-0 z-30 mx-auto flex max-w-lg items-center gap-3 rounded-t rounded-tl-2xl border-2 border-solid bg-white/50 py-2 pr-3.5 pl-4 text-left backdrop-blur-md",
       // Same family as `shadow-brand-shadow`, thrown a little further: this one
       // has to lift off a white card rather than off the dashboard ground.
       "shadow-[0_10px_24px_-10px_rgba(0,0,0,0.28)]",

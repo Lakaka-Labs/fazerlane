@@ -32,7 +32,8 @@ export const signUpM = async (
 ): Promise<ApiResponse<AuthData>> => {
   const res: AxiosResponse<ApiResponse<AuthData>> = await axios.post(
     `${API_BARE_URL}/auth/signup`,
-    payload
+    payload,
+    { withCredentials: true }
   );
   return res.data;
 };
@@ -42,7 +43,10 @@ export const signInM = async (
 ): Promise<ApiResponse<AuthData>> => {
   const res: AxiosResponse<ApiResponse<AuthData>> = await axios.post(
     `${API_BARE_URL}/auth/login`,
-    payload
+    payload,
+    // Without this the browser drops the Set-Cookie from a cross-origin login,
+    // leaving the previous session's cookies in place.
+    { withCredentials: true }
   );
   return res.data;
 };

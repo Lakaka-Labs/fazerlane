@@ -7,14 +7,11 @@ import axios, {
 import { API_BARE_URL, API_BASE_URL } from "./routes";
 import { persistStore } from "@/store/persist.store";
 
-const token = persistStore.getState().session.jwt;
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 50000,
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
   },
   withCredentials: true,
 });
@@ -31,9 +28,21 @@ const onRefreshed = (token: string): void => {
   refreshSubscribers = [];
 };
 
+// Read the jwt per request, never once at module load: a sign-in is a
+// client-side navigation, so a token captured when the bundle evaluated would
+// stay stale (empty, or the previous session's) for the whole tab and send
+// every call into the 401 -> refresh -> logout loop.
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     config.withCredentials = true;
+
+    const jwt = persistStore.getState().session.jwt;
+    if (jwt) {
+      config.headers.set("Authorization", `Bearer ${jwt}`);
+    } else {
+      config.headers.delete("Authorization");
+    }
+
     return config;
   },
   (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
@@ -90,10 +99,13 @@ api.interceptors.response.use(
           }
         );
 
-        console.log("refreshed token", res);
+        // Persist the new jwt, otherwise the retry below (and every later
+        // call) re-sends the token that just 401'd.
+        const { session, setSession } = persistStore.getState();
+        setSession({ ...session, jwt: res.data.data.jwt });
 
         isRefreshing = false;
-        onRefreshed("refreshed");
+        onRefreshed(res.data.data.jwt);
 
         return api(originalRequest);
       } catch (refreshError) {

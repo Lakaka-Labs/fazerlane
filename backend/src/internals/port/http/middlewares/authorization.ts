@@ -1,6 +1,6 @@
 import type {NextFunction, Request, Response} from "express";
 import {BadRequestError, UnAuthorizedError} from "../../../../packages/errors";
-import {verifyEmailToken, verifyToken} from "../../../../packages/utils/encryption";
+import {verifyEmailToken, verifyRefreshToken, verifyToken} from "../../../../packages/utils/encryption";
 import type Payload from "../../../../packages/types/payload";
 import AccountServices from "../../../services/authentication";
 import {IncomingMessage} from "http";
@@ -8,9 +8,12 @@ import {z} from "zod";
 
 export const Authorize = (services: AccountServices) => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        let {token} = req.signedCookies;
+        // Header first: it carries the token the client just signed in with,
+        // while a cookie left over from an earlier session would shadow it and
+        // 401 a perfectly valid login until the user cleared their cookies.
+        let token: any = req.headers.authorization?.split(" ")[1];
         if (!token) {
-            token = req.headers.authorization?.split(" ")[1];
+            token = req.signedCookies.token;
         }
         if (!token) {
             token = req.query.token;
@@ -54,9 +57,9 @@ export const AuthorizeEmailToken = (services: AccountServices) => {
 
 export const AuthorizeRefreshToken = (services: AccountServices) => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        let {refreshToken} = req.signedCookies;
+        let refreshToken: any = req.headers.authorization?.split(" ")[1];
         if (!refreshToken) {
-            refreshToken = req.headers.authorization?.split(" ")[1];
+            refreshToken = req.signedCookies.refreshToken;
         }
         if (!refreshToken) {
             refreshToken = req.query.refreshToken;
@@ -64,7 +67,8 @@ export const AuthorizeRefreshToken = (services: AccountServices) => {
         if (!refreshToken) throw new UnAuthorizedError("session has expired");
 
         try {
-            const jwtPayload = verifyToken(refreshToken);
+            // Refresh tokens are signed with refreshJWTSecret, not jwtSecret.
+            const jwtPayload = verifyRefreshToken(refreshToken);
             const payload: Payload = jwtPayload as Payload;
 
             req.user = await services.queries.getDetails.handle({id: payload.id});
