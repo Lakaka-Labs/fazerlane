@@ -310,7 +310,7 @@ function LaneSheet({
                     onOpenChange(false);
                   }
                 }}
-                className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[86dvh] w-full max-w-lg flex-col overflow-hidden rounded-tl-2xl rounded-t bg-white shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.35)] outline-none lg:hidden"
+                className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[86dvh] w-full max-w-lg flex-col overflow-hidden rounded-tl-4xl rounded-t bg-white shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.35)] outline-none lg:hidden"
               >
                 <div
                   onPointerDown={(event) => dragControls.start(event)}
