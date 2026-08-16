@@ -7,7 +7,7 @@ import { RateLimitPromptDialog } from "@/components/dialog/rate-limit/rate-limit
 import { PropsWithChildren, useRef } from "react";
 
 export default function DUserLayout({ children }: PropsWithChildren) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLElement>(null);
 
   return (
     <UAuthProvider>
@@ -18,12 +18,19 @@ export default function DUserLayout({ children }: PropsWithChildren) {
           </div>
 
           <SmoothScroll>
-            <div
+            {/* Target of the header's skip link. `tabIndex={-1}` lets focus
+                actually land here rather than being dropped by the browser.
+                A real <main> so the bar stays the page's only banner — a
+                page-level <header> nested anywhere outside it would claim that
+                role too. */}
+            <main
+              id="main-content"
+              tabIndex={-1}
               ref={scrollContainerRef}
-              className="lg:py-xLayout h-[calc(100vh-70px)] w-full overflow-y-auto py-0"
+              className="lg:py-xLayout h-[calc(100vh-70px)] w-full overflow-y-auto py-0 outline-none"
             >
               {children}
-            </div>
+            </main>
           </SmoothScroll>
         </div>
       </div>
