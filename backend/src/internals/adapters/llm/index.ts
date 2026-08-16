@@ -4,6 +4,9 @@ import {type Content, createPartFromUri, type GoogleGenAI, type Part, ApiError a
 import type AppSecrets from "../../../packages/secret";
 import {AIRateLimitError, ApiError, BadRequestError} from "../../../packages/errors";
 
+/** Gemini's wording when a File uri is expired, deleted, or owned by another key. */
+const MISSING_FILE_ERROR = /permission to access the File/i;
+
 export default class Gemini implements LLMRepository {
     ai: GoogleGenAI
     appSecrets: AppSecrets
@@ -72,13 +75,7 @@ export default class Gemini implements LLMRepository {
 
             return {response: response.text, tokenCount: outputTokens}
         } catch (e: any) {
-            console.log(e)
-            if (e.status === 429) {
-                throw new AIRateLimitError("You've exceeded your rate limit")
-            } else if (e.status === 403) {
-                throw new BadRequestError("You do not have required permissions")
-            }
-            throw new Error("model overload, try again")
+            throw this.toApiError(e)
         }
 
     }
@@ -117,13 +114,7 @@ export default class Gemini implements LLMRepository {
                 }
             }
         } catch (e: any) {
-            console.log(e)
-            if (e.status === 429) {
-                throw new AIRateLimitError("You've exceeded your rate limit")
-            } else if (e.status === 403) {
-                throw new BadRequestError("You do not have required permissions")
-            }
-            throw new Error("model overload, try again")
+            throw this.toApiError(e)
         }
     }
 
@@ -139,34 +130,73 @@ export default class Gemini implements LLMRepository {
             contents = this.getPartsFromMessage(messages as Message[]);
         }
 
-        const response = await this.ai.models.countTokens({
-            model: this.appSecrets.geminiConfiguration.model,
-            contents,
-        });
+        try {
+            const response = await this.ai.models.countTokens({
+                model: this.appSecrets.geminiConfiguration.model,
+                contents,
+            });
 
-        return response.totalTokens || 0;
+            return response.totalTokens || 0;
+        } catch (e: any) {
+            throw this.toApiError(e)
+        }
     }
     upload = async (path: string, mimeType: string): Promise<{ uri: string; mimeType: string; name: string; }> => {
-        const file = await this.ai.files.upload({
-            file: path,
-            config: {mimeType: mimeType},
+        try {
+            const file = await this.ai.files.upload({
+                file: path,
+                config: {mimeType: mimeType},
 
-        });
-        if (!file.uri || !file.mimeType || !file.name) {
-            throw new Error("failed to analyse content")
+            });
+            if (!file.uri || !file.mimeType || !file.name) {
+                throw new ApiError("failed to analyse content")
+            }
+            return {uri: file.uri, mimeType: file.mimeType, name: file.name}
+        } catch (e: any) {
+            throw this.toApiError(e)
         }
-        return {uri: file.uri, mimeType: file.mimeType, name: file.name}
     };
 
     getFile = async (name: string): Promise<{ state: string; }> => {
-        const file = await this.ai.files.get({
-            name: name,
-        });
-        if (!file.state) {
-            throw new Error("failed to analyse content")
+        try {
+            const file = await this.ai.files.get({
+                name: name,
+            });
+            if (!file.state) {
+                throw new ApiError("failed to analyse content")
+            }
+            return {state: file.state}
+        } catch (e: any) {
+            throw this.toApiError(e)
         }
-        return {state: file.state}
     };
+
+    /**
+     * The SDK puts the raw JSON response body in `error.message`, so every call
+     * into Gemini has to come back out as one of our own errors — otherwise the
+     * blob travels all the way to the client.
+     */
+    private toApiError = (e: any): ApiError => {
+        console.error("gemini error:", e)
+
+        if (e instanceof ApiError) return e
+
+        if (e.status === 429) {
+            return new AIRateLimitError("You've exceeded your rate limit")
+        }
+        if (e.status === 403) {
+            // Uploaded files live for 48h on Gemini's side while we keep their uri
+            // forever, so a resubmitted old attempt reads as a permission failure.
+            if (MISSING_FILE_ERROR.test(String(e.message ?? ""))) {
+                return new BadRequestError(
+                    "One of your uploaded files has expired, re-upload it and try again"
+                )
+            }
+            return new BadRequestError("You do not have required permissions")
+        }
+
+        return new ApiError("model overload, try again")
+    }
 
     getPartsFromMessage = (messages: Message[]): Part[] => {
         return messages.map(({text, data, uploadedData}) => {

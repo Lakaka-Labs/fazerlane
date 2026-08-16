@@ -1,5 +1,10 @@
 import type ChallengeRepository from "../../../domain/challenge/repository.ts";
-import {AIRateLimitError, ApiError, BadRequestError, InvalidAssessmentsError,} from "../../../../packages/errors";
+import {
+    AIRateLimitError,
+    BadRequestError,
+    InvalidAssessmentsError,
+    toClientError,
+} from "../../../../packages/errors";
 import type LLMRepository from "../../../domain/llm/repository.ts";
 import type {Message} from "../../../domain/llm";
 import {submissionPrompt} from "../../../../packages/prompts/submission.ts";
@@ -10,8 +15,7 @@ import {XPType} from "../../../domain/xp";
 import type {StorageObject} from "../../../domain/objects";
 import type {ObjectRepository} from "../../../domain/objects/repository.ts";
 import type UserRepository from "../../../domain/user/repository.ts";
-import Gemini from "../../../adapters/llm";
-import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
+import {llmForUser} from "../../../adapters/llm/resolve.ts";
 import {isValidSubmissionType} from "../../../../packages/utils/mime.ts";
 import type LaneRepository from "../../../domain/lane/repository.ts";
 import type {Lane} from "../../../domain/lane";
@@ -50,7 +54,7 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
 export default class MarkChallenge {
     constructor(
         private readonly challengeRepository: ChallengeRepository,
-        private llmRepository: LLMRepository,
+        private readonly llmRepository: LLMRepository,
         private readonly xpRepository: XPRepository,
         private readonly appSecret: AppSecrets,
         private readonly objectRepository: ObjectRepository,
@@ -113,6 +117,7 @@ export default class MarkChallenge {
     }
 
     private async* streamWithRetry(
+        llm: LLMRepository,
         promptMessage: Message[],
         signal?: AbortSignal
     ): AsyncGenerator<{ response: string; tokenCount: number }> {
@@ -126,7 +131,7 @@ export default class MarkChallenge {
                     await this.sleep(delay, signal);
                 }
 
-                const streamResult = this.llmRepository.getTextStream(
+                const streamResult = llm.getTextStream(
                     [{role: "user", messages: promptMessage}],
                     useFastModel,
                     signal
@@ -212,17 +217,16 @@ export default class MarkChallenge {
                 user.customPrompt
             );
 
+            const llm = llmForUser(user.apiKey, this.appSecrets, this.llmRepository)
+
             // Get input token count
-            const inputCount = await this.llmRepository.getTokens(promptMessage);
-            if (user.apiKey) {
-                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets, true)
-            }
+            const inputCount = await llm.getTokens(promptMessage);
 
             let fullResponse = '';
             let lastTokenCount = 0;
 
             // Stream chunks to client with retry logic
-            for await (const chunk of this.streamWithRetry(promptMessage, signal)) {
+            for await (const chunk of this.streamWithRetry(llm, promptMessage, signal)) {
                 const text = chunk.response;
                 fullResponse += text;
                 lastTokenCount = chunk.tokenCount;
@@ -269,13 +273,13 @@ export default class MarkChallenge {
                     challengeId: id
                 });
             } else {
+                // Reporting through the stream is the whole error path — rethrowing
+                // would have the handler emit a second error event for one failure.
                 yield JSON.stringify({
                     type: 'error',
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    code: error instanceof ApiError ? error.code : undefined,
+                    ...toClientError(error, "markChallenge"),
                     challengeId: id
                 });
-                throw error;
             }
         }
     }

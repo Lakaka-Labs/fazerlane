@@ -3,8 +3,7 @@ import type LLMRepository from "../../../domain/llm/repository.ts";
 import type {ObjectRepository} from "../../../domain/objects/repository.ts";
 import type {FileParameter, StorageObject} from "../../../domain/objects";
 import type Repository from "../../../domain/user/repository.ts";
-import Gemini from "../../../adapters/llm";
-import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
+import {llmForUser} from "../../../adapters/llm/resolve.ts";
 import type AppSecrets from "../../../../packages/secret";
 
 export default class AddLane {
@@ -21,14 +20,11 @@ export default class AddLane {
     async handle(files: FileParameter[], userId: string): Promise<string[]> {
         let storageObjects: Omit<StorageObject, 'id' | 'createdAt' | 'lastAccessed'>[] = []
         let user = await this.userRepository.get({id: userId})
+        const llm = llmForUser(user.apiKey, this.appSecrets, this.llmRepository)
 
         for (const file of files) {
-            if (user.apiKey) {
-                console.log("using user api key")
-                this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets, true)
-            }
-            const {uri: llmUrl} = await this.llmRepository.upload(file.path, file.mimeType);
-            const isActive = await this.waitForFileActive(llmUrl);
+            const {uri: llmUrl} = await llm.upload(file.path, file.mimeType);
+            const isActive = await this.waitForFileActive(llm, llmUrl);
             if (!isActive) {
                 throw new Error(`Failed to upload`);
             }
@@ -38,12 +34,12 @@ export default class AddLane {
         return await this.objectRepository.add(storageObjects)
     }
 
-    async waitForFileActive(fileUri: string, maxWaitTime: number = 30000): Promise<boolean> {
+    async waitForFileActive(llm: LLMRepository, fileUri: string, maxWaitTime: number = 30000): Promise<boolean> {
         const startTime = Date.now();
 
         while (Date.now() - startTime < maxWaitTime) {
             try {
-                const file = await this.llmRepository.getFile(fileUri);
+                const file = await llm.getFile(fileUri);
                 if (file.state === 'ACTIVE') {
                     return true;
                 }

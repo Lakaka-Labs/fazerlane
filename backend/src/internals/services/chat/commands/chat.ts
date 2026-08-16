@@ -5,14 +5,13 @@ import type {ChatRepository} from "../../../domain/chat/repository.ts";
 import type {MessagesWithRole, ModelResponse} from "../../../domain/llm";
 import type {Conversation} from "../../../domain/chat";
 import {ApiError, BadRequestError} from "../../../../packages/errors";
-import Gemini from "../../../adapters/llm";
-import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
+import {llmForUser} from "../../../adapters/llm/resolve.ts";
 import type AppSecrets from "../../../../packages/secret";
 
 export default class Chat {
     constructor(
         private readonly chatRepository: ChatRepository,
-        private llmRepository: LLMRepository,
+        private readonly llmRepository: LLMRepository,
         private readonly challengeRepository: ChallengeRepository,
         private readonly appSecrets: AppSecrets
     ) {
@@ -26,9 +25,7 @@ export default class Chat {
         signal?: AbortSignal,
         apiKey?: string
     ): Promise<{ generator: AsyncGenerator<string>; messageId: string; conversationId: string }> {
-        if (apiKey) {
-            this.llmRepository = new Gemini(googleGeminiClient(apiKey), this.appSecrets, true)
-        }
+        const llm = llmForUser(apiKey, this.appSecrets, this.llmRepository)
         // Create conversation if needed
         if (!conversationId) {
             conversationId = await this.chatRepository.createConversation(userId, laneId, content.slice(0, 50))
@@ -82,7 +79,7 @@ export default class Chat {
 
             // Parallel: get tokens and create assistant message
             const [userToken, assistantMessageId] = await Promise.all([
-                this.llmRepository.getTokens(userMessages),
+                llm.getTokens(userMessages),
                 this.chatRepository.AddMessage({
                     conversationId,
                     content: "",
@@ -94,7 +91,7 @@ export default class Chat {
             this.chatRepository.AddChunkToMessage(userMessageId, '', userToken).catch(console.error);
 
             // Start streaming
-            const result = this.llmRepository.getTextStream(userMessages,true, signal);
+            const result = llm.getTextStream(userMessages,true, signal);
             const generator = this.streamResponse(
                 result,
                 conversationId,

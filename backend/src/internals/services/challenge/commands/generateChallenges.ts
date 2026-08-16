@@ -13,8 +13,7 @@ import {challengePrompt} from "../../../../packages/prompts/challenge.ts";
 import type {Lane} from "../../../domain/lane";
 import type UserRepository from "../../../domain/user/repository.ts";
 import type {User} from "../../../domain/user";
-import Gemini from "../../../adapters/llm";
-import {googleGeminiClient} from "../../../../packages/utils/connections.ts";
+import {llmForUser} from "../../../adapters/llm/resolve.ts";
 
 type Split = { startTime: number, endTime: number }
 export default class GenerateChallenge {
@@ -24,7 +23,7 @@ export default class GenerateChallenge {
         private readonly appSecrets: AppSecrets,
         private readonly progressRepository: ProgressRepository,
         private readonly progressWebsocketRepository: ProgressWebsocketRepository,
-        private llmRepository: LLMRepository,
+        private readonly llmRepository: LLMRepository,
         private readonly challengeRepository: ChallengeRepository,
         private readonly userRepository: UserRepository
     ) {
@@ -120,13 +119,11 @@ export default class GenerateChallenge {
                 }
             }
         ];
-        const inputToken = await this.llmRepository.getTokens(messages);
-        if (user.apiKey) {
-            this.llmRepository = new Gemini(googleGeminiClient(user.apiKey), this.appSecrets, true)
-        }
-        const {response: llmResult, tokenCount: outputToken} = await this.llmRepository.getText(messages, useFastModel);
+        const llm = llmForUser(user.apiKey, this.appSecrets, this.llmRepository)
+        const inputToken = await llm.getTokens(messages);
+        const {response: llmResult, tokenCount: outputToken} = await llm.getText(messages, useFastModel);
         const challenges = this.extractChallenges(llmResult);
-        const embeddings = await this.llmRepository.generateEmbedding(challenges.map((c) => {
+        const embeddings = await llm.generateEmbedding(challenges.map((c) => {
             return convertChallengeToString(c)
         }))
         await this.challengeRepository.add(lane.id, challenges.map((c, i) => {
