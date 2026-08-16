@@ -95,14 +95,9 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
                 className="text-primary"
               />
             </div>
-            <span className="line-clamp-2">
+            <span className="line-clamp-2 w-full">
               {loadingLaneData ? (
-                <SkeletonLoader
-                  variant="pulse"
-                  rounded="none"
-                  height={20}
-                  width={300}
-                />
+                <SkeletonLoader height={16} width={220} rounded="full" />
               ) : (
                 laneData && laneData.youtubeDetails.title
               )}
@@ -111,16 +106,11 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
         </div>
 
         {loadingLaneData && (
-          <div className="flex flex-col gap-2">
+          <ul className="divide-brand-divider divide-y">
             {Array.from({ length: 4 }).map((_, index) => (
-              <SkeletonLoader
-                key={index}
-                height={150}
-                variant="pulse"
-                rounded="lg"
-              />
+              <ChallengeRowSkeleton key={index} />
             ))}
-          </div>
+          </ul>
         )}
 
         {/* Challenges List */}
@@ -242,6 +232,24 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
 }
 
 /* ------------------------------------------------------------ lane row - */
+
+/**
+ * Stands in for a ChallengeRow while the lane loads — same padding, same
+ * two-line title/objective stack, same dead rail down the left edge — so the
+ * list doesn't jump when the challenges arrive.
+ */
+const ChallengeRowSkeleton = () => (
+  <li className="relative flex flex-col gap-2 py-4 pr-11 pl-4 sm:pl-6" aria-hidden>
+    <span className="bg-brand-text/10 absolute inset-y-0 left-0 w-[3px]" />
+
+    <SkeletonLoader height={14} width="70%" rounded="full" />
+
+    <span className="flex flex-col gap-1.5">
+      <SkeletonLoader height={10} rounded="full" />
+      <SkeletonLoader height={10} width="55%" rounded="full" />
+    </span>
+  </li>
+);
 
 interface ChallengeRowProps {
   challenge: Challenge;

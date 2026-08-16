@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { Dot } from "lucide-react";
 
 interface SkeletonLoaderProps {
   width?: number | string;
@@ -9,6 +8,13 @@ interface SkeletonLoaderProps {
   variant?: "pulse" | "wave" | "none";
 }
 
+/**
+ * A single placeholder block. It is deliberately shape-agnostic: callers compose
+ * the silhouette of whatever they are standing in for out of several of these.
+ * The previous version ignored every prop and always drew one hardcoded lane
+ * card, which is why the lane sidebar rendered five lane cards while waiting on
+ * a title and a challenge list.
+ */
 export default function SkeletonLoader({
   width = "100%",
   height = "100%",
@@ -29,44 +35,20 @@ export default function SkeletonLoader({
     full: "rounded-full",
   }[rounded];
 
-  const animationClass = {
-    pulse: "animate-pulse",
-    wave: "animate-gradient",
-    none: "",
+  /* Tone comes from the ink colour at low opacity rather than a fixed grey, so
+     placeholders sit on the dashboard surface the same way the real content
+     does instead of reading as a lighter patch. */
+  const variantClass = {
+    pulse: "bg-brand-text/10 animate-pulse",
+    wave: "animate-gradient bg-gradient-to-r from-brand-text/5 via-brand-text/15 to-brand-text/5",
+    none: "bg-brand-text/10",
   }[variant];
 
   return (
-    <div className="group relative flex transform cursor-pointer flex-col gap-4 rounded-md transition-all duration-200 ease-in-out md:gap-6">
-      {/* Thumbnail Skeleton */}
-      <div className="h-[250px] w-full animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
-
-      {/* Progress Card Section Skeleton */}
-      <div className="flex w-full px-4 pb-2 md:pb-3">
-        {/* Circular Progress Skeleton */}
-        <div className="flex h-12 w-12 shrink-0 animate-pulse items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700" />
-
-        {/* Content Skeleton */}
-        <div className="flex w-full items-center justify-between gap-3">
-          <div className="flex flex-col gap-2 pl-3">
-            {/* Title Skeleton */}
-            <div className="h-6 w-48 animate-pulse rounded bg-gray-200 md:h-7 lg:w-64 dark:bg-gray-700" />
-
-            {/* Metadata Skeleton */}
-            <div className="flex items-center">
-              <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-              <Dot className={`text-gray-200`} />
-              <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-            </div>
-          </div>
-        </div>
-
-        {/* Dropdown Menu Skeleton */}
-        <div className={`flex flex-col gap-1`}>
-          <div className="mr-2 h-1 min-h-fit w-1 min-w-fit shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
-          <div className="mr-2 h-1 min-h-fit w-1 min-w-fit shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
-          <div className="mr-2 h-1 min-h-fit w-1 min-w-fit shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
-        </div>
-      </div>
-    </div>
+    <span
+      aria-hidden
+      style={{ width: widthStyle, height: heightStyle }}
+      className={cn("block max-w-full shrink-0", roundedClass, variantClass, className)}
+    />
   );
 }

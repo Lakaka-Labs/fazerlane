@@ -13,7 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { InlineLoader, PageLoader } from "@/components/loader";
+import { InlineLoader, PageLoader, SkeletonLoader } from "@/components/loader";
 import { useQueryState } from "nuqs";
 import { cn } from "@/lib/utils";
 
@@ -319,24 +319,49 @@ const LaneGrid = ({ children }: { children: React.ReactNode }) => (
 );
 
 /**
- * Shaped like the card it stands in for — thumbnail, progress ring, two lines of
- * text — so the grid doesn't visibly reflow when the data lands. The previous
- * placeholder was a plain 350px block, which is neither the card's height nor
- * its shape.
+ * Shaped like the card it stands in for, so the grid doesn't visibly reflow when
+ * the data lands. It tracks the card's current anatomy — thumbnail, the progress
+ * rule riding its bottom edge, title, meta line, menu — rather than the ring-
+ * beside-the-title layout the card carried before progress moved to a bar.
  */
 const LaneCardSkeleton = () => (
-  <div className="flex flex-col gap-2 md:gap-3" aria-hidden>
-    <div className="bg-brand-text/10 h-[250px] w-full animate-pulse rounded-md" />
+  <div className="flex flex-col gap-1 rounded-md" aria-hidden>
+    <SkeletonLoader height={250} rounded="md" />
 
-    <div className="flex w-full items-center gap-3 pb-2 md:pb-3">
-      <div className="bg-brand-text/10 size-[70px] shrink-0 animate-pulse rounded-full" />
+    <div className="flex w-full flex-col pb-2">
+      {/* The rule is always in the layout on a card with challenges, so it is
+          here too — leaving it out costs the placeholder 4px of height and
+          nudges every card below it when the real one arrives. */}
+      <SkeletonLoader height={4} rounded="full" />
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="bg-brand-text/10 h-4 w-3/4 animate-pulse rounded-full" />
-        <div className="bg-brand-text/10 h-3 w-2/5 animate-pulse rounded-full" />
+      <div className="mt-1 flex w-full items-start justify-between gap-3">
+        <div className="ml-2 flex min-w-0 flex-1 flex-col gap-2">
+          <SkeletonLoader height={16} width="80%" rounded="full" />
+
+          {/* Same chip-dot-chip rhythm as the real meta line, so the eye lands
+              in the same place once the counts resolve. */}
+          <div className="flex items-center gap-2">
+            <SkeletonLoader height={10} width={54} rounded="full" />
+            <MetaDotSkeleton />
+            <SkeletonLoader height={10} width={62} rounded="full" />
+            <MetaDotSkeleton />
+            <SkeletonLoader height={10} width={44} rounded="full" />
+          </div>
+        </div>
+
+        <SkeletonLoader
+          height={14}
+          width={14}
+          rounded="full"
+          className="my-1 mr-2"
+        />
       </div>
     </div>
   </div>
+);
+
+const MetaDotSkeleton = () => (
+  <span className="bg-brand-text/15 size-1 shrink-0 rounded-full" />
 );
 
 interface LaneTab {
