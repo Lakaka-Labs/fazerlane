@@ -48,7 +48,12 @@ export default function SkeletonLoader({
     <span
       aria-hidden
       style={{ width: widthStyle, height: heightStyle }}
-      className={cn("block max-w-full shrink-0", roundedClass, variantClass, className)}
+      className={cn(
+        "block max-w-full shrink-0",
+        roundedClass,
+        variantClass,
+        className
+      )}
     />
   );
 }

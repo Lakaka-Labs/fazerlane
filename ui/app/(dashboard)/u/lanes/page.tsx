@@ -335,12 +335,20 @@ const LaneCardSkeleton = () => (
       <SkeletonLoader height={4} rounded="full" />
 
       <div className="mt-1 flex w-full items-start justify-between gap-3">
-        <div className="ml-2 flex min-w-0 flex-1 flex-col gap-2">
-          <SkeletonLoader height={16} width="80%" rounded="full" />
+        {/* Each bar sits inside a box the height of the line it replaces —
+            h-7 for the title's line-height, h-4/h-5 for the meta line — rather
+            than being that tall itself. A bar tall enough to fill a 28px line
+            reads as a block, but a short bar in a short box makes the column
+            18px shorter than the card and the whole grid jumps when the titles
+            arrive. */}
+        <div className="ml-2 flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex h-7 items-center">
+            <SkeletonLoader height={16} width="80%" rounded="full" />
+          </div>
 
           {/* Same chip-dot-chip rhythm as the real meta line, so the eye lands
               in the same place once the counts resolve. */}
-          <div className="flex items-center gap-2">
+          <div className="flex h-4 items-center gap-2 md:h-5">
             <SkeletonLoader height={10} width={54} rounded="full" />
             <MetaDotSkeleton />
             <SkeletonLoader height={10} width={62} rounded="full" />
