@@ -171,7 +171,7 @@ export function ApiKeyTab() {
                         <Button
                             type="submit"
                             disabled={isUpdating || isUnchanged || isEmpty}
-                            className="w-full sm:w-auto"
+                            className="w-full sm:w-auto rounded-tl rounded-tr-xl"
                         >
                             {isUpdating ? "Saving..." : "Save API Key"}
                         </Button>

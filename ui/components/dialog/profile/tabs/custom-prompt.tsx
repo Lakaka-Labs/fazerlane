@@ -154,7 +154,7 @@ export function CustomPromptTab() {
                         <Button
                             type="submit"
                             disabled={isPending || isUnchanged || isEmpty}
-                            className="w-full sm:w-auto"
+                            className="w-full sm:w-auto rounded-tl rounded-tr-xl"
                         >
                             {isPending ? "Saving..." : "Save Prompt"}
                         </Button>
