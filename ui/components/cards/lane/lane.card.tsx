@@ -92,11 +92,6 @@ export default function LearnCard({lane}: LearnCardProps) {
         );
     }
 
-    /* The link is an overlay rather than a wrapper so the options menu can be a
-       real <button> — a button nested inside an anchor is invalid, and the menu
-       previously dodged that by rendering a bare <svg> as its trigger, which no
-       keyboard could reach. The overlay carries the card's accessible name; the
-       menu sits above it on z-10. */
     return (
         <div
             className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex flex-col gap-1 rounded-md transition-[box-shadow,background-color,gap] duration-200 ease-in-out hover:gap-0"
@@ -113,11 +108,14 @@ export default function LearnCard({lane}: LearnCardProps) {
             </Link>
 
             {lane.state === "completed" && (
-                <div
+                <Link
+                    href={
+                        lane.state !== "completed"
+                            ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
+                            : appRoutes.dashboard.user.challanges(lane.id)
+                    }
                     className="h-[250px] w-full rounded-md object-cover object-center transition-[border-radius] duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none overflow-hidden"
                 >
-
-
                     <Image
                         src={lane.youtubeDetails.thumbnail}
                         alt=""
@@ -127,7 +125,7 @@ export default function LearnCard({lane}: LearnCardProps) {
                         quality={100}
                         priority
                     />
-                </div>
+                </Link>
             )}
 
             <ProgressCardSection lane={lane}/>

@@ -98,7 +98,7 @@ export default function Lane() {
   const formats = currentChallenge.submissionFormat ?? [];
 
   return (
-    <div className="flex flex-col gap-5 pb-24 lg:pb-8">
+    <div className="flex flex-col gap-5 pb-24 mt-4 lg:pb-8">
       <header className="border-brand-divider shadow-brand-shadow overflow-hidden rounded-2xl border border-solid bg-white">
         <div className="flex flex-col gap-4 p-5 md:p-6">
           {/* Position within the lane + completion state */}

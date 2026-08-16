@@ -134,7 +134,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
 
   return (
     <>
-      <div className="md:max-w-sidebarmw shadow-brand-shadow sticky hidden h-fit max-h-[90%] w-full max-w-full flex-col rounded-2xl bg-white pb-4 md:m-1 lg:flex">
+      <div className="md:max-w-sidebarmw shadow-brand-shadow sticky hidden h-fit max-h-[90%] lg:w-full max-w-full flex-col rounded-2xl bg-white pb-4 md:m-1 md:flex">
         {/* Header */}
         <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
           <h1 className="flex items-center gap-3 text-base font-extrabold">
@@ -279,7 +279,7 @@ function LaneSheet({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm lg:hidden"
+                className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm md:hidden"
               />
             </DialogPrimitive.Overlay>
 
@@ -310,7 +310,7 @@ function LaneSheet({
                     onOpenChange(false);
                   }
                 }}
-                className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[86dvh] w-full flex-col overflow-hidden rounded-tl-4xl rounded-t bg-white shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.35)] outline-none lg:hidden"
+                className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[86dvh] w-full flex-col overflow-hidden rounded-tl-4xl rounded-t bg-white shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.35)] outline-none md:hidden"
               >
                 <div
                   onPointerDown={(event) => dragControls.start(event)}
@@ -419,7 +419,7 @@ const LaneLauncher = ({
       "bottom-0",
       "active:bg-brand-text/[0.04] transition-colors duration-200 ease-out",
       "focus-visible:ring-brand-text/25 focus-visible:ring-2 focus-visible:outline-none",
-      "lg:hidden cursor-pointer"
+      "md:hidden cursor-pointer"
     )}
     {...props}
   >
