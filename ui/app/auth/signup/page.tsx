@@ -27,8 +27,17 @@ import { usePersistStore } from "@/store/persist.store";
 import { useRouter } from "next/navigation";
 import { googleLoginQ } from "@/services/queries/auth/auth";
 import { parseAsString, useQueryState } from "nuqs";
+import { GuestOnlyGuard } from "@/components/guard";
 
-export default function Signup() {
+export default function SignUpPage() {
+  return (
+    <GuestOnlyGuard>
+      <Signup />
+    </GuestOnlyGuard>
+  );
+}
+
+function Signup() {
   const router = useRouter();
   const [googleError, setGoogleError] = useQueryState(
     queryStateParams.error,

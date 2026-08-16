@@ -26,8 +26,17 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { googleLoginQ } from "@/services/queries/auth/auth";
 import { parseAsString, useQueryState } from "nuqs";
+import { GuestOnlyGuard } from "@/components/guard";
 
-export default function Signin() {
+export default function SignInPage() {
+  return (
+    <GuestOnlyGuard>
+      <Signin />
+    </GuestOnlyGuard>
+  );
+}
+
+function Signin() {
   const router = useRouter();
   const [googleError, setGoogleError] = useQueryState(
     queryStateParams.error,
