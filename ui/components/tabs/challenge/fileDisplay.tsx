@@ -62,7 +62,7 @@ export default function FilePreview({ url, className }: FilePreviewProps) {
   }, [isOverlayOpen]);
 
   const tile = cn(
-    "group border-brand-divider relative h-36 w-56 shrink-0 overflow-hidden rounded-xl border border-solid bg-white transition-all duration-200",
+    "group border-brand-divider relative h-36 w-56 shrink-0 overflow-hidden rounded-xl border border-solid bg-white transition-[border-color,box-shadow] duration-200",
     className
   );
 
@@ -106,7 +106,7 @@ export default function FilePreview({ url, className }: FilePreviewProps) {
         }}
         className="absolute inset-0 z-10 cursor-pointer bg-transparent"
       />
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/25 group-hover:opacity-100">
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-[opacity,background-color] duration-200 group-hover:bg-black/25 group-hover:opacity-100">
         <span className="rounded-full bg-white/90 p-2 text-brand-text">
           <Maximize2 className="size-4" />
         </span>

@@ -18,7 +18,7 @@ const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const buttonRef = useRef<HTMLSpanElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -115,18 +115,21 @@ const Chatbot: React.FC = () => {
               onKeyPress={handleKeyPress}
               className="h-[40px] w-full border-none bg-transparent text-base text-black shadow-none outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
-            <span
+            <button
               ref={buttonRef}
+              type="button"
               onClick={handleSendMessage}
-              className={`border-border bg-brand-white flex w-fit max-w-[50px] shrink-0 transform cursor-pointer items-center justify-center rounded-r-md border border-solid px-4 transition-all duration-200 ease-linear hover:bg-gray-600 hover:text-white`}
+              aria-label="Send message"
+              className={`border-border bg-brand-white focus-visible:ring-brand-text/25 flex w-fit max-w-[50px] shrink-0 cursor-pointer items-center justify-center rounded-r-md border border-solid px-4 transition-[color,background-color,scale] duration-200 ease-linear focus-visible:ring-2 focus-visible:outline-none motion-safe:active:scale-[0.97] hover:bg-gray-600 hover:text-white`}
             >
-              <SendHorizontal size={24} />
-            </span>
+              <SendHorizontal aria-hidden size={24} />
+            </button>
           </div>
         </div>
 
         <div
-          className={`absolute top-[calc(100%+10px)] left-1/2 z-[999] mx-auto h-[50vh] w-2xl -translate-x-1/2 transform overflow-hidden rounded-2xl border border-gray-300 shadow-2xl transition-all duration-200 ease-linear ${
+          inert={!isExpanded}
+          className={`absolute top-[calc(100%+10px)] left-1/2 z-[999] mx-auto h-[50vh] w-2xl -translate-x-1/2 overflow-hidden rounded-2xl border border-gray-300 shadow-2xl transition-[opacity,transform,translate,scale] duration-200 ease-linear ${
             isExpanded
               ? "translate-y-0 scale-x-100 opacity-100"
               : "pointer-events-none -translate-y-[10px] scale-x-75 opacity-0"

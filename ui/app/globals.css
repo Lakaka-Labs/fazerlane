@@ -197,6 +197,42 @@
   /* body {
     @apply bg-background text-foreground;
   } */
+
+  /* Underlines duck below descenders instead of striking through them, and sit
+     where the typeface itself says they should rather than at the browser's
+     guess. */
+  a,
+  ins,
+  u {
+    text-underline-position: from-font;
+    text-decoration-skip-ink: auto;
+  }
+
+  /* Headings get even line lengths; supporting copy just avoids orphans. Neither
+     belongs on long-form prose, which is why this is scoped to the two roles and
+     not to `p` across the board. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  /* IDs, URLs and untruncated titles come back from the API long enough to
+     escape their container; let them break rather than blow out the layout. */
+  a,
+  code,
+  pre {
+    overflow-wrap: break-word;
+  }
+}
+
+/* Photography carries its own edge so a light thumbnail doesn't bleed into a
+   white card. Offset inward so the line reads as part of the image rather than
+   as a border that changes its footprint. */
+@utility image-edge {
+  outline: 1px solid --alpha(var(--color-brand-deep-black) / 8%);
+  outline-offset: -1px;
 }
 
 @keyframes gradientMove {

@@ -52,7 +52,8 @@ export function GeneralSettingsTab() {
               <button
                 key={option.value}
                 onClick={() => handleThemeChange(option.value)}
-                className={`flex flex-col items-center gap-3 rounded-lg border-2 p-4 transition-all ${
+                aria-pressed={isActive}
+                className={`flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 p-4 transition-[color,background-color,border-color,scale] duration-200 ease-out motion-safe:active:scale-[0.97] ${
                   isActive
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-primary/50"

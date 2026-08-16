@@ -147,16 +147,29 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
     <div className="flex w-full flex-col gap-4">
       <div
         className={cn(
-          "group relative flex h-44 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all duration-200 ease-out",
+          "group focus-visible:ring-brand-text/25 relative flex h-44 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-[border-color,background-color] duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none",
           isDragging
             ? "border-brand-red bg-brand-red/5"
             : "border-brand-divider bg-brand-background-dashboard/60 hover:border-brand-text/25 hover:bg-brand-background-dashboard",
           isLoading && "pointer-events-none opacity-60"
         )}
+        /* A div rather than a <button> because it also has to be a drop target
+           and it wraps the file input; the button role plus Enter/Space keeps it
+           reachable without the invalid nesting. */
+        role="button"
+        tabIndex={0}
+        aria-label="Choose files to upload"
+        aria-disabled={isLoading}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={handleBrowseClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleBrowseClick();
+          }
+        }}
       >
         <input
           ref={fileInputRef}
@@ -218,7 +231,7 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
                 fileLink[index] && (
                   <div
                     key={file.id}
-                    className="group border-brand-divider hover:shadow-brand-shadow relative flex items-center gap-3 rounded-xl border border-solid bg-white p-3 transition-all duration-200"
+                    className="group border-brand-divider hover:shadow-brand-shadow relative flex items-center gap-3 rounded-xl border border-solid bg-white p-3 transition-[box-shadow] duration-200"
                   >
                     <span className="bg-brand-background-dashboard flex size-9 shrink-0 items-center justify-center rounded-lg">
                       {getFileIcon(file.name)}
@@ -240,10 +253,10 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
                         e.stopPropagation();
                         removeFile(fileLink[index], file.id);
                       }}
-                      className="text-brand-text/35 hover:bg-brand-red/10 hover:text-brand-red flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-200"
-                      title="Remove file"
+                      className="text-brand-text/35 hover:bg-brand-red/10 hover:text-brand-red focus-visible:ring-brand-text/25 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-[color,background-color,scale] duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none motion-safe:active:scale-[0.97]"
+                      aria-label={`Remove ${file.name}`}
                     >
-                      <X className="size-4" />
+                      <X aria-hidden className="size-4" />
                     </button>
                   </div>
                 )

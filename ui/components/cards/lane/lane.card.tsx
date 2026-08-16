@@ -34,17 +34,17 @@ export default function LearnCard({lane}: LearnCardProps) {
     if (lane.state !== "completed") {
         return (
             <div
-                className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col rounded-md transition-all duration-200 ease-in-out">
+                className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex cursor-pointer flex-col rounded-md transition-[box-shadow,background-color] duration-200 ease-in-out">
                 {lane.state === "accepted" && (
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
                                 <Image
                                     src={lane.youtubeDetails.thumbnail}
-                                    alt="img"
+                                    alt=""
                                     width={1280}
                                     height={720}
-                                    className="h-[250px] w-full transform rounded-md object-cover object-center opacity-70 blur-xs brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                                    className="image-edge h-[250px] w-full rounded-md object-cover object-center opacity-70 blur-xs brightness-50 transition-[border-radius] duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
                                     quality={100}
                                     priority
                                 />
@@ -66,10 +66,10 @@ export default function LearnCard({lane}: LearnCardProps) {
                             <div className="relative flex h-[250px] w-full items-center justify-center rounded-md">
                                 <Image
                                     src={lane.youtubeDetails.thumbnail}
-                                    alt="img"
+                                    alt=""
                                     width={1280}
                                     height={720}
-                                    className="h-[250px] w-full transform rounded-md object-cover object-center opacity-70 blur-xs brightness-50 transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
+                                    className="image-edge h-[250px] w-full rounded-md object-cover object-center opacity-70 blur-xs brightness-50 transition-[border-radius] duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none"
                                     quality={100}
                                     priority
                                 />
@@ -92,27 +92,38 @@ export default function LearnCard({lane}: LearnCardProps) {
         );
     }
 
+    /* The link is an overlay rather than a wrapper so the options menu can be a
+       real <button> — a button nested inside an anchor is invalid, and the menu
+       previously dodged that by rendering a bare <svg> as its trigger, which no
+       keyboard could reach. The overlay carries the card's accessible name; the
+       menu sits above it on z-10. */
     return (
-        <Link
-            href={
-                lane.state !== "completed"
-                    ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
-                    : appRoutes.dashboard.user.challanges(lane.id)
-            }
-            className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex transform cursor-pointer flex-col gap-1 rounded-md transition-all duration-200 ease-in-out hover:gap-0"
+        <div
+            className="hover:shadow-brand-shadow group hover:bg-brand-red/5 relative flex flex-col gap-1 rounded-md transition-[box-shadow,background-color,gap] duration-200 ease-in-out hover:gap-0"
         >
+            <Link
+                href={
+                    lane.state !== "completed"
+                        ? `${appRoutes.dashboard.user.progress}?laneId=${lane.id}`
+                        : appRoutes.dashboard.user.challanges(lane.id)
+                }
+                className="focus-visible:ring-brand-text/25 absolute inset-0 z-0 cursor-pointer rounded-md focus-visible:ring-2 focus-visible:outline-none"
+            >
+                <span className="sr-only">{lane.youtubeDetails.title}</span>
+            </Link>
+
             {lane.state === "completed" && (
                 <div
-                    className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none overflow-hidden"
+                    className="h-[250px] w-full rounded-md object-cover object-center transition-[border-radius] duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none overflow-hidden"
                 >
 
 
                     <Image
                         src={lane.youtubeDetails.thumbnail}
-                        alt="img"
+                        alt=""
                         width={1280}
                         height={720}
-                        className="h-[250px] w-full transform rounded-md object-cover object-center transition-all duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none group-hover:scale-105"
+                        className="image-edge h-[250px] w-full rounded-md object-cover object-center transition-[border-radius,scale] duration-200 ease-linear group-hover:rounded-t-md group-hover:rounded-b-none motion-safe:group-hover:scale-105"
                         quality={100}
                         priority
                     />
@@ -120,7 +131,7 @@ export default function LearnCard({lane}: LearnCardProps) {
             )}
 
             <ProgressCardSection lane={lane}/>
-        </Link>
+        </div>
     );
 }
 
@@ -256,14 +267,14 @@ const ProgressCardSection = ({lane}: LearnCardProps) => {
                     <div className="text-brand-text/60 flex items-center gap-2 text-xs md:text-sm">
                         {total > 0 && (
                             <>
-                <span className="text-brand-text font-semibold whitespace-nowrap">
+                <span className="text-brand-text font-semibold tabular-nums whitespace-nowrap">
                   {passed}/{total} done
                 </span>
                                 <MetaDot/>
                             </>
                         )}
 
-                        <span className="whitespace-nowrap">
+                        <span className="tabular-nums whitespace-nowrap">
               {lane.totalAttempts} Attempts
             </span>
 
@@ -277,9 +288,10 @@ const ProgressCardSection = ({lane}: LearnCardProps) => {
 
                 {activeTab !== "featured" && (
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild className="my-1 mr-2">
-                            <EllipsisVertical
-                                className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5"/>
+                        <DropdownMenuTrigger
+                            aria-label="Lane options"
+                            className="hover:bg-brand-black/5 text-brand-text/55 hover:text-brand-text focus-visible:ring-brand-text/25 relative z-10 my-1 mr-2 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none">
+                            <EllipsisVertical aria-hidden className="size-4"/>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-32" align="end">
                             <DropdownMenuGroup>
@@ -315,9 +327,10 @@ const ProgressCardSection = ({lane}: LearnCardProps) => {
 
                 {activeTab === "featured" && (
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild className="my-1 mr-2">
-                            <EllipsisVertical
-                                className="hover:bg-brand-black/5 flex size-3.5 min-h-fit min-w-fit shrink-0 rounded-full p-1.5"/>
+                        <DropdownMenuTrigger
+                            aria-label="Lane options"
+                            className="hover:bg-brand-black/5 text-brand-text/55 hover:text-brand-text focus-visible:ring-brand-text/25 relative z-10 my-1 mr-2 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none">
+                            <EllipsisVertical aria-hidden className="size-4"/>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-32" align="center">
                             <DropdownMenuGroup>

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { SignInFields, signInSchema } from "@/schemas/auth";
 import appRoutes, { queryStateParams } from "@/config/routes";
-import { Eye, EyeOff } from "lucide-react";
+import { PasswordToggle } from "@/components/input/password-toggle";
 import Link from "next/link";
 import AuthTitle from "@/components/title/auth.title";
 import toast from "react-hot-toast";
@@ -152,12 +152,10 @@ function Signin() {
                           type={showPassword ? "text" : "password"}
                           {...field}
                         />
-                        <span
-                          onClick={() => setShowPassword((prev) => !prev)}
-                          className={`border-border flex transform cursor-pointer items-center justify-center rounded-md border border-solid px-2 transition-all duration-200 ease-linear ${!showPassword ? "bg-border" : "bg-transparent"}`}
-                        >
-                          {showPassword ? <Eye /> : <EyeOff />}
-                        </span>
+                        <PasswordToggle
+                          visible={showPassword}
+                          onToggle={() => setShowPassword((prev) => !prev)}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />

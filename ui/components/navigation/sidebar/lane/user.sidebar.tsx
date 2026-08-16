@@ -310,7 +310,7 @@ function LaneSheet({
                     onOpenChange(false);
                   }
                 }}
-                className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[86dvh] w-full max-w-lg flex-col overflow-hidden rounded-tl-4xl rounded-t bg-white shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.35)] outline-none lg:hidden"
+                className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[86dvh] w-full flex-col overflow-hidden rounded-tl-4xl rounded-t bg-white shadow-[0_-8px_40px_-12px_rgba(0,0,0,0.35)] outline-none lg:hidden"
               >
                 <div
                   onPointerDown={(event) => dragControls.start(event)}
@@ -354,7 +354,7 @@ function LaneSheet({
                         />
                       </div>
 
-                      <span className="text-brand-text/55 shrink-0 text-[11px] font-bold tracking-[0.08em] uppercase">
+                      <span className="text-brand-text/55 shrink-0 text-[11px] font-bold tracking-[0.08em] tabular-nums uppercase">
                         {cleared} / {total} cleared
                       </span>
                     </div>
@@ -412,7 +412,7 @@ const LaneLauncher = ({
     type="button"
     aria-label="Open the challenge list for this lane"
     className={cn(
-      "border-brand-divider fixed inset-x-0 z-30 mx-auto flex max-w-lg items-center gap-3 rounded-t rounded-tl-2xl border-2 border-solid bg-white/50 py-2 pr-3.5 pl-4 text-left backdrop-blur-md",
+      "border-brand-divider fixed inset-x-0 z-30 mx-auto flex items-center gap-3 rounded-t rounded-tl-2xl border-2 border-solid bg-white/50 py-2 pr-3.5 pl-4 text-left backdrop-blur-md",
       // Same family as `shadow-brand-shadow`, thrown a little further: this one
       // has to lift off a white card rather than off the dashboard ground.
       "shadow-[0_10px_24px_-10px_rgba(0,0,0,0.28)]",

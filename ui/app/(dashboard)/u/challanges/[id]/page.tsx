@@ -98,12 +98,12 @@ export default function Lane() {
   const formats = currentChallenge.submissionFormat ?? [];
 
   return (
-    <div className="flex flex-col gap-5 pb-24 md:pb-8">
+    <div className="flex flex-col gap-5 pb-24 lg:pb-8">
       <header className="border-brand-divider shadow-brand-shadow overflow-hidden rounded-2xl border border-solid bg-white">
         <div className="flex flex-col gap-4 p-5 md:p-6">
           {/* Position within the lane + completion state */}
           <div className="flex items-center justify-between gap-3">
-            <span className="text-brand-text/45 flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] uppercase">
+            <span className="text-brand-text/45 flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] tabular-nums uppercase">
               <span className="bg-brand-red size-1.5 shrink-0 rounded-full" />
               {index >= 0 && total > 0
                 ? `Challenge ${pad(index + 1)} of ${pad(total)}`
@@ -183,7 +183,7 @@ export default function Lane() {
               />
             </div>
 
-            <span className="text-brand-text/55 shrink-0 text-[11px] font-bold tracking-[0.08em] uppercase">
+            <span className="text-brand-text/55 shrink-0 text-[11px] font-bold tracking-[0.08em] tabular-nums uppercase">
               {cleared} / {total} cleared
             </span>
           </div>
@@ -216,7 +216,7 @@ const ChallengeNavButton = ({
       onClick={() => onSelect(challenge)}
       aria-label={`${isPrevious ? "Previous" : "Next"} challenge`}
       className={cn(
-        "border-brand-divider text-brand-text/70 flex size-9 items-center justify-center rounded border border-solid bg-white transition-all duration-200 ease-out",
+        "border-brand-divider text-brand-text/70 flex size-9 items-center justify-center rounded border border-solid bg-white transition-[color,background-color,border-color,box-shadow,scale] duration-200 ease-out motion-safe:active:scale-[0.97]",
         // The pair mirrors the app's oversized-corner motif outwards.
         isPrevious ? "rounded-tl-xl" : "rounded-tr-xl",
         "hover:border-brand-text/25 hover:text-brand-text hover:bg-brand-text/[0.04] hover:shadow-brand-shadow",
