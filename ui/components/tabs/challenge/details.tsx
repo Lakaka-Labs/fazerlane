@@ -1,148 +1,251 @@
 "use client";
 
-import { usePersistStore } from "@/store/persist.store";
 import { useState } from "react";
-import YoutubeVideo from "@/components/video/youtube";
-import { ChevronDown } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { SectionContainer, SectionContent } from "./components";
-import { ReferenceLocation } from "@/types/api/challenges";
-import { useQuery } from "@tanstack/react-query";
-import { getLaneByID } from "@/services/queries/lane/get.lane-by-id";
-import { useParams } from "next/navigation";
-import { getYouTubeUrl } from "@/utils/format-url";
-import { SkeletonLoader } from "@/components/loader";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { normalizeTime } from "@/utils/normalized.time";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "motion/react";
+import { BookOpen, ChevronDown, Clapperboard, Play } from "lucide-react";
+
+import YoutubeVideo from "@/components/video/youtube";
+import { cn } from "@/lib/utils";
+import { getLaneByID } from "@/services/queries/lane/get.lane-by-id";
+import { usePersistStore } from "@/store/persist.store";
+import { ReferenceLocation } from "@/types/api/challenges";
+import { getYouTubeUrl } from "@/utils/format-url";
+
+import {
+  Chip,
+  EmptyState,
+  InsetPanel,
+  Markdown,
+  SectionBody,
+  SectionCard,
+  SectionHeader,
+  formatTimecode,
+  timecodeToSeconds,
+} from "./challenge.ui";
 
 export const DetailsTab = () => {
-  const params = useParams();
-  const { id } = params;
+  const { id } = useParams();
 
   const { currentChallenge } = usePersistStore((store) => store);
-
-  if (!id) {
-    return <div>No Lane ID provided</div>;
-  }
 
   const { data: laneData, isLoading: loadingLaneData } = useQuery({
     queryKey: ["get-lane-by-id", id],
     queryFn: () => getLaneByID({ id: id as string }),
+    enabled: Boolean(id),
   });
 
-  return (
-    <div className="flex flex-col gap-6">
-      <SectionContent title="Objective" content={currentChallenge!.objective} />
-      <SectionContent
-        title="Instructions"
-        content={currentChallenge!.instruction}
-        contentClassName={`leading-relaxed text-lg`}
-      />
+  if (!currentChallenge) return null;
 
-      <SectionContainer>
-        <h2 className="text-base font-semibold">References</h2>
+  const references = currentChallenge.references ?? [];
+  const videoLink = laneData ? getYouTubeUrl(laneData.youtube) : "";
+
+  return (
+    <div className="flex flex-col gap-5">
+      <SectionCard>
+        <SectionHeader
+          icon={BookOpen}
+          title="Instructions"
+          description="How to approach this challenge before you attempt it"
+        />
+        <SectionBody>
+          <Markdown className="text-base">
+            {currentChallenge.instruction}
+          </Markdown>
+        </SectionBody>
+      </SectionCard>
+
+      <SectionCard className="overflow-hidden">
+        <SectionHeader
+          icon={Clapperboard}
+          title="References"
+          description="The exact moments of the video this challenge came from"
+          bordered={references.length > 0 && !loadingLaneData}
+          trailing={
+            references.length > 0 ? (
+              <Chip>
+                {references.length} {references.length === 1 ? "clip" : "clips"}
+              </Chip>
+            ) : undefined
+          }
+        />
 
         {loadingLaneData && (
-          <div className="flex flex-col gap-2">
+          <SectionBody className="flex flex-col gap-3">
             {Array.from({ length: 3 }).map((_, index) => (
-              <SkeletonLoader
-                key={index}
-                height={50}
-                variant="pulse"
-                rounded="none"
-              />
+              <div key={index} className="flex items-center gap-3">
+                <span className="bg-brand-text/10 size-10 shrink-0 animate-pulse rounded-lg" />
+                <span className="flex flex-1 flex-col gap-2">
+                  <span className="bg-brand-text/10 h-3.5 w-3/5 animate-pulse rounded-full" />
+                  <span className="bg-brand-text/10 h-3 w-24 animate-pulse rounded-full" />
+                </span>
+              </div>
             ))}
-          </div>
+          </SectionBody>
         )}
 
-        {laneData && (
-          <div>
-            {currentChallenge?.references.map((ref, i) => (
-              <ReferencesDropdown
-                key={ref.purpose}
-                location={ref.location}
-                purpose={ref.purpose}
-                videoLink={getYouTubeUrl(laneData.youtube)}
-                className={`${i === currentChallenge?.references.length - 1 ? "border-none" : ""}`}
+        {!loadingLaneData && references.length < 1 && (
+          <SectionBody>
+            <EmptyState
+              icon={Clapperboard}
+              title="No references for this challenge"
+              description="This one is on you — work from the instructions above."
+            />
+          </SectionBody>
+        )}
+
+        {!loadingLaneData && references.length > 0 && (
+          <ul className="divide-brand-divider divide-y divide-solid">
+            {references.map((reference, index) => (
+              <ReferenceRow
+                key={`${reference.purpose}-${index}`}
+                index={index + 1}
+                purpose={reference.purpose}
+                location={reference.location}
+                videoLink={videoLink}
               />
             ))}
-          </div>
+          </ul>
         )}
-      </SectionContainer>
+      </SectionCard>
     </div>
   );
 };
 
-interface ReferenceDropDownProps {
-  location: ReferenceLocation;
+interface ReferenceRowProps {
+  index: number;
   purpose: string;
+  location: ReferenceLocation;
   videoLink: string;
-  className?: string;
 }
 
-const ReferencesDropdown = ({
-  location,
+const ReferenceRow = ({
+  index,
   purpose,
+  location,
   videoLink,
-  className,
-}: ReferenceDropDownProps) => {
+}: ReferenceRowProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  function handleToggleReferencesDropdown() {
-    setIsOpen((prev) => !prev);
-  }
+  const start = formatTimecode(location?.startTime);
+  const end = formatTimecode(location?.endTime);
+
+  const duration =
+    timecodeToSeconds(location?.endTime) -
+    timecodeToSeconds(location?.startTime);
 
   return (
-    <div>
-      <div
-        onClick={handleToggleReferencesDropdown}
+    <li>
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((open) => !open)}
         className={cn(
-          `border-brand-black/20 flex items-center justify-between border-b`,
-          className
+          "group flex w-full cursor-pointer items-center gap-3 px-5 py-4 text-left transition-colors duration-200 md:gap-4 md:px-6",
+          isOpen ? "bg-brand-text/[0.03]" : "hover:bg-brand-text/[0.02]"
         )}
       >
-        <div className="flex w-full cursor-pointer items-start gap-2 px-1 py-6 md:px-4">
-          <Image
-            src={"/icons/yt.svg"}
-            alt={"youtube icon"}
-            height={20}
-            width={20}
-            className="text-primary my-0.5"
-          />
-          <h3 className="text-sm font-normal md:text-base">{purpose}</h3>
-        </div>
+        <span
+          className={cn(
+            "relative flex size-10 shrink-0 items-center justify-center rounded-lg transition-colors duration-200",
+            isOpen ? "bg-brand-red" : "bg-brand-red/10"
+          )}
+        >
+          {isOpen ? (
+            <Image
+              src="/icons/yt-white.png"
+              alt=""
+              height={18}
+              width={18}
+              aria-hidden
+            />
+          ) : (
+            <Image
+              src="/icons/yt.svg"
+              alt=""
+              height={18}
+              width={18}
+              aria-hidden
+            />
+          )}
+        </span>
 
-        <ChevronDown size={20} color="#1D1B20" />
-      </div>
+        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <span className="text-brand-text text-sm leading-snug font-semibold md:text-base">
+            <span className="text-brand-text/35 mr-2 font-mono text-xs">
+              {String(index).padStart(2, "0")}
+            </span>
+            {purpose}
+          </span>
 
-      <AnimatePresence mode="wait">
+          <span className="flex flex-wrap items-center gap-2">
+            <Chip
+              tone={isOpen ? "ink" : "neutral"}
+              icon={Play}
+              className="tracking-normal normal-case"
+            >
+              {start} – {end}
+            </Chip>
+
+            {duration > 0 && (
+              <span className="text-brand-text/40 text-[11px] font-medium">
+                {formatDuration(duration)}
+              </span>
+            )}
+          </span>
+        </span>
+
+        <ChevronDown
+          className={cn(
+            "text-brand-text/40 group-hover:text-brand-text/70 size-5 shrink-0 transition-transform duration-200 ease-out",
+            isOpen && "text-brand-text rotate-180"
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
         {isOpen && videoLink && (
           <motion.div
-            // key="video-wrapper"
-            initial={{ height: 0}}
-            animate={{ height: "auto"}}
-            exit={{ height: 0}}
-            transition={{ duration: 0.05, ease: "linear" }}
-            className="bg-brand-background-dashboard px-2 py-6 md:px-8 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="overflow-hidden"
           >
-            <div className="aspect-video w-full overflow-hidden rounded-[12px]">
-              <YoutubeVideo
-                url={videoLink}
-                startTime={location.startTime}
-                endTime={location.endTime}
-                playing={false}
-              />
-            </div>
+            <div className="px-5 pb-5 md:px-6 md:pb-6">
+              <InsetPanel className="p-3 md:p-4">
+                <div className="aspect-video w-full overflow-hidden rounded-lg bg-black ring-1 ring-black/5">
+                  <YoutubeVideo
+                    url={videoLink}
+                    startTime={location.startTime}
+                    endTime={location.endTime}
+                    playing={false}
+                  />
+                </div>
 
-            <div className="font-lato mt-3 flex w-full items-center justify-center gap-2 text-center font-semibold">
-              <span>From: [{normalizeTime(location.startTime)}]</span>
-              <span>-</span>
-              <span>To: [{normalizeTime(location.endTime)}]</span>
+                <div className="text-brand-text/50 mt-3 flex items-center justify-center gap-2 text-[11px] font-bold tracking-[0.08em] uppercase">
+                  <span>{start}</span>
+                  <span className="bg-brand-text/20 h-px w-6" />
+                  <span>{end}</span>
+                </div>
+              </InsetPanel>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </li>
   );
 };
+
+function formatDuration(seconds: number) {
+  if (seconds < 60) return `${seconds}s long`;
+
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+
+  return remainder > 0
+    ? `${minutes}m ${remainder}s long`
+    : `${minutes}m long`;
+}

@@ -7,12 +7,8 @@ import appRoutes from "@/config/routes";
 import { Lane } from "@/types/api/lane";
 import { dateToNow } from "@/utils/date-to-now";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Dot,
-  EllipsisVertical,
-  LoaderCircle,
-  OctagonAlert,
-} from "lucide-react";
+import { Dot, EllipsisVertical, OctagonAlert } from "lucide-react";
+import { LogoLoader } from "@/components/loader";
 import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -57,7 +53,7 @@ export default function LearnCard({ lane }: LearnCardProps) {
                   priority
                 />
                 <div className="border-brand-grey/60 absolute top-1/2 left-1/2 flex h-[250px] w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-md border border-solid group-hover:rounded-t-md group-hover:rounded-b-none">
-                  <LoaderCircle size={64} className="animate-spin text-white" />
+                  <LogoLoader size={56} className="text-white" />
                 </div>
               </div>
             </TooltipTrigger>

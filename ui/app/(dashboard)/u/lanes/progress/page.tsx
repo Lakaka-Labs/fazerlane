@@ -3,7 +3,7 @@
 import { WebSocketManager } from "@/config/socket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { Loader2 } from "lucide-react";
+import { LogoLoader } from "@/components/loader";
 import { Button } from "@/components/ui/button";
 import AuthTitle from "@/components/title/auth.title";
 import Hyperspeed from "@/components/Hyperspeed";
@@ -208,7 +208,7 @@ export default function ChallengeProgress() {
         >
           <AuthTitle title="Connecting..." />
           <div className="flex justify-center">
-            <Loader2 className="h-10 w-10 animate-spin text-red-500" />
+            <LogoLoader size={48} className="text-brand-red" />
           </div>
         </motion.div>
       )}
@@ -223,7 +223,7 @@ export default function ChallengeProgress() {
 
           {(progress === "generating" || progress === "regenerating") && (
             <div className="flex justify-center">
-              <Loader2 className="h-10 w-10 animate-spin text-red-500" />
+              <LogoLoader size={48} className="text-brand-red" />
             </div>
           )}
 

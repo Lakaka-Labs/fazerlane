@@ -12,7 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { InlineLoader, SkeletonLoader } from "@/components/loader";
+import { InlineLoader, PageLoader, SkeletonLoader } from "@/components/loader";
 import { useQueryState } from "nuqs";
 import { cn } from "@/lib/utils";
 
@@ -129,7 +129,7 @@ export default function DUserHome() {
   }, [featuredLanesData]);
 
   return (
-    <Suspense fallback={<InlineLoader fill />}>
+    <Suspense fallback={<PageLoader label="Loading lanes" />}>
       <div className="lg:px-xLayout px-4">
         <Tabs
           defaultValue={tabsTriggerArr[0].value}
@@ -213,7 +213,7 @@ export default function DUserHome() {
                     ref={lanesLoaderRef}
                     className="flex h-14 w-full items-center justify-center"
                   >
-                    {isFetchingNextPage && <InlineLoader fill />}
+                    {isFetchingNextPage && <InlineLoader size={32} />}
                   </div>
                 )}
               </TabsContent>
@@ -254,7 +254,7 @@ export default function DUserHome() {
                     ref={featuredLoaderRef}
                     className="flex h-14 w-full items-center justify-center"
                   >
-                    {featuredisFetchingNextPage && <InlineLoader fill />}
+                    {featuredisFetchingNextPage && <InlineLoader size={32} />}
                   </div>
                 )}
               </TabsContent>

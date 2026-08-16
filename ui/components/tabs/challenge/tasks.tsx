@@ -1,493 +1,702 @@
-import { Button } from "@/components/ui/button";
-import { SectionContainer, SectionContent } from "./components";
-import FileUpload from "@/components/input/file";
-import { useEffect, useRef, useState } from "react";
-import { usePersistStore } from "@/store/persist.store";
-import { SubmitTaskData } from "@/services/mutations/tasks/submit.task";
+"use client";
+
+import {useEffect, useMemo, useRef, useState} from "react";
+import axios, {CancelTokenSource} from "axios";
 import toast from "react-hot-toast";
-import { API_BASE_URL } from "@/config/routes";
-import axios, { CancelTokenSource } from "axios";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {AnimatePresence, motion} from "motion/react";
 import {
-  CheckCircle2,
-  CodeXml,
-  FileMinus,
-  Image,
-  Info,
-  Loader2,
-  TextInitial,
-  Video,
-  Volume2,
-  XCircle,
+    Brain,
+    CheckCircle2,
+    Loader2,
+    MessageSquare,
+    PenLine,
+    Sparkles,
+    Target,
+    TriangleAlert,
+    UploadCloud,
+    XCircle,
 } from "lucide-react";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
+import FileUpload from "@/components/input/file";
+import {LogoLoader} from "@/components/loader";
+import {Button} from "@/components/ui/button";
+import {RichTextEditor} from "@/components/ui/rich-text-editor";
+import {Textarea} from "@/components/ui/textarea";
+import {useQueryClient} from "@tanstack/react-query";
+
+import {API_BASE_URL, queryKeys} from "@/config/routes";
+import {cn} from "@/lib/utils";
+import {SubmitTaskData} from "@/services/mutations/tasks/submit.task";
+import {persistStore, usePersistStore} from "@/store/persist.store";
+import {Challenge} from "@/types/api/challenges";
+
+import {
+    Chip,
+    ChipGroup,
+    EmptyState,
+    getSubmissionFormatMeta,
+    InsetPanel,
+    Markdown,
+    SectionBody,
+    SectionCard,
+    SectionHeader,
+} from "./challenge.ui";
 
 interface TasksFormValues {
-  text: string;
-  comments: string;
-  useMemory: boolean;
+    text: string;
+    comments: string;
+    useMemory: boolean;
 }
 
 interface SSEStarted {
-  type: "started";
-  challengeId: string;
+    type: "started";
+    challengeId: string;
 }
 
 interface SSEChunk {
-  type: "chunk";
-  data: string;
-  challengeId: string;
+    type: "chunk";
+    data: string;
+    challengeId: string;
 }
 
 interface SSEError {
-  type: "error";
-  error: string;
-  code?: string;
+    type: "error";
+    error: string;
+    code?: string;
 }
 
 interface SSEComplete {
-  type: "complete";
-  pass: boolean;
-  feedback: string;
-  challengeId: string;
+    type: "complete";
+    pass: boolean;
+    feedback: string;
+    challengeId: string;
 }
 
 type SSEMessage = SSEStarted | SSEChunk | SSEComplete | SSEError;
 
+/** Formats that can only be satisfied by an upload. */
+const FILE_FORMATS = ["code", "image", "video", "audio"];
+
 export const TasksTab = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
-  const [finalResult, setFinalResult] = useState<SSEComplete | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
+    const [isComplete, setIsComplete] = useState(false);
+    const [finalResult, setFinalResult] = useState<SSEComplete | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const cancelTokenRef = useRef<CancelTokenSource | null>(null);
+    const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
-  const token = usePersistStore((state) => state.session.jwt);
-  const setShowRateLimitPrompt = usePersistStore(
-    (state) => state.setShowRateLimitPrompt
-  );
+    const queryClient = useQueryClient();
 
-  const submitWithSSE = async (
-      apiBaseUrl: string,
-      challengeId: string,
-      data: SubmitTaskData
-  ) => {
-    if (cancelTokenRef.current) {
-      cancelTokenRef.current.cancel("New request initiated");
-    }
+    const token = usePersistStore((state) => state.session.jwt);
+    const setShowRateLimitPrompt = usePersistStore(
+        (state) => state.setShowRateLimitPrompt
+    );
 
-    setIsComplete(false);
-    setFinalResult(null);
-    setError(null);
-    setIsSubmitting(true);
+    /**
+     * A graded attempt changes the lane's progress, the sidebar tick and the
+     * attempt history — none of which are part of this component's state, so
+     * they have to be pushed back into the store and the query cache by hand.
+     */
+    function syncChallengeResult(challengeId: string, passed: boolean) {
+        queryClient.invalidateQueries({
+            queryKey: [queryKeys.getChallengeSubmissions],
+        });
 
-    const url = `${apiBaseUrl}/challenge/${challengeId}`;
-    cancelTokenRef.current = axios.CancelToken.source();
+        if (!passed) return;
 
-    try {
-      const response = await axios.post(url, data, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "text/event-stream",
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
-        responseType: "stream",
-        cancelToken: cancelTokenRef.current.token,
-        adapter: "fetch",
-        onDownloadProgress: (progressEvent) => {
-          console.log("download progress event", progressEvent);
-          setIsConnected(true);
-          setIsSubmitting(false);
-        },
-      });
+        const active = persistStore.getState().currentChallenge;
 
-      setIsConnected(true);
-      setIsSubmitting(false);
-
-      const reader = response.data.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          setIsConnected(false);
-          break;
+        if (active?.id === challengeId) {
+            persistStore
+                .getState()
+                .setCurrentChellenge({...active, isCompleted: true});
         }
 
-        buffer += decoder.decode(value, { stream: true });
+        // Patch the cached list first so the header and sidebar update instantly,
+        // then refetch to pick up anything the server changed alongside it.
+        queryClient.setQueryData<Challenge[]>(["get-challenges"], (challenges) =>
+            challenges?.map((challenge) =>
+                challenge.id === challengeId
+                    ? {...challenge, isCompleted: true}
+                    : challenge
+            )
+        );
 
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        queryClient.invalidateQueries({queryKey: ["get-challenges"]});
+    }
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
+    const submitWithSSE = async (
+        apiBaseUrl: string,
+        challengeId: string,
+        data: SubmitTaskData
+    ) => {
+        if (cancelTokenRef.current) {
+            cancelTokenRef.current.cancel("New request initiated");
+        }
 
-            try {
-              const message: SSEMessage = JSON.parse(data);
+        setIsComplete(false);
+        setFinalResult(null);
+        setError(null);
+        setIsSubmitting(true);
 
-              switch (message.type) {
-                case "started":
-                  console.log("Challenge started:", message.challengeId);
-                  toast.success("Task submitted successfully!");
-                  break;
+        const url = `${apiBaseUrl}/challenge/${challengeId}`;
+        cancelTokenRef.current = axios.CancelToken.source();
 
-                case "chunk":
-                  console.log("Received chunk:", message.data);
-                  break;
+        try {
+            const response = await axios.post(url, data, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "text/event-stream",
+                    Authorization: `Bearer ${token}`,
+                },
+                withCredentials: true,
+                responseType: "stream",
+                cancelToken: cancelTokenRef.current.token,
+                adapter: "fetch",
+                onDownloadProgress: () => {
+                    setIsConnected(true);
+                    setIsSubmitting(false);
+                },
+            });
 
-                case "complete":
-                  setIsComplete(true);
-                  setFinalResult(message);
-                  console.log("Challenge complete:", message);
-                  setIsConnected(false);
-                  break;
+            setIsConnected(true);
+            setIsSubmitting(false);
 
-                case "error":
-                  if (message.code === "AI_RATE_LIMIT") {
-                    setShowRateLimitPrompt(true);
-                  } else {
-                    toast.error(message.error);
-                  }
-              }
-            } catch (err) {
-              console.error("Error parsing SSE message:", err);
+            const reader = response.data.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+                const {done, value} = await reader.read();
+
+                if (done) {
+                    setIsConnected(false);
+                    break;
+                }
+
+                buffer += decoder.decode(value, {stream: true});
+
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                        const data = line.slice(6);
+
+                        try {
+                            const message: SSEMessage = JSON.parse(data);
+
+                            switch (message.type) {
+                                case "started":
+                                    toast.success("Task submitted successfully!");
+                                    break;
+
+                                case "chunk":
+                                    break;
+
+                                case "complete":
+                                    setIsComplete(true);
+                                    setFinalResult(message);
+                                    setIsConnected(false);
+                                    syncChallengeResult(challengeId, message.pass);
+                                    break;
+
+                                case "error":
+                                    if (message.code === "AI_RATE_LIMIT") {
+                                        setShowRateLimitPrompt(true);
+                                    } else {
+                                        setError(message.error);
+                                        toast.error(message.error);
+                                    }
+                            }
+                        } catch (err) {
+                            console.error("Error parsing SSE message:", err);
+                        }
+                    }
+                }
             }
-          }
+        } catch (err: any) {
+            if (axios.isCancel(err)) {
+                toast.error("Request canceled");
+            } else {
+                const message =
+                    err.response?.data?.message || err.message || "Failed to connect";
+
+                console.error("Error with SSE request:", err);
+                setError(message);
+                toast.error(message);
+            }
+            setIsConnected(false);
+            setIsSubmitting(false);
         }
-      }
-    } catch (err: any) {
-      if (axios.isCancel(err)) {
-        console.log("Request canceled:", err.message);
-        toast.error("Request canceled");
-      } else {
-        console.error("Error with SSE request:", err);
-        // setError(
-        //     err.response?.data?.message || err.message || "Failed to connect"
-        // );
-        toast.error(err.response?.data?.message || err.message || "Failed to connect")
-      }
-      setIsConnected(false);
-      setIsSubmitting(false);
-    }
-  };
-
-  const cancel = () => {
-    if (cancelTokenRef.current) {
-      cancelTokenRef.current.cancel("Request canceled by user");
-      cancelTokenRef.current = null;
-    }
-    setIsConnected(false);
-    setIsSubmitting(false);
-  };
-
-  useEffect(() => {
-    return () => {
-      cancel();
     };
-  }, []);
 
-  const { currentChallenge } = usePersistStore((store) => store);
+    const cancel = () => {
+        if (cancelTokenRef.current) {
+            cancelTokenRef.current.cancel("Request canceled by user");
+            cancelTokenRef.current = null;
+        }
+        setIsConnected(false);
+        setIsSubmitting(false);
+    };
 
-  const [formValues, setFormValues] = useState<TasksFormValues>({
-    text: "",
-    comments: "",
-    useMemory: false,
-  });
+    useEffect(() => {
+        return () => {
+            cancel();
+        };
+    }, []);
 
-  const [files, setFiles] = useState<string[]>([]);
+    const {currentChallenge} = usePersistStore((store) => store);
 
-  // Updated handler for rich text editor
-  function handleRichTextChange(html: string) {
-    setFormValues((prev) => ({
-      ...prev,
-      text: html,
-    }));
-  }
+    const [formValues, setFormValues] = useState<TasksFormValues>({
+        text: "",
+        comments: "",
+        useMemory: false,
+    });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+    const [files, setFiles] = useState<string[]>([]);
+
+    function handleRichTextChange(html: string) {
+        setFormValues((prev) => ({...prev, text: html}));
+    }
+
+    const formats = useMemo(
+        () => currentChallenge?.submissionFormat ?? [],
+        [currentChallenge]
+    );
+
+    const needsText = formats.includes("text");
+    const needsFiles = FILE_FORMATS.some((format) => formats.includes(format));
+
+    // Turn the disabled state into guidance instead of a dead button.
+    const missing = useMemo(() => {
+        const gaps: string[] = [];
+
+        if (needsText && !formValues.text.trim()) gaps.push("a written response");
+        if (needsFiles && files.length < 1) gaps.push("at least one file");
+
+        return gaps;
+    }, [needsText, needsFiles, formValues.text, files.length]);
+
+    const isDisabled = missing.length > 0;
+    const isBusy = isConnected || isSubmitting;
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+
+        if (!currentChallenge) {
+            toast.error("No challenge selected.");
+            return;
+        }
+
+        if (missing.length > 0) {
+            toast.error("Please fill in all required fields.");
+            return;
+        }
+
+        const submissionData = {
+            ...formValues,
+            files: files,
+            challenge_id: currentChallenge.id,
+        };
+
+        submitWithSSE(API_BASE_URL, currentChallenge.id, submissionData);
+    }
+
+    const errorRef = useRef<HTMLDivElement>(null);
+    const loadingRef = useRef<HTMLDivElement>(null);
+    const resultRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (error && errorRef.current) {
+            errorRef.current.scrollIntoView({behavior: "smooth", block: "nearest"});
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (isConnected && !isComplete && loadingRef.current) {
+            loadingRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+            });
+        }
+    }, [isConnected, isComplete]);
+
+    useEffect(() => {
+        if (isComplete && finalResult && resultRef.current) {
+            resultRef.current.scrollIntoView({behavior: "smooth", block: "nearest"});
+        }
+    }, [isComplete, finalResult]);
 
     if (!currentChallenge) {
-      toast.error("No challenge selected.");
-      return;
+        return (
+            <SectionCard>
+                <SectionBody className="pt-5 md:pt-6">
+                    <EmptyState
+                        icon={Sparkles}
+                        title="No challenge selected"
+                        description="Pick a challenge from the lane sidebar to start working on it."
+                    />
+                </SectionBody>
+            </SectionCard>
+        );
     }
 
-    // Check if text has actual content
-    const textContent = formValues.text.trim();
-
-    if (
-        (currentChallenge.submissionFormat.includes("text") && !textContent) ||
-        (currentChallenge.submissionFormat.includes("code") && files.length < 1) ||
-        (currentChallenge.submissionFormat.includes("image") && files.length < 1) ||
-        (currentChallenge.submissionFormat.includes("video") && files.length < 1) ||
-        (currentChallenge.submissionFormat.includes("audio") && files.length < 1)
-    ) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-
-    const submissionData = {
-      ...formValues,
-      files: files,
-      challenge_id: currentChallenge.id,
-    };
-
-    submitWithSSE(API_BASE_URL, currentChallenge.id, submissionData);
-  }
-
-  const submissionFormatIcons: Record<
-      string,
-      { icon: React.ReactNode; tooltip: string }
-  > = {
-    video: { icon: <Video className="h-4 w-4" />, tooltip: "video" },
-    image: { icon: <Image className="h-4 w-4" />, tooltip: "image" },
-    text: { icon: <TextInitial className="h-4 w-4" />, tooltip: "text" },
-    document: { icon: <FileMinus className="h-4 w-4" />, tooltip: "document" },
-    audio: { icon: <Volume2 className="h-4 w-4" />, tooltip: "audio" },
-    code: { icon: <CodeXml className="h-4 w-4" />, tooltip: "code" },
-  };
-
-  const errorRef = useRef<HTMLDivElement>(null);
-  const loadingRef = useRef<HTMLDivElement>(null);
-  const resultRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (error && errorRef.current) {
-      errorRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (isConnected && !isComplete && loadingRef.current) {
-      loadingRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }, [isConnected, isComplete]);
-
-  useEffect(() => {
-    if (isComplete && finalResult && resultRef.current) {
-      resultRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }, [isComplete, finalResult]);
-
-  const [isDisabled, setIsDisabled] = useState(true);
-
-  useEffect(() => {
-    const textContent = formValues.text.trim();
-
-    if (
-        currentChallenge &&
-        ((currentChallenge.submissionFormat.includes("text") && !textContent) ||
-            (currentChallenge.submissionFormat.includes("code") && files.length < 1) ||
-            (currentChallenge.submissionFormat.includes("image") && files.length < 1) ||
-            (currentChallenge.submissionFormat.includes("video") && files.length < 1) ||
-            (currentChallenge.submissionFormat.includes("audio") && files.length < 1))
-    ) {
-      setIsDisabled(true);
-    } else {
-      setIsDisabled(false);
-    }
-  }, [currentChallenge, formValues.text, files.length]);
-
-  if (!currentChallenge) {
     return (
-        <SectionContainer>
-          <p className="bg-brand-background-dashboard text-brand-black flex h-20 items-center justify-center rounded-xl text-base font-normal italic">
-            Please select a challenge from the sidebar.
-          </p>
-        </SectionContainer>
-    );
-  }
+        <div className="flex flex-col gap-5">
+            {/* ------------------------------------------------------ the brief - */}
+            <SectionCard>
+                <SectionHeader
+                    icon={Target}
+                    title="Your task"
+                    description="What you need to produce for this challenge"
+                    trailing={
+                        formats.length > 0 ? (
+                            <ChipGroup className="hidden justify-end sm:flex">
+                                {formats.map((format) => {
+                                    const meta = getSubmissionFormatMeta(format);
 
-  return (
-      <div className="flex flex-col gap-6">
-        <SectionContent title="Task" content={currentChallenge.assignment} />
-
-        {(currentChallenge.submissionFormat.includes("video") ||
-            currentChallenge.submissionFormat.includes("image") ||
-            currentChallenge.submissionFormat.includes("code") ||
-            currentChallenge.submissionFormat.includes("audio")) && (
-            <SectionContainer>
-              <div className="flex w-full items-center justify-between">
-                <h2 className="text-base font-semibold">Upload</h2>
-                <div className="flex items-center gap-2">
-                  {currentChallenge.submissionFormat.map((format) => {
-                    if (format.toLowerCase() === "text") return null;
-                    const iconData = submissionFormatIcons[format];
-                    return iconData ? (
-                        <div key={format} className="flex items-center gap-1" title={iconData.tooltip}>
-                          {iconData.icon}
-                          <span className="text-xs uppercase">{format}</span>
-                        </div>
-                    ) : null;
-                  })}
-                </div>
-              </div>
-              <FileUpload fileLink={files} setFileLink={setFiles} />
-            </SectionContainer>
-        )}
-
-        <form onSubmit={(e) => handleSubmit(e)} className="flex flex-col gap-6">
-          {currentChallenge.submissionFormat.includes("text") && (
-              <SectionContainer>
-                <div className="flex w-full items-center justify-between">
-                  <h2 className="text-base font-semibold">Text</h2>
-                  <div className="flex items-center gap-2">
-                    {currentChallenge.submissionFormat.map((format) => {
-                      if (format.toLowerCase() !== "text") return null;
-                      const iconData = submissionFormatIcons[format];
-                      return iconData ? (
-                          <div key={format} className="flex items-center gap-1" title={iconData.tooltip}>
-                            {iconData.icon}
-                            <span className="text-xs uppercase">{format}</span>
-                          </div>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-
-                {/* Rich Text Editor replaces Textarea */}
-                <RichTextEditor
-                    value={formValues.text}
-                    onChange={handleRichTextChange}
-                    placeholder="Code and text submission here..."
-                    className="border-brand-black/40"
+                                    return (
+                                        <Chip key={format} icon={meta.icon}>
+                                            {meta.label}
+                                        </Chip>
+                                    );
+                                })}
+                            </ChipGroup>
+                        ) : undefined
+                    }
                 />
-              </SectionContainer>
-          )}
+                <SectionBody>
+                    <Markdown className="text-base">
+                        {currentChallenge.assignment}
+                    </Markdown>
+                </SectionBody>
+            </SectionCard>
 
-          <SectionContainer>
-            <div>
-              <h2 className="text-base font-semibold">Memory</h2>
-              <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
-                <div className="text-base font-normal">
-                  Enable this if you want the model to use stored context from
-                  earlier interactions when evaluating your submission.
-                </div>
-                <ToggleGroup
-                    value={formValues.useMemory ? "true" : "false"}
-                    onValueChange={(value) => {
-                      if (value) {
-                        setFormValues((prev) => ({
-                          ...prev,
-                          useMemory: value === "true",
-                        }));
-                      }
-                    }}
-                    type="single"
-                    className="w-full border border-solid border-black lg:w-fit"
-                >
-                  <ToggleGroupItem value="true" className="w-1/2 cursor-pointer lg:w-auto lg:px-4">
-                    Yes
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="false" className="w-1/2 cursor-pointer lg:w-auto lg:px-4">
-                    No
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-          </SectionContainer>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                {/* ------------------------------------------------------- upload - */}
+                {needsFiles && (
+                    <SectionCard>
+                        <SectionHeader
+                            icon={UploadCloud}
+                            title="Upload"
+                            description="Attach the file that proves your work"
+                            trailing={
+                                files.length > 0 ? (
+                                    <Chip tone="green" icon={CheckCircle2}>
+                                        {files.length} attached
+                                    </Chip>
+                                ) : (
+                                    <Chip tone="amber">Required</Chip>
+                                )
+                            }
+                        />
+                        <SectionBody>
+                            <FileUpload fileLink={files} setFileLink={setFiles}/>
+                        </SectionBody>
+                    </SectionCard>
+                )}
 
-          <div className="flex items-center justify-between gap-4">
-            <Button size={"lg"} disabled={isDisabled || isConnected || isSubmitting} className="flex-1">
-              {isSubmitting ? "Submitting..." : "Submit"}
-            </Button>
-            {!isComplete && isConnected && (
-                <Button
-                    size={"lg"}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      cancel();
-                    }}
-                    disabled={!isConnected && !isSubmitting}
-                    className="bg-brand-red rounded-tr-2xl rounded-tl px-4 text-white disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Cancel
-                </Button>
-            )}
-          </div>
-        </form>
+                {/* --------------------------------------------- written response - */}
+                {needsText && (
+                    <SectionCard>
+                        <SectionHeader
+                            icon={PenLine}
+                            title="Written response"
+                            description="Markdown, code blocks and links are all supported"
+                            trailing={
+                                formValues.text.trim() ? (
+                                    <Chip tone="green" icon={CheckCircle2}>
+                                        Drafted
+                                    </Chip>
+                                ) : (
+                                    <Chip tone="amber">Required</Chip>
+                                )
+                            }
+                        />
+                        <SectionBody>
+                            <RichTextEditor
+                                value={formValues.text}
+                                onChange={handleRichTextChange}
+                                placeholder="Write your answer here — explain your thinking, paste code, link your work…"
+                                className="border-brand-divider rounded-xl"
+                            />
+                        </SectionBody>
+                    </SectionCard>
+                )}
 
-        {/* Error, Loading, and Result sections remain the same */}
-        <div className="flex flex-col gap-4">
-          {error && (
-              <div ref={errorRef} className="text-brand-red bg-brand-red/10 rounded p-4">
-                {error}
-              </div>
-          )}
+                {/* -------------------------------------------- notes for the AI - */}
+                <SectionCard>
+                    <SectionHeader
+                        icon={MessageSquare}
+                        title="Notes for the reviewer"
+                        description="Optional context that helps the model judge your attempt fairly"
+                    />
+                    <SectionBody>
+                        <Textarea
+                            value={formValues.comments}
+                            onChange={(event) =>
+                                setFormValues((prev) => ({
+                                    ...prev,
+                                    comments: event.target.value,
+                                }))
+                            }
+                            placeholder="e.g. I filmed this left-handed because of an injury…"
+                            rows={3}
+                            className="border-brand-divider focus-visible:border-brand-text/30 resize-none rounded-xl"
+                        />
+                    </SectionBody>
+                </SectionCard>
 
-          {isConnected && !isComplete && (
-              <div ref={loadingRef} className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 px-4 py-3 text-sm">
-                <div className="mt-1 rounded-full bg-primary/10 p-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                </div>
-                <div className="flex flex-1 flex-col gap-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium text-foreground">Evaluating your challenge…</p>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-foreground/70">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  In progress
-                </span>
-                  </div>
-                  <p className="text-xs text-foreground/70">
-                    This usually takes a few seconds. You can continue reviewing other tasks while we validate.
-                  </p>
-                  <div className="mt-1 flex flex-col gap-1.5 text-[11px] text-foreground/60">
-                    <div className="h-2.5 w-11/12 rounded-full bg-gradient-to-r from-primary/40 via-primary/20 to-muted" />
-                    <div className="h-2.5 w-9/12 rounded-full bg-muted" />
-                    <div className="h-2.5 w-7/12 rounded-full bg-muted" />
-                  </div>
-                </div>
-              </div>
-          )}
+                {/* ------------------------------------------------------- memory - */}
+                <SectionCard>
+                    <SectionHeader
+                        icon={Brain}
+                        title="Memory"
+                        description="Let the model weigh your earlier attempts when it grades this one"
+                    />
+                    <SectionBody>
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <p className="text-brand-text/60 max-w-2xl text-sm leading-relaxed">
+                                With memory on, feedback builds on your history in this lane instead of judging every
+                                submission from scratch.
+                            </p>
 
-          {isComplete && finalResult && (
-              <div
-                  ref={resultRef}
-                  className={`flex flex-col gap-3 rounded-xl border p-4 shadow-sm transition-all duration-200 ${
-                      finalResult.pass ? "border-emerald-400/70 bg-emerald-500/5" : "border-destructive/70 bg-destructive/5"
-                  }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    {finalResult.pass ? (
-                        <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    ) : (
-                        <XCircle className="h-5 w-5 text-destructive" />
-                    )}
-                    <div>
-                      <p className="text-sm font-semibold">
-                        {finalResult.pass ? "Challenge Passed" : "Challenge Failed"}
-                      </p>
-                      <p className="text-xs text-foreground/70">
-                        {finalResult.pass
-                            ? "Nice work — all required checks were satisfied."
-                            : "Some checks did not pass. Review the feedback below."}
-                      </p>
+                            <SegmentedToggle
+                                value={formValues.useMemory}
+                                onChange={(useMemory) =>
+                                    setFormValues((prev) => ({...prev, useMemory}))
+                                }
+                            />
+                        </div>
+                    </SectionBody>
+                </SectionCard>
+
+                {/* ------------------------------------------------------- submit - */}
+                <div
+                    className="border-brand-divider shadow-brand-shadow flex flex-col gap-3 rounded-2xl border border-solid bg-white p-5 md:p-6">
+                    <div className="flex items-center gap-3">
+                        <Button
+                            size="lg"
+                            disabled={isDisabled || isBusy}
+                            className="flex-1"
+                            type="submit"
+                        >
+                            {isSubmitting && <Loader2 className="size-4 animate-spin"/>}
+                            {isSubmitting
+                                ? "Submitting…"
+                                : isConnected
+                                    ? "Evaluating…"
+                                    : "Submit for review"}
+                        </Button>
+
+                        {isBusy && (
+                            <Button
+                                size="lg"
+                                type="button"
+                                variant="outline"
+                                onClick={cancel}
+                                className="border-brand-red/30 text-brand-red hover:bg-brand-red/5 hover:text-brand-red-50 rounded-tl rounded-tr-2xl px-6"
+                            >
+                                Cancel
+                            </Button>
+                        )}
                     </div>
-                  </div>
-                  <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                          finalResult.pass ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"
-                      }`}
-                  >
-                {finalResult.pass ? "Passed" : "Failed"}
-              </span>
+
+                    <p className="text-brand-text/45 text-xs">
+                        {isDisabled
+                            ? `Add ${missing.join(" and ")} to submit.`
+                            : "Your submission is graded against the task brief above."}
+                    </p>
                 </div>
-                <div className="mt-1 rounded-lg bg-background/60 px-3 py-2 text-sm">
-                  <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-foreground/70">
-                    <Info className="h-3.5 w-3.5 text-foreground/60" />
-                    Feedback
-                  </div>
-                  <p className="text-sm italic text-foreground/90">{finalResult.feedback}</p>
-                </div>
-              </div>
-          )}
+            </form>
+
+            {/* --------------------------------------------------- evaluation - */}
+            {/* Default (sync) mode: the incoming panel mounts immediately rather
+          than waiting for the previous state to finish animating out. */}
+            <AnimatePresence>
+                {error && !isBusy && (
+                    <motion.div
+                        key="error"
+                        ref={errorRef}
+                        initial={{opacity: 0, y: 8}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0}}
+                        className="border-brand-red/25 bg-brand-red/5 flex items-start gap-3 rounded-2xl border border-solid p-5"
+                    >
+                        <TriangleAlert className="text-brand-red mt-0.5 size-5 shrink-0"/>
+                        <div className="flex flex-col gap-1">
+                            <p className="text-brand-text text-sm font-semibold">
+                                We couldn&apos;t finish the review
+                            </p>
+                            <p className="text-brand-text/60 text-sm">{error}</p>
+                        </div>
+                    </motion.div>
+                )}
+
+                {isConnected && !isComplete && (
+                    <motion.div
+                        key="evaluating"
+                        ref={loadingRef}
+                        initial={{opacity: 0, y: 8}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0}}
+                    >
+                        <SectionCard className="overflow-hidden">
+                            <SectionBody className="flex items-start gap-4 pt-5 md:pt-6">
+                <span
+                    className="bg-brand-text/[0.06] text-brand-text flex size-10 shrink-0 items-center justify-center rounded-lg">
+                  <LogoLoader size={22}/>
+                </span>
+
+                                <div className="flex flex-1 flex-col gap-3">
+                                    <div className="flex flex-col gap-1">
+                                        <p className="text-brand-text text-sm font-semibold">
+                                            Evaluating your submission
+                                        </p>
+                                        <p className="text-brand-text/50 text-xs leading-relaxed">
+                                            Reading your work against the task brief. This usually
+                                            takes a few seconds — you can keep browsing other tabs.
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        className="bg-brand-text/10 relative h-1.5 w-full overflow-hidden rounded-full">
+                                        <motion.span
+                                            className="via-brand-red/60 absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent to-transparent"
+                                            animate={{x: ["-110%", "310%"]}}
+                                            transition={{
+                                                duration: 1.6,
+                                                repeat: Infinity,
+                                                ease: "easeInOut",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </SectionBody>
+                        </SectionCard>
+                    </motion.div>
+                )}
+
+                {isComplete && finalResult && (
+                    <motion.div
+                        key="result"
+                        ref={resultRef}
+                        initial={{opacity: 0, y: 8}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0}}
+                        className={cn(
+                            "shadow-brand-shadow overflow-hidden rounded-2xl border border-solid",
+                            finalResult.pass
+                                ? "border-brand-green/25 bg-brand-lite-green/40"
+                                : "border-brand-red/25 bg-brand-red/5"
+                        )}
+                    >
+                        <div className="flex items-start justify-between gap-4 p-5 md:p-6">
+                            <div className="flex items-start gap-3">
+                <span
+                    className={cn(
+                        "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                        finalResult.pass
+                            ? "bg-brand-green/15 text-brand-green"
+                            : "bg-brand-red/10 text-brand-red"
+                    )}
+                >
+                  {finalResult.pass ? (
+                      <CheckCircle2 className="size-5"/>
+                  ) : (
+                      <XCircle className="size-5"/>
+                  )}
+                </span>
+
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-brand-text text-base font-bold">
+                                        {finalResult.pass ? "Challenge passed" : "Not quite yet"}
+                                    </p>
+                                    <p className="text-brand-text/60 text-sm leading-relaxed">
+                                        {finalResult.pass
+                                            ? "Every required check was satisfied — move on to the next challenge."
+                                            : "Some checks didn't pass. Read the feedback, then submit again."}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <Chip tone={finalResult.pass ? "green" : "red"}>
+                                {finalResult.pass ? "Passed" : "Failed"}
+                            </Chip>
+                        </div>
+
+                        {finalResult.feedback && (
+                            <div className="px-5 pb-5 md:px-6 md:pb-6">
+                                <InsetPanel className="border-transparent bg-white/70 p-4">
+                                    <p className="text-brand-text/45 mb-2 text-[10px] font-bold tracking-[0.1em] uppercase">
+                                        Feedback
+                                    </p>
+                                    <Markdown className="text-sm">
+                                        {finalResult.feedback}
+                                    </Markdown>
+                                </InsetPanel>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
-      </div>
-  );
+    );
+};
+
+interface SegmentedToggleProps {
+    value: boolean;
+    onChange: (value: boolean) => void;
+}
+
+/**
+ * Two-state segmented control. The thumb slides between the halves and its
+ * oversized corner swaps sides as it travels, so the shape always leans away
+ * from the control's centre the way the paired nav buttons do.
+ */
+const SegmentedToggle = ({value, onChange}: SegmentedToggleProps) => {
+    const options = [
+        {label: "On", selected: true},
+        {label: "Off", selected: false},
+    ];
+
+    return (
+        <div
+            className="border-brand-divider relative grid w-full shrink-0 grid-cols-2 rounded rounded-t-2xl border border-solid p-1 lg:w-52">
+      <span
+          aria-hidden
+          className={cn(
+              "bg-brand-text pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-b-[4px]",
+              "transition-[translate,border-radius] duration-300 ease-out",
+              // The oversized corner leads the thumb, leaning away from centre.
+              value
+                  ? "translate-x-0 rounded-tl-[14px] rounded-tr-[4px]"
+                  : "translate-x-full rounded-tl-[4px] rounded-tr-[14px]"
+          )}
+      />
+
+            {options.map((option) => {
+                const isActive = value === option.selected;
+
+                return (
+                    <button
+                        key={option.label}
+                        type="button"
+                        aria-pressed={isActive}
+                        onClick={() => onChange(option.selected)}
+                        className={cn(
+                            "relative z-10 cursor-pointer px-6 py-1.5 text-sm font-semibold transition-colors duration-200",
+                            isActive
+                                ? "text-brand-white"
+                                : "text-brand-text/45 hover:text-brand-text/70"
+                        )}
+                    >
+                        {option.label}
+                    </button>
+                );
+            })}
+        </div>
+    );
 };

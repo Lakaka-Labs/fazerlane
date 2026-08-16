@@ -68,6 +68,8 @@
   --color-brand-bright-green: #4bed30;
   --color-brand-lite-green: #e8f5e9;
   --animate-shimmer: shimmer 2s infinite;
+  --animate-fazer-streak: fazerStreak 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite
+    backwards;
 }
 
 @theme inline {
@@ -217,5 +219,43 @@
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+/* Each streak of the Fazerlane mark sweeps along its own diagonal and fades at
+   both ends, so the staggered loop reads as motion through the lane rather than
+   four separate blinking shapes. */
+@keyframes fazerStreak {
+  0% {
+    opacity: 0;
+    transform: translate3d(-18px, 6px, 0);
+  }
+  25% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(18px, -6px, 0);
+  }
+}
+
+/* The streaks are staggered, so each one waits out its delay before its first
+   keyframe lands. `backwards` fill (set on the animation shorthand) holds them
+   at the 0% frame during that wait; this covers the frame before the animation
+   is applied at all. Without both, the mark flashes solid then pops. Keyframes
+   outrank normal declarations, so this never fights the running animation. */
+.animate-fazer-streak {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fazer-streak {
+    animation: none;
+    opacity: 1;
   }
 }

@@ -129,118 +129,128 @@ export default function FileUpload({ fileLink, setFileLink }: FileUploadProps) {
   }
 
   const getFileIcon = (filename: string) => {
-    const ext = filename.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) return <ImageIcon className="h-5 w-5 text-blue-500" />;
-    if (['mp4', 'mov', 'avi', 'webm'].includes(ext || '')) return <Film className="h-5 w-5 text-purple-500" />;
-    if (['mp3', 'wav', 'ogg'].includes(ext || '')) return <Music className="h-5 w-5 text-pink-500" />;
-    if (['pdf', 'doc', 'docx', 'txt'].includes(ext || '')) return <FileText className="h-5 w-5 text-orange-500" />;
-    return <File className="h-5 w-5 text-gray-500" />;
+    const ext = filename.split(".").pop()?.toLowerCase();
+    const className = "text-brand-text/55 h-[18px] w-[18px]";
+
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext || ""))
+      return <ImageIcon className={className} />;
+    if (["mp4", "mov", "avi", "webm"].includes(ext || ""))
+      return <Film className={className} />;
+    if (["mp3", "wav", "ogg"].includes(ext || ""))
+      return <Music className={className} />;
+    if (["pdf", "doc", "docx", "txt"].includes(ext || ""))
+      return <FileText className={className} />;
+    return <File className={className} />;
   };
 
   return (
-      <div className="w-full space-y-4">
-        <div
-            className={cn(
-                "relative group flex flex-col items-center justify-center w-full h-52 rounded-xl border-2 border-dashed transition-all duration-200 ease-in-out cursor-pointer overflow-hidden",
-                isDragging
-                    ? "border-primary bg-primary/5 scale-[1.01]"
-                    : "border-gray-300 bg-gray-50/50 hover:border-primary/50 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900/50",
-                isLoading && "pointer-events-none opacity-50"
-            )}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={handleBrowseClick}
-        >
-          <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-          />
-
-          <div className="flex flex-col items-center justify-center gap-3 text-center p-6 transition-transform duration-200 group-hover:scale-105">
-            <div className={cn(
-                "p-3 rounded-full bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-gray-800 dark:ring-white/10",
-                isDragging && "ring-primary/20"
-            )}>
-              {isLoading ? (
-                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
-              ) : (
-                  <UploadCloud className={cn(
-                      "h-6 w-6 transition-colors duration-200",
-                      isDragging ? "text-primary" : "text-gray-400 group-hover:text-gray-600"
-                  )} />
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                {isLoading ? (
-                    "Uploading your files..."
-                ) : (
-                    <>
-                      <span className="text-primary hover:underline">Click to upload</span> or drag and drop
-                    </>
-                )}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                SVG, PNG, JPG or MP4 (max. 500MB)
-              </p>
-            </div>
-          </div>
-
-          {/* Animated Border Overlay */}
-          {isDragging && (
-              <div className="absolute inset-0 pointer-events-none border-2 border-primary rounded-xl animate-pulse" />
-          )}
-        </div>
-
-        {/* Uploaded Files List */}
-        {fileLink.length > 0 && files.length > 0 && (
-            <div className="space-y-3 animate-in slide-in-from-top-2 duration-200">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 ml-1">
-                Uploaded Files ({files.length})
-              </h4>
-
-              <div className="grid gap-2">
-                {files.map((file, index) => (
-                    fileLink[index] && (
-                        <div
-                            key={file.id}
-                            className="group relative flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-gray-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-950"
-                        >
-                          <div className="flex-shrink-0 rounded-md bg-gray-50 p-2 dark:bg-gray-900">
-                            {getFileIcon(file.name)}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {file.name}
-                              </p>
-                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" />
-                            </div>
-                            <p className="text-xs text-gray-500">{file.size}</p>
-                          </div>
-
-                          <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeFile(fileLink[index], file.id);
-                              }}
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
-                              title="Remove file"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                    )
-                ))}
-              </div>
-            </div>
+    <div className="flex w-full flex-col gap-4">
+      <div
+        className={cn(
+          "group relative flex h-44 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all duration-200 ease-out",
+          isDragging
+            ? "border-brand-red bg-brand-red/5"
+            : "border-brand-divider bg-brand-background-dashboard/60 hover:border-brand-text/25 hover:bg-brand-background-dashboard",
+          isLoading && "pointer-events-none opacity-60"
         )}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={handleBrowseClick}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+
+        <div className="flex flex-col items-center justify-center gap-3 p-6 text-center transition-transform duration-200 ease-out group-hover:scale-[1.02]">
+          <span
+            className={cn(
+              "border-brand-divider flex size-12 items-center justify-center rounded-xl border border-solid bg-white transition-colors duration-200",
+              isDragging && "border-brand-red/40"
+            )}
+          >
+            {isLoading ? (
+              <Loader2 className="text-brand-red size-5 animate-spin" />
+            ) : (
+              <UploadCloud
+                className={cn(
+                  "size-5 transition-colors duration-200",
+                  isDragging
+                    ? "text-brand-red"
+                    : "text-brand-text/40 group-hover:text-brand-text/70"
+                )}
+              />
+            )}
+          </span>
+
+          <div className="flex flex-col gap-1">
+            <p className="text-brand-text text-sm font-semibold">
+              {isLoading ? (
+                "Uploading your file…"
+              ) : (
+                <>
+                  <span className="text-brand-red">Click to upload</span> or drag
+                  and drop
+                </>
+              )}
+            </p>
+            <p className="text-brand-text/45 text-xs">
+              One file at a time · up to 500MB
+            </p>
+          </div>
+        </div>
       </div>
+
+      {/* Uploaded Files List */}
+      {fileLink.length > 0 && files.length > 0 && (
+        <div className="animate-in slide-in-from-top-2 flex flex-col gap-2 duration-200">
+          <p className="text-brand-text/45 text-[10px] font-bold tracking-[0.1em] uppercase">
+            Uploaded ({files.length})
+          </p>
+
+          <div className="flex flex-col gap-2">
+            {files.map(
+              (file, index) =>
+                fileLink[index] && (
+                  <div
+                    key={file.id}
+                    className="group border-brand-divider hover:shadow-brand-shadow relative flex items-center gap-3 rounded-xl border border-solid bg-white p-3 transition-all duration-200"
+                  >
+                    <span className="bg-brand-background-dashboard flex size-9 shrink-0 items-center justify-center rounded-lg">
+                      {getFileIcon(file.name)}
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-brand-text truncate text-sm font-medium">
+                          {file.name}
+                        </p>
+                        <CheckCircle2 className="text-brand-green size-3.5 shrink-0" />
+                      </div>
+                      <p className="text-brand-text/45 text-xs">{file.size}</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(fileLink[index], file.id);
+                      }}
+                      className="text-brand-text/35 hover:bg-brand-red/10 hover:text-brand-red flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-200"
+                      title="Remove file"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                )
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

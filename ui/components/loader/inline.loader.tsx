@@ -1,11 +1,31 @@
-import { LoaderCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import LogoLoader from "./logo.loader";
 
-export default function InlineLoader({ fill = false }: { fill?: boolean }) {
+interface InlineLoaderProps {
+  /** Stretch to the parent's box and centre inside it. */
+  fill?: boolean;
+  size?: number;
+  label?: string;
+  className?: string;
+}
+
+export default function InlineLoader({
+  fill = true,
+  size = 42,
+  label,
+  className,
+}: InlineLoaderProps) {
   return (
     <span
-      className={`${fill ? "block" : "inline"} text-primary flex h-full w-full animate-pulse items-center justify-center`}
+      className={cn(
+        // `flex` has to survive class merging — pairing it with a `block` /
+        // `inline` toggle silently wins the display slot and kills centring.
+        "flex items-center justify-center",
+        fill ? "h-full w-full" : "w-fit",
+        className
+      )}
     >
-      <LoaderCircle size={48} className="animate-spin" />
+      <LogoLoader size={size} label={label ?? "Loading"} />
     </span>
   );
 }

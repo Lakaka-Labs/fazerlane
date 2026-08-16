@@ -39,7 +39,13 @@ export default function HeaderAvatar() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        {/* Radix derives this id from `useId()`, whose value depends on the
+            component's path through the tree. The header sits inside the auth
+            Suspense boundary alongside components that suspend during SSR, so
+            the server and client passes can land on different paths and emit
+            different ids — a hydration mismatch on this attribute alone. A
+            stable id sidesteps the generated one entirely. */}
+        <DropdownMenuTrigger asChild id="user-menu-trigger">
           <Avatar className="cursor-pointer">
             <AvatarImage />
             <AvatarFallback className="bg-brand-black hover:bg-primary text-brand-white size-8 uppercase">

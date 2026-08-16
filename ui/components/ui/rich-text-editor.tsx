@@ -46,7 +46,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     };
 
     return (
-        <div className="flex flex-wrap gap-1 border-b border-border p-2">
+        <div className="border-brand-divider bg-brand-background-dashboard/60 flex flex-wrap gap-1 border-b border-solid p-2">
             <Toggle
                 size="sm"
                 pressed={editor.isActive("bold")}
@@ -201,8 +201,23 @@ export function RichTextEditor({
         editorProps: {
             attributes: {
                 class: cn(
-                    "prose prose-sm dark:prose-invert max-w-none min-h-[100px] p-3 focus:outline-none",
-                    "[&_.is-editor-empty:first-child::before]:text-muted-foreground",
+                    // `@tailwindcss/typography` isn't installed, so the editor
+                    // needs its own explicit, on-brand type scale.
+                    "text-brand-text/85 min-h-[140px] max-w-none p-4 text-[15px] leading-relaxed focus:outline-none",
+                    "[&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+                    "[&_p]:my-2",
+                    "[&_h1]:text-brand-text [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-xl [&_h1]:font-bold",
+                    "[&_h2]:text-brand-text [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-bold",
+                    "[&_h3]:text-brand-text [&_h3]:mt-3 [&_h3]:mb-1.5 [&_h3]:text-base [&_h3]:font-semibold",
+                    "[&_strong]:text-brand-text [&_strong]:font-semibold",
+                    "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5",
+                    "[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5",
+                    "[&_li::marker]:text-brand-text/35",
+                    "[&_blockquote]:border-brand-red/40 [&_blockquote]:text-brand-text/60 [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-solid [&_blockquote]:pl-4 [&_blockquote]:italic",
+                    "[&_code]:bg-brand-text/[0.06] [&_code]:text-brand-text [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em]",
+                    "[&_pre]:bg-brand-deep-black [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:p-4 [&_pre]:text-[13px] [&_pre]:text-white",
+                    "[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit",
+                    "[&_.is-editor-empty:first-child::before]:text-brand-text/35",
                     "[&_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]",
                     "[&_.is-editor-empty:first-child::before]:float-left",
                     "[&_.is-editor-empty:first-child::before]:pointer-events-none",
@@ -229,8 +244,8 @@ export function RichTextEditor({
     return (
         <div
             className={cn(
-                "rounded-xl border border-border bg-background overflow-hidden",
-                "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+                "border-brand-divider overflow-hidden rounded-xl border border-solid bg-white transition-colors duration-200",
+                "focus-within:border-brand-text/30",
                 className
             )}
         >
