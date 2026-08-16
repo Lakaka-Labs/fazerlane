@@ -176,7 +176,11 @@ export default class Gemini implements LLMRepository {
      * into Gemini has to come back out as one of our own errors — otherwise the
      * blob travels all the way to the client.
      */
-    private toApiError = (e: any): ApiError => {
+    private toApiError = (e: any): Error => {
+        // A cancelled submission isn't a failure and has its own stream event, so
+        // the name has to survive rather than be relabelled as a model error.
+        if (e?.name === 'AbortError') return e
+
         console.error("gemini error:", e)
 
         if (e instanceof ApiError) return e
@@ -189,7 +193,7 @@ export default class Gemini implements LLMRepository {
             // forever, so a resubmitted old attempt reads as a permission failure.
             if (MISSING_FILE_ERROR.test(String(e.message ?? ""))) {
                 return new BadRequestError(
-                    "One of your uploaded files has expired, re-upload it and try again"
+                    "We couldn't read one of your uploaded files, re-upload it and try again"
                 )
             }
             return new BadRequestError("You do not have required permissions")

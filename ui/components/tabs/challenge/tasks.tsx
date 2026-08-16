@@ -29,6 +29,7 @@ import {cn} from "@/lib/utils";
 import {SubmitTaskData} from "@/services/mutations/tasks/submit.task";
 import {persistStore, usePersistStore} from "@/store/persist.store";
 import {Challenge} from "@/types/api/challenges";
+import {toReadableMessage} from "@/utils/handleError";
 
 import {
     Chip,
@@ -77,6 +78,9 @@ type SSEMessage = SSEStarted | SSEChunk | SSEComplete | SSEError;
 /** Formats that can only be satisfied by an upload. */
 const FILE_FORMATS = ["code", "image", "video", "audio"];
 
+/** One id for every review failure, so repeats replace rather than stack. */
+const SUBMISSION_ERROR_TOAST = "submission-error";
+
 export const TasksTab = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [isComplete, setIsComplete] = useState(false);
@@ -124,6 +128,18 @@ export const TasksTab = () => {
         );
 
         queryClient.invalidateQueries({queryKey: ["get-challenges"]});
+    }
+
+    /**
+     * A failed review is reported in two places — the panel under the form and a
+     * toast — so both are set from here, and the shared toast id keeps a stream
+     * that reports twice from stacking duplicates on screen.
+     */
+    function reportFailure(raw: unknown) {
+        const message = toReadableMessage(raw);
+
+        setError(message);
+        toast.error(message, {id: SUBMISSION_ERROR_TOAST});
     }
 
     const submitWithSSE = async (
@@ -206,8 +222,7 @@ export const TasksTab = () => {
                                     if (message.code === "AI_RATE_LIMIT") {
                                         setShowRateLimitPrompt(true);
                                     } else {
-                                        setError(message.error);
-                                        toast.error(message.error);
+                                        reportFailure(message.error);
                                     }
                             }
                         } catch (err) {
@@ -220,12 +235,8 @@ export const TasksTab = () => {
             if (axios.isCancel(err)) {
                 toast.error("Request canceled");
             } else {
-                const message =
-                    err.response?.data?.message || err.message || "Failed to connect";
-
                 console.error("Error with SSE request:", err);
-                setError(message);
-                toast.error(message);
+                reportFailure(err.response?.data?.message || err.message);
             }
             setIsConnected(false);
             setIsSubmitting(false);

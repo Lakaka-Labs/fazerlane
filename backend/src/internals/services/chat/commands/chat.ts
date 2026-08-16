@@ -4,7 +4,7 @@ import type {MemoriesRepository} from "../../../domain/memories/repository.ts";
 import type {ChatRepository} from "../../../domain/chat/repository.ts";
 import type {MessagesWithRole, ModelResponse} from "../../../domain/llm";
 import type {Conversation} from "../../../domain/chat";
-import {ApiError, BadRequestError} from "../../../../packages/errors";
+import {BadRequestError, toClientError} from "../../../../packages/errors";
 import {llmForUser} from "../../../adapters/llm/resolve.ts";
 import type AppSecrets from "../../../../packages/secret";
 
@@ -183,8 +183,7 @@ export default class Chat {
             } else {
                 yield JSON.stringify({
                     type: 'error',
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    code: error instanceof ApiError ? error.code : undefined,
+                    ...toClientError(error, "chat"),
                     messageId
                 });
             }

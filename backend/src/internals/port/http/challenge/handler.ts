@@ -3,7 +3,7 @@ import {type Request, type Response, Router} from "express";
 import {SuccessResponse} from "../../../../packages/responses/success.ts";
 import ChallengeSchema from "./schema.ts";
 import ValidationMiddleware from "../middlewares/validation.ts";
-import {ApiError, BadRequestError} from "../../../../packages/errors";
+import {BadRequestError, toClientError} from "../../../../packages/errors";
 import {z} from "zod";
 import type {User} from "../../../domain/user";
 import type AppSecrets from "../../../../packages/secret";
@@ -175,8 +175,7 @@ export default class ChallengeHandler extends ChallengeSchema {
             if (!res.writableEnded && !res.destroyed) {
                 res.write(`data: ${JSON.stringify({
                     type: 'error',
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    code: error instanceof ApiError ? error.code : undefined
+                    ...toClientError(error, "markChallenge")
                 })}\n\n`);
             }
 

@@ -1,7 +1,7 @@
 import ChatService from "../../../services/chat";
 import {type Request, type Response, Router} from "express";
 import ValidationMiddleware from "../middlewares/validation.ts";
-import {ApiError, BadRequestError} from "../../../../packages/errors";
+import {BadRequestError, toClientError} from "../../../../packages/errors";
 import {z} from "zod";
 import type {User} from "../../../domain/user";
 import type BaseFilter from "../../../../packages/types/filter";
@@ -114,8 +114,7 @@ export default class ChatHandler {
             // Send error event
             res.write(`data: ${JSON.stringify({
                 type: 'error',
-                error: error instanceof Error ? error.message : 'Unknown error',
-                code: error instanceof ApiError ? error.code : undefined
+                ...toClientError(error, "chat")
             })}\n\n`);
 
             res.end();
