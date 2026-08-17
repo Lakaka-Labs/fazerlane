@@ -332,7 +332,7 @@ const LaneCardSkeleton = () => (
       {/* The rule is always in the layout on a card with challenges, so it is
           here too — leaving it out costs the placeholder 4px of height and
           nudges every card below it when the real one arrives. */}
-      <SkeletonLoader height={4} rounded="full" />
+      {/*<SkeletonLoader height={4} rounded="full" />*/}
 
       <div className="mt-1 flex w-full items-start justify-between gap-3">
         {/* Each bar sits inside a box the height of the line it replaces —
