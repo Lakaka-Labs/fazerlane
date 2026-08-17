@@ -134,7 +134,7 @@ export default function LaneSideBar({ challenges }: LaneSideBarProps) {
 
   return (
     <>
-      <div className="md:max-w-sidebarmw shadow-brand-shadow sticky hidden h-fit max-h-[90%] lg:w-full max-w-full flex-col rounded-2xl bg-white pb-4 md:m-1 md:flex">
+      <div className="md:max-w-sidebarmw shadow-brand-shadow sticky hidden h-fit max-h-[90%] lg:w-full max-w-full flex-col rounded-2xl bg-white pb-4 md:flex">
         {/* Header */}
         <div className="border-brand-divider border-b px-4 py-4 sm:px-6">
           <h1 className="flex items-center gap-3 text-base font-extrabold">

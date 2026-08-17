@@ -27,7 +27,7 @@ export default function DUserLayout({ children }: PropsWithChildren) {
               id="main-content"
               tabIndex={-1}
               ref={scrollContainerRef}
-              className="lg:py-xLayout h-[calc(100vh-70px)] w-full overflow-y-auto py-0 outline-none"
+              className="lg:py-xLayout h-[calc(100vh-70px)] w-full overflow-y-auto py-0 outline-none max-lg:mt-2"
             >
               {children}
             </main>
