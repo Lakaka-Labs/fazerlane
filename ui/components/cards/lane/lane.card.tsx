@@ -91,6 +91,9 @@ export default function LearnCard({lane}: LearnCardProps) {
             </div>
         );
     }
+    const total = Number(lane.totalChallenges) || 0;
+    const passed = Number(lane.challengesPassed) || 0;
+    const percent = total > 0 ? Math.min(100, (passed / total) * 100) : 0;
 
     return (
         <div
@@ -125,6 +128,21 @@ export default function LearnCard({lane}: LearnCardProps) {
                         quality={100}
                         priority
                     />
+                    {total > 0 && (
+                        <div
+                            role="progressbar"
+                            aria-valuenow={passed}
+                            aria-valuemin={0}
+                            aria-valuemax={total}
+                            aria-label={`${passed} of ${total} challenges cleared`}
+                            className="bg-brand-text/15 h-1 w-full shrink-0 overflow-hidden rounded-full group-hover:rounded-none"
+                        >
+                            <div
+                                className="bg-brand-red h-full rounded-full group-hover:rounded-none transition-[width] duration-500 ease-out"
+                                style={{width: `${percent}%`}}
+                            />
+                        </div>
+                    )}
                 </Link>
             )}
 
@@ -240,21 +258,7 @@ const ProgressCardSection = ({lane}: LearnCardProps) => {
           as "how far along this lane is" at a glance from across a grid, and
           the exact count moves down to the meta line where the other facts
           about the lane already live. */}
-            {total > 0 && (
-                <div
-                    role="progressbar"
-                    aria-valuenow={passed}
-                    aria-valuemin={0}
-                    aria-valuemax={total}
-                    aria-label={`${passed} of ${total} challenges cleared`}
-                    className="bg-brand-text/15 h-1 w-full shrink-0 overflow-hidden rounded-full group-hover:rounded-none"
-                >
-                    <div
-                        className="bg-brand-red h-full rounded-full group-hover:rounded-none transition-[width] duration-500 ease-out"
-                        style={{width: `${percent}%`}}
-                    />
-                </div>
-            )}
+
 
             <div className="mt-1 flex w-full items-start justify-between gap-3">
                 <div className="ml-2 flex min-w-0 flex-col gap-1">
